@@ -1,5 +1,6 @@
-// Prisma Schema for CampusMitra Student Organization & Platform Management
-// Database: TiDB Cloud MySQL 8.0 Compatible
+
+ // Prisma Schema for CampusMitra Student Organization & Platform Management
+ // Database: TiDB Cloud MySQL 8.0 Compatible
 
 generator client {
   provider = "prisma-client-js"
@@ -63,20 +64,49 @@ enum ApplicationStatus {
   REJECTED
 }
 
+// New enums for event booking and payments
+
+enum PaymentStatus {
+  CREATED
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  CANCELLED
+}
+
+enum EventBookingStatus {
+  RESERVED
+  PENDING_PAYMENT
+  CONFIRMED
+  CANCELLED
+  EXPIRED
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+// Existing models
+
 model User {
-  id              String         @id // Populated with UUID v7
-  username        String         @unique
-  email           String         @unique
+  id              String   @id // Populated with UUID v7
+  username        String   @unique
+  email           String   @unique
   passwordHash    String?
   fullName        String
   avatarUrl       String?
-  googleId        String?        @unique
+  googleId        String?  @unique
   phone           String?
-  bio             String?        @db.Text
-  isActive        Boolean        @default(true)
-  isEmailVerified Boolean        @default(false)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  bio             String?  @db.Text
+  isActive        Boolean  @default(true)
+  isEmailVerified Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   roles                  UserRole[]
   refreshTokens          RefreshToken[]
@@ -88,38 +118,45 @@ model User {
   notifications          Notification[]
   membershipApplications MembershipApplication[]
 
+  // Added for event booking and Razorpay
+  bookings Booking[]
+  payments Payment[]
+
   @@map("users")
 }
 
 model Organization {
-  id          String     @id // Populated with UUID v7
+  id          String   @id
   name        String
-  slug        String     @unique
-  description String?    @db.Text
+  slug        String   @unique
+  description String?  @db.Text
   category    String?
   logoUrl     String?
   coverUrl    String?
-  isActive    Boolean    @default(true)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   userRoles              UserRole[]
   supportTickets         SupportTicket[]
   elections              Election[]
   membershipApplications MembershipApplication[]
 
+  // Added for event management
+  events Event[]
+
   @@map("organizations")
 }
 
 model UserRole {
-  id             String        @id // Populated with UUID v7
+  id             String        @id
   userId         String
   role           RoleType      @default(STUDENT)
   organizationId String?
   assignedAt     DateTime      @default(now())
 
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   @@unique([userId, role, organizationId])
   @@index([userId])
@@ -128,7 +165,7 @@ model UserRole {
 }
 
 model RefreshToken {
-  id         String   @id // Populated with UUID v7
+  id         String   @id
   userId     String
   token      String   @unique @db.VarChar(500)
   expiresAt  DateTime
@@ -137,31 +174,31 @@ model RefreshToken {
   ipAddress  String?
   createdAt  DateTime @default(now())
 
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("refresh_tokens")
 }
 
 model SupportTicket {
-  id             String          @id // Populated with UUID v7
-  ticketNumber   String          @unique
+  id             String         @id
+  ticketNumber   String         @unique
   subject        String
-  description    String          @db.Text
-  category       TicketCategory  @default(GENERAL)
-  priority       TicketPriority  @default(MEDIUM)
-  status         TicketStatus    @default(OPEN)
+  description    String         @db.Text
+  category       TicketCategory @default(GENERAL)
+  priority       TicketPriority @default(MEDIUM)
+  status         TicketStatus   @default(OPEN)
   organizationId String?
   createdById    String
   assignedToId   String?
   resolvedAt     DateTime?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  createdBy      User            @relation("TicketsCreated", fields: [createdById], references: [id], onDelete: Cascade)
-  assignedTo     User?           @relation("TicketsAssigned", fields: [assignedToId], references: [id], onDelete: SetNull)
-  messages       SupportMessage[]
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  createdBy    User          @relation("TicketsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  assignedTo   User?         @relation("TicketsAssigned", fields: [assignedToId], references: [id], onDelete: SetNull)
+  messages     SupportMessage[]
 
   @@index([createdById])
   @@index([organizationId])
@@ -170,15 +207,15 @@ model SupportTicket {
 }
 
 model SupportMessage {
-  id           String        @id // Populated with UUID v7
+  id           String   @id
   ticketId     String
   senderId     String
-  message      String        @db.Text
-  isAdminReply Boolean       @default(false)
-  createdAt    DateTime      @default(now())
+  message      String   @db.Text
+  isAdminReply Boolean  @default(false)
+  createdAt    DateTime @default(now())
 
-  ticket       SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  sender       User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([ticketId])
   @@index([senderId])
@@ -186,22 +223,22 @@ model SupportMessage {
 }
 
 model Election {
-  id                 String             @id // Populated with UUID v7
+  id                 String         @id
   title              String
   organizationId     String
-  academicYear       String             @default("2026-2027")
-  description        String?            @db.Text
-  status             ElectionStatus     @default(DRAFT)
+  academicYear       String         @default("2026-2027")
+  description        String?        @db.Text
+  status             ElectionStatus @default(DRAFT)
   nominationDeadline DateTime
   votingStartDate    DateTime
   votingEndDate      DateTime
   winnerCandidateId  String?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 
-  organization       Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  candidates         ElectionCandidate[]
-  votes              ElectionVote[]
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  candidates   ElectionCandidate[]
+  votes        ElectionVote[]
 
   @@index([organizationId])
   @@index([status])
@@ -232,25 +269,25 @@ model ElectionCandidate {
 }
 
 model ElectionVote {
-  id          String            @id // Populated with UUID v7
+  id          String   @id
   electionId  String
   candidateId String
   voterId     String
-  castAt      DateTime          @default(now())
+  castAt      DateTime @default(now())
 
-  election    Election          @relation(fields: [electionId], references: [id], onDelete: Cascade)
-  candidate   ElectionCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  voter       User              @relation(fields: [voterId], references: [id], onDelete: Cascade)
+  election  Election          @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  candidate ElectionCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  voter     User              @relation(fields: [voterId], references: [id], onDelete: Cascade)
 
-  @@unique([electionId, voterId]) // Enforces STRICT ATOMIC 1-TIME VOTING PER USER
+  @@unique([electionId, voterId])
   @@index([electionId])
   @@index([candidateId])
   @@map("election_votes")
 }
 
 model Notification {
-  id        String   @id // Populated with UUID v7
-  userId    String?  // Null means global broadcast to all platform users
+  id        String   @id
+  userId    String?
   title     String
   message   String   @db.Text
   type      String   @default("SYSTEM")
@@ -258,32 +295,89 @@ model Notification {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("notifications")
 }
 
-model MembershipApplication {
-  id                 String            @id // Populated with UUID v7
-  userId             String
-  organizationId     String
-  statementOfPurpose String?           @db.Text // Why applying
-  experience         String?           @db.Text // Relevant experience
-  department         String?
-  semester           String?
-  status             ApplicationStatus @default(PENDING)
-  reviewedBy         String?
-  reviewedAt         DateTime?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
+// New models for event booking and Razorpay payments
 
-  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization       Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+model Event {
+  id             String      @id
+  organizationId String
+  title          String
+  slug           String      @unique
+  description    String      @db.Text
+  bannerUrl      String?
+  venue          String
+  startAt        DateTime
+  endAt          DateTime
+  totalSeats     Int
+  memberPrice    Int         // INR paise
+  nonMemberPrice Int         // INR paise
+  status         EventStatus @default(DRAFT)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
-  @@unique([userId, organizationId])
-  @@index([userId])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  bookings     Booking[]
+
   @@index([organizationId])
+  @@index([status, startAt])
+  @@map("events")
+}
+
+model Booking {
+  id                   String             @id
+  bookingNumber        String             @unique
+  userId               String
+  eventId              String
+  quantity             Int
+  unitPrice            Int                // INR paise per ticket
+  totalAmount          Int                // INR paise
+  currency             String             @default("INR") @db.VarChar(3)
+  status               EventBookingStatus @default(RESERVED)
+  reservationExpiresAt DateTime?
+  confirmedAt          DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  event    Event     @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  payments Payment[]
+
+  @@index([userId, createdAt])
+  @@index([eventId, status])
+  @@index([status, reservationExpiresAt])
+  @@map("bookings")
+}
+
+model Payment {
+  id                 String        @id
+  userId             String
+  bookingId          String?
+  status             PaymentStatus @default(CREATED)
+  amount             Int           // INR paise
+  currency           String        @default("INR") @db.VarChar(3)
+
+  // Razorpay identifiers; never store API secrets here
+  razorpayOrderId    String?       @unique
+  razorpayPaymentId  String?       @unique
+  razorpaySignature  String?       @db.VarChar(500)
+
+  failureCode        String?
+  failureDescription String?       @db.Text
+  capturedAt         DateTime?
+  failedAt           DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+
+  @@index([userId, createdAt])
+  @@index([bookingId])
   @@index([status])
-  @@map("membership_applications")
+  @@map("payments")
 }
