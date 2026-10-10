@@ -6,6 +6,7 @@ import { LoginPage } from '../pages/auth/LoginPage';
 import { AuthCallbackPage } from '../pages/auth/AuthCallbackPage';
 import { AccessDeniedPage } from '../pages/AccessDeniedPage';
 import { AdminDashboardPage } from '../pages/dashboards/AdminDashboardPage';
+import { StudentModulePage } from '../pages/student/StudentModulePage';
 import { RoleDashboardPage } from '../pages/dashboards/RoleDashboardPage';
 import { EventsTicketingModule } from '../components/modules/events/EventsTicketingModule';
 import { MembershipModule } from '../components/modules/memberships/MembershipModule';
@@ -13,10 +14,6 @@ import { MerchandiseTaskModule } from '../components/modules/merchandise/Merchan
 import { FinanceLedgerModule } from '../components/modules/finance/FinanceLedgerModule';
 import { AnnouncementBoardModule } from '../components/modules/announcements/AnnouncementBoardModule';
 import { ElectionsVotingModule } from '../components/modules/elections/ElectionsVotingModule';
-import { StudentOrganizationsModule } from '../components/modules/organizations/StudentOrganizationsModule';
-import { StudentMembershipModule } from '../components/modules/memberships/StudentMembershipModule';
-import { StudentTicketsModule } from '../components/modules/tickets/StudentTicketsModule';
-import { StudentOrdersModule } from '../components/modules/orders/StudentOrdersModule';
 import {
   VolunteerDashboard,
   VolunteerTasks,
@@ -29,12 +26,6 @@ import { useAuthStore } from '../stores/auth.store';
 import { ROLES, getDefaultRole, ROLE_DEFAULT_PATHS } from '../config/roles';
 
 import { LandingPage } from '../pages/LandingPage';
-import { AdminUsersPage } from '../pages/admin/AdminUsersPage';
-import { AdminRolesPage } from '../pages/admin/AdminRolesPage';
-import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage';
-import { AdminAuditLogPage } from '../pages/admin/AdminAuditLogPage';
-import { AdminClubsPage } from '../pages/admin/AdminClubsPage';
-import { AdminElectionsPage } from '../pages/admin/AdminElectionsPage';
 import { PresidentEventsFundraisersPage } from '../pages/president/PresidentEventsFundraisersPage';
 import { OrganizerEventsPage } from '../pages/organizer/OrganizerEventsPage';
 
@@ -169,39 +160,35 @@ export const router = createBrowserRouter([
         children: [
           {
             path: 'dashboard',
-            element: <RoleDashboardPage role={ROLES.STUDENT} />,
+            element: <StudentModulePage />,
+          },
+          {
+            path: 'notifications',
+            element: <StudentModulePage />,
+          },
+          {
+            path: 'clubs',
+            element: <StudentModulePage />,
           },
           {
             path: 'organizations',
-            element: <StudentOrganizationsModule />,
+            element: <StudentModulePage />,
           },
           {
-            path: 'events',
-            element: <EventsTicketingModule />,
+            path: 'elections',
+            element: <StudentModulePage />,
           },
           {
-            path: 'announcements',
-            element: <AnnouncementBoardModule />,
-          },
-          {
-            path: 'merchandise',
-            element: <MerchandiseTaskModule />,
+            path: 'voting',
+            element: <StudentModulePage />,
           },
           {
             path: 'membership',
-            element: <StudentMembershipModule />,
+            element: <StudentModulePage />,
           },
           {
             path: 'apply-membership',
-            element: <StudentMembershipModule />,
-          },
-          {
-            path: 'tickets',
-            element: <StudentTicketsModule />,
-          },
-          {
-            path: 'orders',
-            element: <StudentOrdersModule />,
+            element: <StudentModulePage />,
           },
         ],
       },

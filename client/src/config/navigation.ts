@@ -7,18 +7,16 @@ import {
   UserCheck,
   Ticket,
   ShoppingBag,
-  CheckSquare,
+  CheckSquare,  
   Receipt,
   Users,
   DollarSign,
   PieChart,
-  Settings,
-  History,
   Building2,
-  ShieldCheck,
   QrCode,
   Vote,
   Database,
+  Bell,
 } from 'lucide-react';
 
 /**
@@ -29,78 +27,41 @@ export const navigationConfig: NavigationItem[] = [
   // ===========================================================================
   // 6. STUDENT ROLE NAVIGATION
   // Strictly scoped to user specification:
-  // - Browse organizations, events, announcements, and merchandise.
-  // - Register for an organization and pay membership dues.
-  // - View membership status, expiry date, and benefits.
-  // - Renew membership.
-  // - Buy event tickets and merchandise.
-  // - Access ticket confirmations or QR codes.
-  // - View order and payment status.
-  // - View member-only announcements and applicable discounts.
+  // - Student Hub Overview
+  // - Campus Clubs & Membership (Apply for membership with statement of purpose & experience)
+  // - Annual Elections & Voting (Vote in elections & Apply for Club President)
+  // - Campus Notifications (Dedicated screen to read all broadcasts & notices)
   // ===========================================================================
   {
     id: 'student-dashboard',
-    label: 'Student Services Hub',
+    label: 'Student Hub',
     path: '/student/dashboard',
     icon: LayoutDashboard,
     allowedRoles: [ROLES.STUDENT],
-    group: 'MAIN',
   },
   {
-    id: 'student-organizations',
-    label: 'Browse Organizations',
-    path: '/student/organizations',
+    id: 'student-clubs',
+    label: 'Campus Clubs & Membership',
+    path: '/student/clubs',
     icon: Building2,
     allowedRoles: [ROLES.STUDENT],
-    group: 'DISCOVER & BROWSE',
+    badge: '12',
   },
   {
-    id: 'student-events',
-    label: 'Browse Events & Tickets',
-    path: '/student/events',
-    icon: Calendar,
+    id: 'student-elections',
+    label: 'Annual Elections & Voting',
+    path: '/student/elections',
+    icon: Vote,
     allowedRoles: [ROLES.STUDENT],
-    group: 'DISCOVER & BROWSE',
+    badge: 'Active',
   },
   {
-    id: 'student-announcements',
-    label: 'Announcements & Discounts',
-    path: '/student/announcements',
-    icon: Megaphone,
+    id: 'student-notifications',
+    label: 'Campus Notifications',
+    path: '/student/notifications',
+    icon: Bell,
     allowedRoles: [ROLES.STUDENT],
-    group: 'DISCOVER & BROWSE',
-  },
-  {
-    id: 'student-merchandise',
-    label: 'Merchandise Store',
-    path: '/student/merchandise',
-    icon: ShoppingBag,
-    allowedRoles: [ROLES.STUDENT],
-    group: 'DISCOVER & BROWSE',
-  },
-  {
-    id: 'student-membership',
-    label: 'Membership, Expiry & Renewal',
-    path: '/student/membership',
-    icon: UserCheck,
-    allowedRoles: [ROLES.STUDENT],
-    group: 'MEMBERSHIP & PERKS',
-  },
-  {
-    id: 'student-tickets',
-    label: 'Ticket Confirmations & QR Passes',
-    path: '/student/tickets',
-    icon: Ticket,
-    allowedRoles: [ROLES.STUDENT],
-    group: 'MY ACTIVITY',
-  },
-  {
-    id: 'student-orders',
-    label: 'Order & Payment Status',
-    path: '/student/orders',
-    icon: Receipt,
-    allowedRoles: [ROLES.STUDENT],
-    group: 'MY ACTIVITY',
+    badge: 'Notice',
   },
 
   // Member Hub
@@ -360,7 +321,6 @@ export const navigationConfig: NavigationItem[] = [
     path: '/admin/dashboard',
     icon: LayoutDashboard,
     allowedRoles: [ROLES.ADMIN],
-    group: 'SUPER ADMIN',
   },
   {
     id: 'admin-clubs',
@@ -368,7 +328,6 @@ export const navigationConfig: NavigationItem[] = [
     path: '/admin/clubs',
     icon: Building2,
     allowedRoles: [ROLES.ADMIN],
-    group: 'SUPER ADMIN',
     badge: '12',
   },
   {
@@ -377,7 +336,6 @@ export const navigationConfig: NavigationItem[] = [
     path: '/admin/tickets',
     icon: Ticket,
     allowedRoles: [ROLES.ADMIN],
-    group: 'SUPER ADMIN',
     badge: '4 Open',
   },
   {
@@ -386,7 +344,6 @@ export const navigationConfig: NavigationItem[] = [
     path: '/admin/elections',
     icon: Vote,
     allowedRoles: [ROLES.ADMIN],
-    group: 'SUPER ADMIN',
     badge: '3',
   },
   {
@@ -395,7 +352,6 @@ export const navigationConfig: NavigationItem[] = [
     path: '/admin/assistant',
     icon: Database,
     allowedRoles: [ROLES.ADMIN],
-    group: 'SUPER ADMIN',
     badge: 'NLP',
   },
 ];

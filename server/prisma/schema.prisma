@@ -57,6 +57,12 @@ enum CandidateStatus {
   REJECTED
 }
 
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id              String         @id // Populated with UUID v7
   username        String         @unique
@@ -72,14 +78,15 @@ model User {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
-  roles           UserRole[]
-  refreshTokens   RefreshToken[]
-  ticketsCreated  SupportTicket[]  @relation("TicketsCreated")
-  ticketsAssigned SupportTicket[]  @relation("TicketsAssigned")
-  supportMessages SupportMessage[]
-  nominations     ElectionCandidate[]
-  votesCast       ElectionVote[]
-  notifications   Notification[]
+  roles                  UserRole[]
+  refreshTokens          RefreshToken[]
+  ticketsCreated         SupportTicket[]          @relation("TicketsCreated")
+  ticketsAssigned        SupportTicket[]          @relation("TicketsAssigned")
+  supportMessages        SupportMessage[]
+  nominations            ElectionCandidate[]
+  votesCast              ElectionVote[]
+  notifications          Notification[]
+  membershipApplications MembershipApplication[]
 
   @@map("users")
 }
@@ -96,9 +103,10 @@ model Organization {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-  userRoles      UserRole[]
-  supportTickets SupportTicket[]
-  elections      Election[]
+  userRoles              UserRole[]
+  supportTickets         SupportTicket[]
+  elections              Election[]
+  membershipApplications MembershipApplication[]
 
   @@map("organizations")
 }
@@ -201,19 +209,21 @@ model Election {
 }
 
 model ElectionCandidate {
-  id          String          @id // Populated with UUID v7
-  electionId  String
-  userId      String
-  manifesto   String          @db.Text
-  status      CandidateStatus @default(PENDING)
-  voteCount   Int             @default(0)
-  approvedAt  DateTime?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id                 String          @id // Populated with UUID v7
+  electionId         String
+  userId             String
+  manifesto          String          @db.Text
+  statementOfPurpose String?         @db.Text // Why are you applying / Leadership vision
+  experience         String?         @db.Text // Relevant experience / Credentials
+  status             CandidateStatus @default(PENDING)
+  voteCount          Int             @default(0)
+  approvedAt         DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
 
-  election    Election        @relation(fields: [electionId], references: [id], onDelete: Cascade)
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  votes       ElectionVote[]
+  election           Election        @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  votes              ElectionVote[]
 
   @@unique([electionId, userId])
   @@index([electionId])
@@ -252,4 +262,28 @@ model Notification {
 
   @@index([userId])
   @@map("notifications")
+}
+
+model MembershipApplication {
+  id                 String            @id // Populated with UUID v7
+  userId             String
+  organizationId     String
+  statementOfPurpose String?           @db.Text // Why applying
+  experience         String?           @db.Text // Relevant experience
+  department         String?
+  semester           String?
+  status             ApplicationStatus @default(PENDING)
+  reviewedBy         String?
+  reviewedAt         DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization       Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+  @@index([status])
+  @@map("membership_applications")
 }
