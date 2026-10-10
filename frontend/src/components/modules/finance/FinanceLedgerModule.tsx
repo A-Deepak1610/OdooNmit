@@ -1,594 +1,515 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
-  Receipt,
   ArrowUpRight,
   ArrowDownRight,
   CheckCircle2,
   Download,
-  Landmark,
-  Wallet,
-  TrendingUp,
-  CreditCard,
-} from "lucide-react";
-import {
-  mockTreasurerLedger,
-  mockExpenses,
-  MockExpense,
-} from "../../../data/mockClubData";
+} from 'lucide-react';
+import { useClubStore } from '../../../stores/club.store';
 
 export const FinanceLedgerModule: React.FC = () => {
-  const [expenses, setExpenses] = useState<MockExpense[]>(mockExpenses);
+  const {
+    ledger,
+    expenses,
+    paymentReceipts,
+    approveExpenseClaim,
+    recordExpensePayout,
+  } = useClubStore();
+
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'ledger' | 'reimbursements' | 'audit_log'>('ledger');
 
-  const ledger = mockTreasurerLedger;
+  const handleApprove = (id: string) => {
+    approveExpenseClaim(id);
+    setActionNotice(`Expense claim #${id} approved for disbursement.`);
+    setTimeout(() => setActionNotice(null), 4000);
+  };
 
-  const handleApproveExpense = (id: string) => {
-    setExpenses((prev) =>
-      prev.map((e) =>
-        e.id === id
-          ? { ...e, status: e.status === "PENDING" ? "APPROVED" : "REIMBURSED" }
-          : e,
-      ),
-    );
-    setActionNotice(`Expense claim #${id} status updated successfully.`);
+  const handlePayout = (id: string, amount: number) => {
+    recordExpensePayout(id);
+    setActionNotice(`Payout of ₹${amount} recorded! Expense logged in ledger and balance deducted.`);
+    setTimeout(() => setActionNotice(null), 4000);
+  };
+
+  const handleExportPDF = () => {
+    const reportText = `
+SKYLINE STUDENT ASSOCIATION — SEMESTER FINANCIAL AUDIT
+Term: ${ledger.semester}
+------------------------------------------------------
+TOTAL INFLOWS (INCOME):
+  • Membership Dues: ₹${ledger.income.membershipDues}
+  • Spring Gala Tickets: ₹${ledger.income.galaTickets}
+  • Bake Sale Fundraiser: ₹${ledger.income.bakeSale}
+  • Merchandise Goodies: ₹${ledger.income.merchandise}
+  ---------------------------------
+  GROSS INCOME: ₹${ledger.income.totalIncome}
+
+TOTAL OUTFLOWS (EXPENSES):
+  • Venue Booking: ₹${ledger.expenses.venueBooking}
+  • Gala Catering: ₹${ledger.expenses.galaCatering}
+  • Volunteer Reimbursements: ₹${ledger.expenses.volunteerReimbursements}
+  • Merchandise Production: ₹${ledger.expenses.merchandisePrinting}
+  ---------------------------------
+  TOTAL EXPENSES: ₹${ledger.expenses.totalExpenses}
+
+NET CLOSING BALANCE: ₹${ledger.netClosingBalance}
+Audited by: Office of the Club Treasurer
+Certified on: ${new Date().toLocaleDateString()}
+    `;
+
+    const blob = new Blob([reportText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Skyline_SA_Audit_${ledger.semester.replace(' ', '_')}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    setActionNotice('Semester Financial Audit statement exported successfully.');
+    setTimeout(() => setActionNotice(null), 4000);
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', fontFamily: 'var(--font-family-body)' }}>
       {/* ── 1. MODULE HEADER ───────────────────────────────── */}
       <div
         style={{
-          background: "white",
-          borderRadius: "12px",
-          border: "1px solid #e2e8f0",
-          padding: "20px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "16px",
+          background: 'white',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          padding: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '16px',
         }}
       >
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <span
               style={{
-                fontSize: "11px",
-                fontWeight: 600,
-                color: "#1e3a8a",
-                background: "#eff6ff",
-                padding: "2px 8px",
-                borderRadius: "4px",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#1e3a8a',
+                background: '#eff6ff',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
               }}
             >
-              Dev 4 Workstream
+              TREASURY BOOKS & AUDITED LEDGER
             </span>
-            <span style={{ fontSize: "12px", color: "#64748b" }}>
-              Problem Scene: "The treasurer closing the books at semester end"
+            <span style={{ fontSize: '12px', color: '#64748b' }}>
+              Problem Scene: "The treasurer closing the books at the end of the semester"
             </span>
           </div>
-          <h2 style={{ fontSize: "20px", fontWeight: 700, color: "#1e293b", margin: "0 0 4px 0" }}>
-            Treasury Books & Volunteer Reimbursement Ledger
+          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#1e293b', margin: '2px 0 2px 0' }}>
+            Semester Closing Books, Inflows, Expenses & Payouts
           </h2>
-          <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
-            Real-time audited accounting replacing chaotic paper notebooks: dues, gala tickets, merch sales, and volunteer receipts.
+          <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+            Unified real-time financial transparency replacing paper notebooks and lost receipts: dues, tickets, merchandise, and volunteer expenses.
           </p>
         </div>
 
-        <button
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "10px 18px",
-            background: "#1e3a8a",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            fontSize: "13px",
-            fontWeight: 600,
-            cursor: "pointer",
-            transition: "all 0.2s",
-          }}
-        >
-          <Download size={16} />
-          Export Semester Audit PDF
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '6px', background: 'var(--muted)', padding: '4px', borderRadius: '8px' }}>
+            {(['ledger', 'reimbursements', 'audit_log'] as const).map((tab) => {
+              const isActive = activeTab === tab;
+              const labels = {
+                ledger: 'Semester Books',
+                reimbursements: `Reimbursements (${expenses.length})`,
+                audit_log: `Payment Audit (${paymentReceipts.length})`,
+              };
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: isActive ? 'var(--primary)' : 'transparent',
+                    color: isActive ? 'white' : 'var(--muted-foreground)',
+                    fontSize: '13px',
+                    fontWeight: isActive ? 700 : 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {labels[tab]}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={handleExportPDF}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              background: '#1e3a8a',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            <Download style={{ width: '16px', height: '16px' }} />
+            <span>Export Audit Statement</span>
+          </button>
+        </div>
       </div>
 
       {actionNotice && (
         <div
           style={{
-            padding: "14px 18px",
-            borderRadius: "8px",
-            background: "#dcfce7",
-            border: "1px solid #bbf7d0",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            fontSize: "13px",
-            color: "#15803d",
+            background: '#ecfdf5',
+            border: '1px solid #a7f3d0',
+            color: '#065f46',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <CheckCircle2 size={16} color="#15803d" />
-            <span>{actionNotice}</span>
-          </div>
-          <button
-            onClick={() => setActionNotice(null)}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#15803d",
-              fontWeight: 600,
-              cursor: "pointer",
-              fontSize: "12px",
-            }}
-          >
-            Dismiss
-          </button>
+          <CheckCircle2 style={{ width: '16px', height: '16px', color: '#10b981' }} />
+          <span>{actionNotice}</span>
         </div>
       )}
 
-      {/* ── 2. 4 FINANCIAL STAT CARDS (Rule 4: Mandatory 4-col row) ─── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
-        <div
-          style={{
-            background: "white",
-            borderRadius: "12px",
-            padding: "20px",
-            border: "1px solid #e2e8f0",
-            display: "flex",
-            alignItems: "flex-start",
-            gap: "14px",
-          }}
-        >
-          <div
-            style={{
-              width: "44px",
-              height: "44px",
-              borderRadius: "10px",
-              background: "#eff6ff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <Wallet size={22} color="#1e3a8a" />
+      {/* ── 2. TREASURY SNAPSHOT CARDS ─────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+        <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>Gross Inflow (Income)</span>
+            <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+              +Dues +Tickets +Merch
+            </span>
           </div>
-          <div>
-            <div style={{ fontSize: "12px", color: "#64748b", fontWeight: 500, marginBottom: "4px" }}>
-              Opening Balance
-            </div>
-            <div style={{ fontSize: "24px", fontWeight: 700, color: "#1e293b", marginBottom: "2px" }}>
-              ₹{ledger.openingBalance.toLocaleString()}
-            </div>
-            <div style={{ fontSize: "12px", color: "#94a3b8" }}>Rolled from Fall 2025</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: '#15803d', marginTop: '6px' }}>
+            ₹{ledger.income.totalIncome.toLocaleString()}
+          </div>
+          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+            Includes ₹{ledger.income.membershipDues} in member dues
           </div>
         </div>
 
-        <div
-          style={{
-            background: "white",
-            borderRadius: "12px",
-            padding: "20px",
-            border: "1px solid #e2e8f0",
-            display: "flex",
-            alignItems: "flex-start",
-            gap: "14px",
-          }}
-        >
-          <div
-            style={{
-              width: "44px",
-              height: "44px",
-              borderRadius: "10px",
-              background: "#dcfce7",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <TrendingUp size={22} color="#15803d" />
+        <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>Total Outflow (Expenses)</span>
+            <span style={{ background: '#fee2e2', color: '#dc2626', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+              Operations & Claims
+            </span>
           </div>
-          <div>
-            <div style={{ fontSize: "12px", color: "#64748b", fontWeight: 500, marginBottom: "4px" }}>
-              Total Inflow (Income)
-            </div>
-            <div style={{ fontSize: "24px", fontWeight: 700, color: "#15803d", marginBottom: "2px" }}>
-              ₹{ledger.income.totalIncome.toLocaleString()}
-            </div>
-            <div style={{ fontSize: "12px", color: "#15803d", fontWeight: 600 }}>+ Dues, Gala & Merch</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: '#dc2626', marginTop: '6px' }}>
+            ₹{ledger.expenses.totalExpenses.toLocaleString()}
+          </div>
+          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+            Includes ₹{ledger.expenses.volunteerReimbursements} paid to volunteers
           </div>
         </div>
 
-        <div
-          style={{
-            background: "white",
-            borderRadius: "12px",
-            padding: "20px",
-            border: "1px solid #e2e8f0",
-            display: "flex",
-            alignItems: "flex-start",
-            gap: "14px",
-          }}
-        >
-          <div
-            style={{
-              width: "44px",
-              height: "44px",
-              borderRadius: "10px",
-              background: "#fef2f2",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <CreditCard size={22} color="#dc2626" />
+        <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>Net Closing Balance</span>
+            <span style={{ background: '#eff6ff', color: '#1e3a8a', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+              Term Reserve
+            </span>
           </div>
-          <div>
-            <div style={{ fontSize: "12px", color: "#64748b", fontWeight: 500, marginBottom: "4px" }}>
-              Total Outflow (Expenses)
-            </div>
-            <div style={{ fontSize: "24px", fontWeight: 700, color: "#dc2626", marginBottom: "2px" }}>
-              ₹{ledger.expenses.totalExpenses.toLocaleString()}
-            </div>
-            <div style={{ fontSize: "12px", color: "#dc2626" }}>Venue, catering & claims</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: '#1e3a8a', marginTop: '6px' }}>
+            ₹{ledger.netClosingBalance.toLocaleString()}
           </div>
-        </div>
-
-        <div
-          style={{
-            background: "white",
-            borderRadius: "12px",
-            padding: "20px",
-            border: "1px solid #e2e8f0",
-            display: "flex",
-            alignItems: "flex-start",
-            gap: "14px",
-          }}
-        >
-          <div
-            style={{
-              width: "44px",
-              height: "44px",
-              borderRadius: "10px",
-              background: "#eff6ff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <Landmark size={22} color="#1e3a8a" />
-          </div>
-          <div>
-            <div style={{ fontSize: "12px", color: "#64748b", fontWeight: 500, marginBottom: "4px" }}>
-              Net Closing Balance
-            </div>
-            <div style={{ fontSize: "24px", fontWeight: 700, color: "#1e3a8a", marginBottom: "2px" }}>
-              ₹{ledger.netClosingBalance.toLocaleString()}
-            </div>
-            <div style={{ fontSize: "12px", color: "#16a34a", fontWeight: 600 }}>Audited & Balanced ✓</div>
+          <div style={{ fontSize: '11px', color: '#15803d', marginTop: '4px', fontWeight: 600 }}>
+            ✓ In good standing for next academic semester
           </div>
         </div>
       </div>
 
-      {/* ── 3. SIDE-BY-SIDE BREAKDOWN: INFLOWS VS OUTFLOWS ─── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-        {/* Inflows Card */}
-        <div
-          style={{
-            background: "white",
-            borderRadius: "12px",
-            border: "1px solid #e2e8f0",
-            padding: "20px",
-          }}
-        >
+      {/* ── TAB 1: SEMESTER BOOKS BREAKDOWN ─────────────────── */}
+      {activeTab === 'ledger' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          {/* Inflow Card */}
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              borderBottom: "1px solid #e2e8f0",
-              paddingBottom: "12px",
-              marginBottom: "16px",
+              background: 'white',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              padding: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
             }}
           >
-            <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#1e293b", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-              <ArrowUpRight size={18} color="#15803d" />
-              Semester Inflows (Money In)
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#15803d', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <ArrowUpRight style={{ width: '18px', height: '18px' }} />
+              Categorized Income Streams
             </h3>
-            <span style={{ fontSize: "14px", fontWeight: 700, color: "#15803d" }}>
-              ₹{ledger.income.totalIncome.toLocaleString()}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#475569' }}>Membership Dues (Annual Registrations)</span>
+                <span style={{ fontWeight: 700, color: '#15803d' }}>₹{ledger.income.membershipDues.toLocaleString()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#475569' }}>Spring Gala Ticket Sales</span>
+                <span style={{ fontWeight: 700, color: '#15803d' }}>₹{ledger.income.galaTickets.toLocaleString()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#475569' }}>Club Hoodies & T-shirt Sales</span>
+                <span style={{ fontWeight: 700, color: '#15803d' }}>₹{ledger.income.merchandise.toLocaleString()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#475569' }}>Charity Bake Sale Fundraiser</span>
+                <span style={{ fontWeight: 700, color: '#15803d' }}>₹{ledger.income.bakeSale.toLocaleString()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', fontWeight: 800, fontSize: '15px' }}>
+                <span>Total Income</span>
+                <span style={{ color: '#15803d' }}>₹{ledger.income.totalIncome.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Outflow Card */}
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              padding: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+            }}
+          >
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#dc2626', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <ArrowDownRight style={{ width: '18px', height: '18px' }} />
+              Categorized Expense Outflows
+            </h3>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#475569' }}>Grand Auditorium Venue Deposit</span>
+                <span style={{ fontWeight: 700, color: '#dc2626' }}>₹{ledger.expenses.venueBooking.toLocaleString()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#475569' }}>Spring Gala Catering & Dinner</span>
+                <span style={{ fontWeight: 700, color: '#dc2626' }}>₹{ledger.expenses.galaCatering.toLocaleString()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#475569' }}>Volunteer Expense Reimbursements</span>
+                <span style={{ fontWeight: 700, color: '#dc2626' }}>₹{ledger.expenses.volunteerReimbursements.toLocaleString()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#475569' }}>Merchandise Bulk Printing & Embroidery</span>
+                <span style={{ fontWeight: 700, color: '#dc2626' }}>₹{ledger.expenses.merchandisePrinting.toLocaleString()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', fontWeight: 800, fontSize: '15px' }}>
+                <span>Total Expenses</span>
+                <span style={{ color: '#dc2626' }}>₹{ledger.expenses.totalExpenses.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB 2: VOLUNTEER REIMBURSEMENT QUEUE ─────────────── */}
+      {activeTab === 'reimbursements' && (
+        <div
+          style={{
+            background: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', margin: 0 }}>
+              Volunteer Out-of-Pocket Expense Claims & Receipts
+            </h3>
+            <span style={{ fontSize: '12px', color: '#64748b' }}>
+              Review attached receipts before approving payouts
             </span>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <div style={ledgerRowStyle}>
-              <div>
-                <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>Annual Membership Dues</div>
-                <div style={{ fontSize: "11px", color: "#64748b" }}>194 verified dues collected at ₹250/yr</div>
-              </div>
-              <span style={{ fontWeight: 700, color: "#15803d", fontSize: "13px" }}>
-                ₹{ledger.income.membershipDues.toLocaleString()}
-              </span>
-            </div>
-
-            <div style={ledgerRowStyle}>
-              <div>
-                <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>Spring Gala Ticket Sales</div>
-                <div style={{ fontSize: "11px", color: "#64748b" }}>420 tickets sold across tiers</div>
-              </div>
-              <span style={{ fontWeight: 700, color: "#15803d", fontSize: "13px" }}>
-                ₹{ledger.income.galaTickets.toLocaleString()}
-              </span>
-            </div>
-
-            <div style={ledgerRowStyle}>
-              <div>
-                <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>Club Merch & Apparel Orders</div>
-                <div style={{ fontSize: "11px", color: "#64748b" }}>Online store hoodie & t-shirt sales</div>
-              </div>
-              <span style={{ fontWeight: 700, color: "#15803d", fontSize: "13px" }}>
-                ₹{ledger.income.merchandise.toLocaleString()}
-              </span>
-            </div>
-
-            <div style={ledgerRowStyle}>
-              <div>
-                <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>Bake Sale Fundraiser</div>
-                <div style={{ fontSize: "11px", color: "#64748b" }}>Campus plaza quad baked goods coupons</div>
-              </div>
-              <span style={{ fontWeight: 700, color: "#15803d", fontSize: "13px" }}>
-                ₹{ledger.income.bakeSale.toLocaleString()}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Outflows Card */}
-        <div
-          style={{
-            background: "white",
-            borderRadius: "12px",
-            border: "1px solid #e2e8f0",
-            padding: "20px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              borderBottom: "1px solid #e2e8f0",
-              paddingBottom: "12px",
-              marginBottom: "16px",
-            }}
-          >
-            <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#1e293b", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-              <ArrowDownRight size={18} color="#dc2626" />
-              Semester Outflows (Money Out)
-            </h3>
-            <span style={{ fontSize: "14px", fontWeight: 700, color: "#dc2626" }}>
-              ₹{ledger.expenses.totalExpenses.toLocaleString()}
-            </span>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <div style={ledgerRowStyle}>
-              <div>
-                <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>Grand Auditorium Rental</div>
-                <div style={{ fontSize: "11px", color: "#64748b" }}>Official campus invoice #AUD-883</div>
-              </div>
-              <span style={{ fontWeight: 700, color: "#dc2626", fontSize: "13px" }}>
-                ₹{ledger.expenses.venueBooking.toLocaleString()}
-              </span>
-            </div>
-
-            <div style={ledgerRowStyle}>
-              <div>
-                <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>Gala Catering & Refreshments</div>
-                <div style={{ fontSize: "11px", color: "#64748b" }}>450 plated dinners + refreshments</div>
-              </div>
-              <span style={{ fontWeight: 700, color: "#dc2626", fontSize: "13px" }}>
-                ₹{ledger.expenses.galaCatering.toLocaleString()}
-              </span>
-            </div>
-
-            <div style={ledgerRowStyle}>
-              <div>
-                <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>Volunteer Expense Claims</div>
-                <div style={{ fontSize: "11px", color: "#64748b" }}>Verified supplies & ingredient receipts</div>
-              </div>
-              <span style={{ fontWeight: 700, color: "#dc2626", fontSize: "13px" }}>
-                ₹{ledger.expenses.volunteerReimbursements.toLocaleString()}
-              </span>
-            </div>
-
-            <div style={ledgerRowStyle}>
-              <div>
-                <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>Merchandise Bulk Printing</div>
-                <div style={{ fontSize: "11px", color: "#64748b" }}>Embroidered batch apparel production</div>
-              </div>
-              <span style={{ fontWeight: 700, color: "#dc2626", fontSize: "13px" }}>
-                ₹{ledger.expenses.merchandisePrinting.toLocaleString()}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── 4. VOLUNTEER EXPENSE CLAIMS TABLE ──────────────── */}
-      <div
-        style={{
-          background: "white",
-          borderRadius: "12px",
-          border: "1px solid #e2e8f0",
-          padding: "20px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            borderBottom: "1px solid #e2e8f0",
-            paddingBottom: "12px",
-            marginBottom: "16px",
-          }}
-        >
-          <div>
-            <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#1e293b", margin: "0 0 2px 0", display: "flex", alignItems: "center", gap: "8px" }}>
-              <Receipt size={18} color="#1e3a8a" />
-              Volunteer Expense Claims (Digital Receipt Audit)
-            </h3>
-            <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }}>
-              Volunteers submit receipts online so treasurers never chase faded paper slips.
-            </p>
-          </div>
-        </div>
-
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid #e2e8f0", textAlign: "left", color: "#64748b" }}>
-                <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>CLAIM ID</th>
-                <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>DESCRIPTION</th>
-                <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>VOLUNTEER</th>
-                <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>RECEIPT NOTE</th>
-                <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>AMOUNT</th>
-                <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>STATUS</th>
-                <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px", textAlign: "right" }}>TREASURER ACTION</th>
-              </tr>
-            </thead>
-            <tbody>
-              {expenses.map((exp) => (
-                <tr
-                  key={exp.id}
-                  style={{
-                    borderBottom: "1px solid #f1f5f9",
-                    transition: "background-color 0.2s",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f8fafc")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-                >
-                  <td style={{ padding: "12px", fontFamily: "monospace", fontWeight: 600, color: "#475569" }}>
-                    {exp.id}
-                  </td>
-                  <td style={{ padding: "12px", fontWeight: 600, color: "#1e293b" }}>
-                    {exp.title}
-                  </td>
-                  <td style={{ padding: "12px", color: "#475569" }}>
-                    {exp.submittedBy}
-                  </td>
-                  <td style={{ padding: "12px", fontFamily: "monospace", fontSize: "11px", color: "#64748b" }}>
-                    {exp.receiptNote}
-                  </td>
-                  <td style={{ padding: "12px", fontWeight: 700, color: "#1e293b" }}>
-                    ₹{exp.amount}
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    {exp.status === "REIMBURSED" ? (
-                      <span
-                        style={{
-                          background: "#dcfce7",
-                          color: "#15803d",
-                          padding: "2px 8px",
-                          borderRadius: "4px",
-                          fontWeight: 600,
-                          fontSize: "11px",
-                        }}
-                      >
-                        Reimbursed
-                      </span>
-                    ) : exp.status === "APPROVED" ? (
-                      <span
-                        style={{
-                          background: "#eff6ff",
-                          color: "#1e3a8a",
-                          padding: "2px 8px",
-                          borderRadius: "4px",
-                          fontWeight: 600,
-                          fontSize: "11px",
-                        }}
-                      >
-                        Approved (Pending Payout)
-                      </span>
-                    ) : (
-                      <span
-                        style={{
-                          background: "#fef3c7",
-                          color: "#b45309",
-                          padding: "2px 8px",
-                          borderRadius: "4px",
-                          fontWeight: 600,
-                          fontSize: "11px",
-                        }}
-                      >
-                        Pending Receipt Review
-                      </span>
-                    )}
-                  </td>
-                  <td style={{ padding: "12px", textAlign: "right" }}>
-                    {exp.status === "PENDING" ? (
-                      <button
-                        onClick={() => handleApproveExpense(exp.id)}
-                        style={{
-                          padding: "6px 12px",
-                          borderRadius: "6px",
-                          background: "#1e3a8a",
-                          color: "white",
-                          border: "none",
-                          fontSize: "12px",
-                          fontWeight: 600,
-                          cursor: "pointer",
-                        }}
-                      >
-                        Approve Claim
-                      </button>
-                    ) : exp.status === "APPROVED" ? (
-                      <button
-                        onClick={() => handleApproveExpense(exp.id)}
-                        style={{
-                          padding: "6px 12px",
-                          borderRadius: "6px",
-                          background: "#15803d",
-                          color: "white",
-                          border: "none",
-                          fontSize: "12px",
-                          fontWeight: 600,
-                          cursor: "pointer",
-                        }}
-                      >
-                        Disburse Funds
-                      </button>
-                    ) : (
-                      <span style={{ fontSize: "12px", color: "#94a3b8" }}>Settled</span>
-                    )}
-                  </td>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Claim ID</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Description</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Volunteer</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Receipt Reference</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Amount</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Status</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569', textAlign: 'right' }}>Treasurer Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {expenses.map((exp) => (
+                  <tr key={exp.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 700, color: '#1e3a8a' }}>
+                      {exp.id}
+                    </td>
+                    <td style={{ padding: '12px', fontWeight: 600, color: '#1e293b' }}>
+                      {exp.title}
+                    </td>
+                    <td style={{ padding: '12px', color: '#64748b' }}>
+                      {exp.submittedBy}
+                    </td>
+                    <td style={{ padding: '12px', color: '#475569', fontStyle: 'italic' }}>
+                      {exp.receiptNote}
+                    </td>
+                    <td style={{ padding: '12px', fontWeight: 700, color: '#dc2626' }}>
+                      ₹{exp.amount}
+                    </td>
+                    <td style={{ padding: '12px' }}>
+                      <span
+                        style={{
+                          background:
+                            exp.status === 'REIMBURSED'
+                              ? '#dcfce7'
+                              : exp.status === 'APPROVED'
+                              ? '#eff6ff'
+                              : '#fef3c7',
+                          color:
+                            exp.status === 'REIMBURSED'
+                              ? '#15803d'
+                              : exp.status === 'APPROVED'
+                              ? '#1e3a8a'
+                              : '#b45309',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                        }}
+                      >
+                        {exp.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px', textAlign: 'right' }}>
+                      {exp.status === 'PENDING' && (
+                        <button
+                          onClick={() => handleApprove(exp.id)}
+                          style={{
+                            padding: '6px 12px',
+                            background: '#1e3a8a',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Approve Claim
+                        </button>
+                      )}
+                      {exp.status === 'APPROVED' && (
+                        <button
+                          onClick={() => handlePayout(exp.id, exp.amount)}
+                          style={{
+                            padding: '6px 12px',
+                            background: '#15803d',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Record Payout (₹{exp.amount})
+                        </button>
+                      )}
+                      {exp.status === 'REIMBURSED' && (
+                        <span style={{ fontSize: '12px', color: '#15803d', fontWeight: 600 }}>
+                          ✓ Disbursed
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* ── TAB 3: PAYMENT AUDIT TRAIL ───────────────────────── */}
+      {activeTab === 'audit_log' && (
+        <div
+          style={{
+            background: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', margin: 0 }}>
+              Razorpay Inflow Receipts & Cryptographic Signatures
+            </h3>
+            <span style={{ fontSize: '12px', color: '#15803d', fontWeight: 600 }}>
+              HMAC SHA-256 Verified
+            </span>
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Payment ID</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Purpose</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Payer</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Amount</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Method</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paymentReceipts.map((rcpt) => (
+                  <tr key={rcpt.paymentId} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 700, color: '#1e3a8a' }}>
+                      {rcpt.paymentId}
+                    </td>
+                    <td style={{ padding: '12px', fontWeight: 600, color: '#1e293b' }}>
+                      {rcpt.purpose}
+                    </td>
+                    <td style={{ padding: '12px', color: '#64748b' }}>
+                      {rcpt.payerName}
+                    </td>
+                    <td style={{ padding: '12px', fontWeight: 700, color: '#15803d' }}>
+                      ₹{rcpt.amount}
+                    </td>
+                    <td style={{ padding: '12px' }}>
+                      <span style={{ background: '#eff6ff', color: '#1e3a8a', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                        {rcpt.method}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>
+                      {new Date(rcpt.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
-
-const ledgerRowStyle: React.CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: "10px 14px",
-  borderRadius: "8px",
-  background: "#f8fafc",
-  border: "1px solid #f1f5f9",
-};
-

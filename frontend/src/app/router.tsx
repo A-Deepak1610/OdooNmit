@@ -12,6 +12,7 @@ import { MembershipModule } from '../components/modules/memberships/MembershipMo
 import { MerchandiseTaskModule } from '../components/modules/merchandise/MerchandiseTaskModule';
 import { FinanceLedgerModule } from '../components/modules/finance/FinanceLedgerModule';
 import { AnnouncementBoardModule } from '../components/modules/announcements/AnnouncementBoardModule';
+import { ElectionsVotingModule } from '../components/modules/elections/ElectionsVotingModule';
 import {
   VolunteerLayout,
   VolunteerDashboard,
@@ -243,6 +244,14 @@ export const router = createBrowserRouter([
             path: 'applications',
             element: <MembershipModule />,
           },
+          {
+            path: 'elections',
+            element: <ElectionsVotingModule />,
+          },
+          {
+            path: 'voting',
+            element: <ElectionsVotingModule />,
+          },
         ],
       },
 
@@ -276,6 +285,14 @@ export const router = createBrowserRouter([
           {
             path: 'merchandise',
             element: <MerchandiseTaskModule />,
+          },
+          {
+            path: 'elections',
+            element: <ElectionsVotingModule />,
+          },
+          {
+            path: 'voting',
+            element: <ElectionsVotingModule />,
           },
         ],
       },
@@ -374,6 +391,14 @@ export const router = createBrowserRouter([
           {
             path: 'finance',
             element: <FinanceLedgerModule />,
+          },
+          {
+            path: 'elections',
+            element: <ElectionsVotingModule />,
+          },
+          {
+            path: 'voting',
+            element: <ElectionsVotingModule />,
           },
         ],
       },

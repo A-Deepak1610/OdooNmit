@@ -1,94 +1,85 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
-  AlertTriangle,
   QrCode,
   UserPlus,
   CheckCircle2,
   Award,
   Search,
-  Check,
-  Copy,
   CreditCard,
-  RefreshCw,
   Send,
-} from "lucide-react";
-import { mockMembers, MockMember } from "../../../data/mockClubData";
+} from 'lucide-react';
+import { useClubStore } from '../../../stores/club.store';
+import { RazorpayPaymentModal } from '../../shared/RazorpayPaymentModal';
+import { MockMember } from '../../../data/mockClubData';
 
 export const MembershipModule: React.FC = () => {
-  const [members, setMembers] = useState<MockMember[]>(mockMembers);
-  const [selectedMember, setSelectedMember] = useState<MockMember>(mockMembers[0]);
-  const [search, setSearch] = useState("");
+  const {
+    members,
+    activeMemberCount,
+    annualDuesAmount,
+    payMembershipDues,
+    registerNewMember,
+  } = useClubStore();
+
+  const [selectedMember, setSelectedMember] = useState<MockMember>(members[0]);
+  const [search, setSearch] = useState('');
   const [showRegisterForm, setShowRegisterForm] = useState(false);
-  const [copiedToken, setCopiedToken] = useState(false);
   const [isSendingBatch, setIsSendingBatch] = useState(false);
   const [batchNotice, setBatchNotice] = useState<string | null>(null);
 
+  // New Student Registration Form State
   const [newStudent, setNewStudent] = useState({
-    name: "",
-    email: "",
-    rollNo: "",
-    dept: "Computer Science",
+    name: '',
+    email: '',
+    rollNo: '',
+    dept: 'Computer Science',
+    tier: 'STANDARD' as const,
   });
+
+  // Razorpay Modal Trigger State
+  const [checkoutTarget, setCheckoutTarget] = useState<{
+    type: 'REGISTER' | 'RENEW';
+    memberId?: string;
+    name: string;
+    email: string;
+    amount: number;
+    title: string;
+    purpose: string;
+  } | null>(null);
+
   const [registeredNotice, setRegisteredNotice] = useState<string | null>(null);
 
   const filteredMembers = members.filter(
     (m) =>
       m.name.toLowerCase().includes(search.toLowerCase()) ||
       m.membershipId.toLowerCase().includes(search.toLowerCase()) ||
-      m.email.toLowerCase().includes(search.toLowerCase()),
+      m.email.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleRegisterNewMember = (e: React.FormEvent) => {
+  const handleStartRegistration = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newStudent.name || !newStudent.email) return;
 
-    const newId = `SSA-2026-${String(members.length + 101).padStart(4, "0")}`;
-    const addedMember: MockMember = {
-      id: `mem-${Date.now()}`,
+    setCheckoutTarget({
+      type: 'REGISTER',
       name: newStudent.name,
       email: newStudent.email,
-      membershipId: newId,
-      tier: "PREMIUM",
-      duesPaid: true,
-      duesExpiresAt: "May 31, 2027",
-      renewalAlert: false,
-      discountEligible: true,
-    };
-
-    setMembers([addedMember, ...members]);
-    setSelectedMember(addedMember);
-    setShowRegisterForm(false);
-    setRegisteredNotice(
-      `Welcome ${newStudent.name}! Digital pass created with ID ${newId}. Annual dues of ₹250 recorded as Paid.`
-    );
-    setNewStudent({
-      name: "",
-      email: "",
-      rollNo: "",
-      dept: "Computer Science",
+      amount: annualDuesAmount,
+      title: 'New Student Membership & Annual Dues',
+      purpose: `Annual Membership Dues (${newStudent.tier}) for ${newStudent.name}`,
     });
   };
 
-  const handleToggleDues = (memberId: string) => {
-    setMembers((prev) =>
-      prev.map((m) => {
-        if (m.id === memberId) {
-          const nextStatus = !m.duesPaid;
-          const updated: MockMember = {
-            ...m,
-            duesPaid: nextStatus,
-            duesExpiresAt: nextStatus ? "May 31, 2027" : "Overdue",
-            discountEligible: nextStatus,
-            renewalAlert: !nextStatus,
-          };
-          if (selectedMember.id === memberId) {
-            setSelectedMember(updated);
-          }
-          return updated;
-        }
-        return m;
-      })
-    );
+  const handleStartRenewal = (member: MockMember) => {
+    setCheckoutTarget({
+      type: 'RENEW',
+      memberId: member.id,
+      name: member.name,
+      email: member.email,
+      amount: annualDuesAmount,
+      title: `Renew Membership: ${member.name}`,
+      purpose: `Annual Membership Renewal (2026-2027) for ${member.membershipId}`,
+    });
   };
 
   const handleSendBatchReminders = () => {
@@ -96,786 +87,551 @@ export const MembershipModule: React.FC = () => {
     setTimeout(() => {
       setIsSendingBatch(false);
       setBatchNotice(
-        "Automated renewal notifications & SMS payment links dispatched to all 18 student members with pending or lapsing dues."
+        'Automated renewal notifications & SMS payment links dispatched to all students with pending or lapsing dues.'
       );
-    }, 600);
-  };
-
-  const handleCopyToken = () => {
-    navigator.clipboard.writeText(
-      `VERIFIED-PASS:${selectedMember.membershipId}:${selectedMember.name}:DUE_PAID_2026`
-    );
-    setCopiedToken(true);
-    setTimeout(() => setCopiedToken(false), 2000);
+      setTimeout(() => setBatchNotice(null), 5000);
+    }, 1000);
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', fontFamily: 'var(--font-family-body)' }}>
       {/* ── 1. MODULE HEADER ───────────────────────────────── */}
       <div
         style={{
-          background: "white",
-          borderRadius: "12px",
-          border: "1px solid #e2e8f0",
-          padding: "20px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "16px",
+          background: 'white',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          padding: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '16px',
         }}
       >
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <span
               style={{
-                fontSize: "11px",
-                fontWeight: 600,
-                color: "#15803d",
-                background: "#dcfce7",
-                padding: "2px 8px",
-                borderRadius: "4px",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#15803d',
+                background: '#dcfce7',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
               }}
             >
-              Institutional Operations
+              MEMBERSHIP LIFECYCLE & DUES ENGINE
             </span>
-            <span style={{ fontSize: "12px", color: "#64748b" }}>
-              Skyline Student Association • Active Term 2025-26
+            <span style={{ fontSize: '12px', color: '#64748b' }}>
+              Problem Scene: "A new student joins, dues payment & reminders"
             </span>
           </div>
-          <h2 style={{ fontSize: "20px", fontWeight: 700, color: "#1e293b", margin: "0 0 4px 0" }}>
-            Membership Lifecycle & Dues Management
+          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#1e293b', margin: '2px 0 2px 0' }}>
+            Digital Membership Sign-ups, Verification & Dues Renewal
           </h2>
-          <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
-            Instant table sign-up, annual dues payment tracking (₹250/yr), renewal lapse alerts, and live digital verification passes.
+          <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+            Instant digital pass generation with Razorpay dues payment, real-time discount entitlements, and automated renewal reminders.
           </p>
         </div>
 
-        <button
-          onClick={() => setShowRegisterForm(!showRegisterForm)}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "10px 18px",
-            background: "#1e3a8a",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            fontSize: "13px",
-            fontWeight: 600,
-            cursor: "pointer",
-            transition: "all 0.2s",
-          }}
-        >
-          <UserPlus size={16} />
-          {showRegisterForm ? "Close Form" : "Table Sign-up (New Member)"}
-        </button>
-      </div>
-
-      {registeredNotice && (
-        <div
-          style={{
-            padding: "14px 18px",
-            borderRadius: "8px",
-            background: "#dcfce7",
-            border: "1px solid #bbf7d0",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            fontSize: "13px",
-            color: "#15803d",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <CheckCircle2 size={16} color="#15803d" />
-            <span>{registeredNotice}</span>
-          </div>
+        <div style={{ display: 'flex', gap: '10px' }}>
           <button
-            onClick={() => setRegisteredNotice(null)}
+            onClick={handleSendBatchReminders}
+            disabled={isSendingBatch}
             style={{
-              background: "none",
-              border: "none",
-              color: "#15803d",
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              borderRadius: '6px',
+              border: '1px solid #cbd5e1',
+              background: '#ffffff',
+              color: '#475569',
+              fontSize: '13px',
               fontWeight: 600,
-              cursor: "pointer",
-              fontSize: "12px",
+              cursor: isSendingBatch ? 'wait' : 'pointer',
             }}
           >
-            Dismiss
+            <Send style={{ width: '14px', height: '14px' }} />
+            <span>{isSendingBatch ? 'Dispatching...' : 'Broadcast Renewal Reminders'}</span>
+          </button>
+
+          <button
+            onClick={() => setShowRegisterForm(!showRegisterForm)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              border: 'none',
+              background: '#1e3a8a',
+              color: '#ffffff',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            <UserPlus style={{ width: '16px', height: '16px' }} />
+            <span>Sign Up New Student</span>
           </button>
         </div>
-      )}
+      </div>
 
       {batchNotice && (
         <div
           style={{
-            padding: "14px 18px",
-            borderRadius: "8px",
-            background: "#eff6ff",
-            border: "1px solid #bfdbfe",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            fontSize: "13px",
-            color: "#1d4ed8",
+            background: '#eff6ff',
+            border: '1px solid #bfdbfe',
+            color: '#1e3a8a',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            fontSize: '13px',
+            fontWeight: 600,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <CheckCircle2 size={16} color="#1d4ed8" />
-            <span>{batchNotice}</span>
+          ✓ {batchNotice}
+        </div>
+      )}
+
+      {registeredNotice && (
+        <div
+          style={{
+            background: '#ecfdf5',
+            border: '1px solid #a7f3d0',
+            color: '#065f46',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            fontSize: '13px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CheckCircle2 style={{ width: '16px', height: '16px', color: '#10b981' }} />
+            <span>{registeredNotice}</span>
           </div>
           <button
-            onClick={() => setBatchNotice(null)}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#1d4ed8",
-              fontWeight: 600,
-              cursor: "pointer",
-              fontSize: "12px",
-            }}
+            onClick={() => setRegisteredNotice(null)}
+            style={{ background: 'none', border: 'none', color: '#065f46', fontWeight: 700, cursor: 'pointer' }}
           >
             Dismiss
           </button>
         </div>
       )}
 
-      {/* Renewal Expiry Warning Alert */}
-      <div
-        style={{
-          background: "#fef3c7",
-          border: "1px solid #fde68a",
-          borderRadius: "8px",
-          padding: "14px 18px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "14px",
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "8px",
-              background: "rgba(245, 158, 11, 0.2)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <AlertTriangle size={18} color="#b45309" />
-          </div>
-          <div>
-            <div style={{ fontSize: "13px", fontWeight: 600, color: "#b45309" }}>
-              Upcoming Annual Dues Renewal Window (Spring 2026)
-            </div>
-            <div style={{ fontSize: "12px", color: "#92400e", marginTop: "2px" }}>
-              18 student memberships are lapsing within 30 days. Automated reminders notify students before gala discount eligibility expires.
-            </div>
-          </div>
-        </div>
-
-        <button
-          onClick={handleSendBatchReminders}
-          disabled={isSendingBatch}
-          style={{
-            background: "#b45309",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            padding: "8px 14px",
-            fontSize: "12px",
-            fontWeight: 600,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            opacity: isSendingBatch ? 0.7 : 1,
-          }}
-        >
-          {isSendingBatch ? <RefreshCw size={14} className="animate-spin" /> : <Send size={14} />}
-          {isSendingBatch ? "Dispatching..." : "Send Batch Reminders"}
-        </button>
-      </div>
-
-      {/* Inline Campus Table Sign-up Form */}
+      {/* ── NEW STUDENT SIGNUP FORM (COLLAPSIBLE) ───────────── */}
       {showRegisterForm && (
         <div
           style={{
-            background: "white",
-            borderRadius: "12px",
-            border: "1px solid #e2e8f0",
-            padding: "20px",
+            background: '#ffffff',
+            borderRadius: '12px',
+            border: '2px solid #2563eb',
+            padding: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "16px",
-              borderBottom: "1px solid #e2e8f0",
-              paddingBottom: "12px",
-            }}
-          >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#1e293b", margin: "0 0 2px 0" }}>
-                Campus Table Registration (Sign-up Desk)
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#1e293b', margin: 0 }}>
+                Campus Table Registration Desk
               </h3>
-              <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }}>
-                Register a newly joined student right at the orientation table and record their ₹250 annual dues.
+              <p style={{ fontSize: '13px', color: '#64748b', margin: '2px 0 0 0' }}>
+                Sign up a new student right at the orientation table. Annual dues: ₹250.
               </p>
             </div>
             <button
               onClick={() => setShowRegisterForm(false)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#64748b",
-                cursor: "pointer",
-                fontSize: "13px",
-                fontWeight: 500,
-              }}
+              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '18px' }}
             >
-              Cancel
+              ✕
             </button>
           </div>
 
-          <form onSubmit={handleRegisterNewMember}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                gap: "14px",
-                marginBottom: "16px",
-              }}
-            >
-              <div>
-                <label style={formLabel}>Full Student Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Thirumurugan K"
-                  value={newStudent.name}
-                  onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
-                  style={inputStyle}
-                />
-              </div>
-              <div>
-                <label style={formLabel}>College Email</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="e.g. thirumurugank.al24@bitsathy.ac.in"
-                  value={newStudent.email}
-                  onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
-                  style={inputStyle}
-                />
-              </div>
-              <div>
-                <label style={formLabel}>Department</label>
-                <select
-                  value={newStudent.dept}
-                  onChange={(e) => setNewStudent({ ...newStudent, dept: e.target.value })}
-                  style={selectStyle}
-                >
-                  <option value="Artificial Intelligence & DS">Artificial Intelligence & DS</option>
-                  <option value="Computer Science">Computer Science</option>
-                  <option value="Information Tech">Information Tech</option>
-                  <option value="Electronics & Comm">Electronics & Comm</option>
-                  <option value="Mechanical Eng">Mechanical Eng</option>
-                </select>
-              </div>
-              <div style={{ display: "flex", alignItems: "flex-end" }}>
-                <button
-                  type="submit"
-                  style={{
-                    width: "100%",
-                    height: "38px",
-                    background: "#1e3a8a",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "6px",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
-                >
-                  Enroll & Mark ₹250 Paid
-                </button>
-              </div>
+          <form onSubmit={handleStartRegistration} style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                Full Student Name *
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Vikramaditya Rao"
+                value={newStudent.name}
+                onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                Campus Email Address *
+              </label>
+              <input
+                type="email"
+                required
+                placeholder="e.g. vikram.r@campus.edu"
+                value={newStudent.email}
+                onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                College Roll / Registration No.
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. 7376241CS109"
+                value={newStudent.rollNo}
+                onChange={(e) => setNewStudent({ ...newStudent, rollNo: e.target.value })}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                Department
+              </label>
+              <select
+                value={newStudent.dept}
+                onChange={(e) => setNewStudent({ ...newStudent, dept: e.target.value })}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              >
+                <option value="Computer Science">Computer Science & Engineering</option>
+                <option value="Information Science">Information Technology</option>
+                <option value="Electronics">Electronics & Communication</option>
+                <option value="Mechanical">Mechanical Engineering</option>
+                <option value="Design">Visual Design & Arts</option>
+              </select>
+            </div>
+
+            <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setShowRegisterForm(false)}
+                style={{ padding: '10px 18px', background: '#f1f5f9', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                style={{
+                  padding: '10px 20px',
+                  background: '#1e3a8a',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <CreditCard style={{ width: '16px', height: '16px' }} />
+                <span>Collect Annual Dues (₹250 via Razorpay) & Register</span>
+              </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* Main 2:1 Split: Member Directory (2fr) & Live Digital ID Card Showcase (1fr) */}
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "20px" }}>
-        {/* Left Column (2fr): Member Directory & Verification Table */}
+      {/* ── 2. MAIN LAYOUT: MEMBER ROSTER + DIGITAL PASS PREVIEW ────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
+        {/* Left: Member Directory */}
         <div
           style={{
-            background: "white",
-            borderRadius: "12px",
-            border: "1px solid #e2e8f0",
-            padding: "20px",
+            background: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "16px",
-              flexWrap: "wrap",
-              gap: "12px",
-            }}
-          >
-            <div>
-              <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#1e293b", margin: "0 0 2px 0" }}>
-                Member Verification & Dues Ledger ({members.length} Members)
-              </h3>
-              <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }}>
-                Click any row or "View Pass" to instantly preview and verify their live Digital Pass.
-              </p>
-            </div>
-
-            <div style={{ position: "relative", width: "240px" }}>
-              <Search
-                size={16}
-                color="#94a3b8"
-                style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)" }}
-              />
-              <input
-                type="text"
-                placeholder="Search member, email, or ID..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                style={{
-                  width: "100%",
-                  height: "36px",
-                  paddingLeft: "34px",
-                  paddingRight: "10px",
-                  borderRadius: "6px",
-                  border: "1px solid #e2e8f0",
-                  fontSize: "13px",
-                  background: "#f8fafc",
-                  outline: "none",
-                }}
-              />
-            </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', margin: 0 }}>
+              Registered Student Members Directory ({members.length})
+            </h3>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#15803d' }}>
+              {activeMemberCount} Dues-Paid Active Members
+            </span>
           </div>
 
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+          {/* Search Box */}
+          <div style={{ position: 'relative' }}>
+            <Search
+              style={{
+                position: 'absolute',
+                left: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '16px',
+                height: '16px',
+                color: '#94a3b8',
+              }}
+            />
+            <input
+              type="text"
+              placeholder="Search by name, ID (e.g. SSA-2026-0001), or email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px 12px 10px 36px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                fontSize: '13px',
+                outline: 'none',
+              }}
+            />
+          </div>
+
+          {/* Table */}
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
-                <tr style={{ borderBottom: "1px solid #e2e8f0", textAlign: "left", color: "#64748b" }}>
-                  <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>MEMBER</th>
-                  <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>ID</th>
-                  <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>DUES STATUS</th>
-                  <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>EXPIRY</th>
-                  <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>BENEFIT</th>
-                  <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px", textAlign: "right" }}>ACTIONS</th>
+                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Membership ID</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Student Name</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Dues Status</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Expires At</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569', textAlign: 'right' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredMembers.map((m, idx) => {
-                  const avatarBg = ["ffd5dc", "b6e3f4", "c0aede"][idx % 3];
-                  const isSelected = selectedMember.id === m.id;
-
-                  return (
-                    <tr
-                      key={m.id}
-                      onClick={() => setSelectedMember(m)}
-                      style={{
-                        borderBottom: "1px solid #f1f5f9",
-                        backgroundColor: isSelected ? "#eff6ff" : "transparent",
-                        cursor: "pointer",
-                        transition: "background-color 0.15s",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) e.currentTarget.style.backgroundColor = "#f8fafc";
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) e.currentTarget.style.backgroundColor = "transparent";
-                      }}
-                    >
-                      <td style={{ padding: "12px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                          <img
-                            src={`https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(m.name)}&backgroundColor=${avatarBg}`}
-                            alt={m.name}
-                            style={{
-                              width: "32px",
-                              height: "32px",
-                              borderRadius: "50%",
-                              flexShrink: 0,
-                              border: isSelected ? "2px solid #2563eb" : "1px solid #e2e8f0",
-                            }}
-                          />
-                          <div>
-                            <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>
-                              {m.name}
-                              {m.email.includes("thirumurugan") && (
-                                <span
-                                  style={{
-                                    marginLeft: "6px",
-                                    fontSize: "10px",
-                                    background: "#dbeafe",
-                                    color: "#1e40af",
-                                    padding: "1px 6px",
-                                    borderRadius: "4px",
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  You (Admin)
-                                </span>
-                              )}
-                            </div>
-                            <div style={{ fontSize: "11px", color: "#64748b" }}>{m.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td style={{ padding: "12px", fontFamily: "monospace", fontWeight: 600, color: "#475569" }}>
-                        {m.membershipId}
-                      </td>
-                      <td style={{ padding: "12px" }}>
-                        {m.duesPaid ? (
-                          <span
-                            style={{
-                              background: "#dcfce7",
-                              color: "#15803d",
-                              padding: "2px 8px",
-                              borderRadius: "4px",
-                              fontWeight: 600,
-                              fontSize: "11px",
-                            }}
-                          >
-                            Paid (₹250)
-                          </span>
-                        ) : (
-                          <span
-                            style={{
-                              background: "#fef2f2",
-                              color: "#dc2626",
-                              padding: "2px 8px",
-                              borderRadius: "4px",
-                              fontWeight: 600,
-                              fontSize: "11px",
-                            }}
-                          >
-                            Unpaid
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ padding: "12px", color: "#64748b", fontSize: "12px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                          <span>{m.duesExpiresAt}</span>
-                          {m.renewalAlert && (
-                            <span
-                              style={{
-                                background: "#fef3c7",
-                                color: "#b45309",
-                                padding: "1px 6px",
-                                borderRadius: "4px",
-                                fontSize: "10px",
-                                fontWeight: 600,
-                              }}
-                            >
-                              Lapse Notice
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td style={{ padding: "12px" }}>
-                        {m.discountEligible ? (
-                          <span style={{ color: "#16a34a", fontWeight: 600, fontSize: "11px" }}>
-                            60% Off Events
-                          </span>
-                        ) : (
-                          <span style={{ color: "#94a3b8", fontSize: "11px" }}>Regular Rate</span>
-                        )}
-                      </td>
-                      <td style={{ padding: "12px", textAlign: "right" }}>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "8px" }}>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleToggleDues(m.id);
-                            }}
-                            title="Toggle Annual Dues Payment"
-                            style={{
-                              background: m.duesPaid ? "#f8fafc" : "#15803d",
-                              color: m.duesPaid ? "#475569" : "white",
-                              border: m.duesPaid ? "1px solid #cbd5e1" : "none",
-                              borderRadius: "4px",
-                              padding: "4px 8px",
-                              fontSize: "11px",
-                              fontWeight: 600,
-                              cursor: "pointer",
-                            }}
-                          >
-                            {m.duesPaid ? "Toggle" : "Collect ₹250"}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedMember(m);
-                            }}
-                            style={{
-                              background: isSelected ? "#2563eb" : "#f1f5f9",
-                              color: isSelected ? "white" : "#1e3a8a",
-                              border: "none",
-                              borderRadius: "4px",
-                              padding: "4px 8px",
-                              fontWeight: 600,
-                              fontSize: "11px",
-                              cursor: "pointer",
-                            }}
-                          >
-                            {isSelected ? "Active Pass" : "View Pass"}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {filteredMembers.map((m) => (
+                  <tr
+                    key={m.id}
+                    onClick={() => setSelectedMember(m)}
+                    style={{
+                      borderBottom: '1px solid #f1f5f9',
+                      cursor: 'pointer',
+                      background: selectedMember.id === m.id ? '#eff6ff' : 'transparent',
+                    }}
+                  >
+                    <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 700, color: '#1e3a8a' }}>
+                      {m.membershipId}
+                    </td>
+                    <td style={{ padding: '12px' }}>
+                      <div style={{ fontWeight: 600, color: '#1e293b' }}>{m.name}</div>
+                      <div style={{ fontSize: '11px', color: '#64748b' }}>{m.email}</div>
+                    </td>
+                    <td style={{ padding: '12px' }}>
+                      {m.duesPaid ? (
+                        <span
+                          style={{
+                            background: '#dcfce7',
+                            color: '#15803d',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                          }}
+                        >
+                          ✓ Dues Paid
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            background: '#fee2e2',
+                            color: '#dc2626',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                          }}
+                        >
+                          ⚠️ Overdue
+                        </span>
+                      )}
+                    </td>
+                    <td style={{ padding: '12px', color: m.duesPaid ? '#475569' : '#dc2626', fontSize: '12px' }}>
+                      {m.duesExpiresAt}
+                    </td>
+                    <td style={{ padding: '12px', textAlign: 'right' }}>
+                      {!m.duesPaid ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStartRenewal(m);
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            background: '#1e3a8a',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Pay Dues (Razorpay)
+                        </button>
+                      ) : (
+                        <span style={{ fontSize: '12px', color: '#15803d', fontWeight: 600 }}>
+                          Pass Active
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Right Column (1fr): Skyline Digital ID Card */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <div
-            style={{
-              background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-              borderRadius: "12px",
-              border: "1px solid #334155",
-              padding: "20px",
-              color: "white",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
-            }}
-          >
+        {/* Right: Selected Member Digital Card Preview */}
+        <div
+          style={{
+            background: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#1e3a8a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Award style={{ width: '16px', height: '16px' }} />
+                Digital Membership ID Card
+              </span>
+              <span
+                style={{
+                  background: selectedMember.duesPaid ? '#dcfce7' : '#fee2e2',
+                  color: selectedMember.duesPaid ? '#15803d' : '#dc2626',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                }}
+              >
+                {selectedMember.duesPaid ? 'Verified Member' : 'Dues Unpaid'}
+              </span>
+            </div>
+
+            {/* Member Details */}
             <div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  borderBottom: "1px solid rgba(255,255,255,0.1)",
-                  paddingBottom: "12px",
-                  marginBottom: "16px",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <Award size={18} color="#818cf8" />
-                  <span style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.5px", color: "#c7d2fe" }}>
-                    SKYLINE DIGITAL PASS
-                  </span>
-                </div>
-                <span
-                  style={{
-                    background: selectedMember.duesPaid ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)",
-                    color: selectedMember.duesPaid ? "#4ade80" : "#f87171",
-                    border: selectedMember.duesPaid
-                      ? "1px solid rgba(74,222,128,0.3)"
-                      : "1px solid rgba(248,113,113,0.3)",
-                    padding: "2px 8px",
-                    borderRadius: "4px",
-                    fontSize: "10px",
-                    fontWeight: 600,
-                  }}
-                >
-                  {selectedMember.duesPaid ? "ACTIVE MEMBER" : "PENDING DUES"}
-                </span>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-                <img
-                  src={`https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(selectedMember.name)}&backgroundColor=b6e3f4`}
-                  alt={selectedMember.name}
-                  style={{ width: "48px", height: "48px", borderRadius: "50%", border: "2px solid #818cf8" }}
-                />
-                <div>
-                  <div style={{ fontSize: "15px", fontWeight: 700, color: "white" }}>
-                    {selectedMember.name}
-                  </div>
-                  <div style={{ fontSize: "12px", color: "#94a3b8", fontFamily: "monospace" }}>
-                    {selectedMember.membershipId}
-                  </div>
-                  <div style={{ fontSize: "11px", color: "#818cf8" }}>
-                    {selectedMember.email}
-                  </div>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  borderRadius: "8px",
-                  padding: "12px",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "8px",
-                  fontSize: "12px",
-                  marginBottom: "16px",
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ color: "#94a3b8" }}>Dues Valid Until:</span>
-                  <span style={{ fontWeight: 600, color: "white" }}>{selectedMember.duesExpiresAt}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ color: "#94a3b8" }}>Annual Dues Status:</span>
-                  <span
-                    style={{
-                      fontWeight: 600,
-                      color: selectedMember.duesPaid ? "#4ade80" : "#f87171",
-                    }}
-                  >
-                    {selectedMember.duesPaid ? "₹250 (Paid)" : "₹250 (Unpaid)"}
-                  </span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ color: "#94a3b8" }}>Member Discounts:</span>
-                  <span style={{ fontWeight: 600, color: "#818cf8" }}>
-                    {selectedMember.discountEligible ? "Gala 60% • Merch 20%" : "None (Pay Dues)"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Dynamic QR Verification Box */}
-              <div
-                style={{
-                  background: "white",
-                  borderRadius: "8px",
-                  padding: "14px",
-                  textAlign: "center",
-                  color: "#0f172a",
-                }}
-              >
-                <QrCode size={110} style={{ margin: "0 auto" }} />
-                <p style={{ fontSize: "11px", color: "#64748b", margin: "8px 0 2px" }}>
-                  Scan at event entrance or checkout desk for instant validation
-                </p>
-                <div style={{ fontSize: "10px", color: "#94a3b8", fontFamily: "monospace" }}>
-                  TOKEN: {selectedMember.membershipId}-SECURE
-                </div>
-              </div>
+              <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Member Name</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#1e293b' }}>{selectedMember.name}</div>
+              <div style={{ fontSize: '12px', color: '#64748b' }}>{selectedMember.email}</div>
             </div>
 
-            {/* Quick Actions on Pass */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "16px" }}>
-              <button
-                onClick={handleCopyToken}
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  borderRadius: "6px",
-                  background: "rgba(255,255,255,0.1)",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  color: "white",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "6px",
-                }}
-              >
-                {copiedToken ? <Check size={14} color="#4ade80" /> : <Copy size={14} />}
-                {copiedToken ? "Token Copied to Clipboard!" : "Copy Verification Token"}
-              </button>
-
-              <button
-                onClick={() => handleToggleDues(selectedMember.id)}
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  borderRadius: "6px",
-                  background: selectedMember.duesPaid ? "#dc2626" : "#16a34a",
-                  border: "none",
-                  color: "white",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "6px",
-                }}
-              >
-                <CreditCard size={14} />
-                {selectedMember.duesPaid ? "Revoke / Mark Dues Unpaid" : "Record ₹250 Payment as Paid"}
-              </button>
-            </div>
-
+            {/* Pass QR Box */}
             <div
               style={{
-                textAlign: "center",
-                fontSize: "11px",
-                color: "#94a3b8",
-                marginTop: "16px",
-                borderTop: "1px solid rgba(255,255,255,0.08)",
-                paddingTop: "12px",
+                background: 'var(--muted)',
+                borderRadius: '10px',
+                padding: '16px',
+                textAlign: 'center',
+                border: '1px solid var(--border)',
               }}
             >
-              Skyline Student Association • Academic Term 2025-26
+              <QrCode style={{ width: '100px', height: '100px', margin: '0 auto', color: '#1e293b' }} />
+              <div style={{ fontSize: '12px', fontFamily: 'monospace', fontWeight: 800, color: '#1e3a8a', marginTop: '8px' }}>
+                {selectedMember.membershipId}
+              </div>
+              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                Valid Thru: {selectedMember.duesExpiresAt}
+              </div>
+            </div>
+
+            {/* Entitlements Checklist */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: selectedMember.duesPaid ? '#15803d' : '#94a3b8' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px' }} />
+                <span>60% discount on Gala tickets (₹100 vs ₹250)</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: selectedMember.duesPaid ? '#15803d' : '#94a3b8' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px' }} />
+                <span>20% off on official club hoodies & T-shirts</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: selectedMember.duesPaid ? '#15803d' : '#94a3b8' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px' }} />
+                <span>Voting eligibility in annual officer elections</span>
+              </div>
             </div>
           </div>
+
+          {/* Renewal Action if unpaid */}
+          {!selectedMember.duesPaid && (
+            <button
+              onClick={() => handleStartRenewal(selectedMember)}
+              style={{
+                marginTop: '16px',
+                padding: '10px',
+                background: '#1e3a8a',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+              }}
+            >
+              <CreditCard style={{ width: '16px', height: '16px' }} />
+              <span>Renew Membership Dues (₹250 via Razorpay)</span>
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Razorpay Dues Checkout Modal */}
+      {checkoutTarget && (
+        <RazorpayPaymentModal
+          isOpen={Boolean(checkoutTarget)}
+          onClose={() => setCheckoutTarget(null)}
+          title={checkoutTarget.title}
+          purpose={checkoutTarget.purpose}
+          amount={checkoutTarget.amount}
+          payerName={checkoutTarget.name}
+          payerEmail={checkoutTarget.email}
+          onSuccess={(receipt) => {
+            if (checkoutTarget.type === 'REGISTER') {
+              const created = registerNewMember(
+                {
+                  name: newStudent.name,
+                  email: newStudent.email,
+                  tier: newStudent.tier,
+                  duesPaid: true,
+                  duesExpiresAt: 'May 31, 2027',
+                  renewalAlert: false,
+                  discountEligible: true,
+                },
+                receipt
+              );
+              setRegisteredNotice(
+                `Welcome ${created.name}! Digital pass created with ID ${created.membershipId}. Annual dues of ₹250 paid via Razorpay.`
+              );
+              setShowRegisterForm(false);
+              setSelectedMember(created);
+            } else if (checkoutTarget.type === 'RENEW' && checkoutTarget.memberId) {
+              payMembershipDues(checkoutTarget.memberId, receipt);
+              setRegisteredNotice(
+                `Membership Renewed! Dues paid for ${checkoutTarget.name}. Valid until May 31, 2027.`
+              );
+            }
+            setCheckoutTarget(null);
+          }}
+        />
+      )}
     </div>
   );
-};
-
-/* ─── MODULE-SCOPE STYLES ───────────────────────────────── */
-const formLabel: React.CSSProperties = {
-  display: "block",
-  marginBottom: "6px",
-  fontSize: "12px",
-  fontWeight: 600,
-  color: "#64748b",
-  textTransform: "uppercase",
-  letterSpacing: "0.4px",
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  height: "38px",
-  padding: "0 12px",
-  border: "1px solid #e2e8f0",
-  borderRadius: "6px",
-  background: "#f8fafc",
-  color: "#1e293b",
-  fontSize: "13px",
-  outline: "none",
-};
-
-const selectStyle: React.CSSProperties = {
-  width: "100%",
-  height: "38px",
-  padding: "0 12px",
-  border: "1px solid #e2e8f0",
-  borderRadius: "6px",
-  background: "#f8fafc",
-  color: "#1e293b",
-  fontSize: "13px",
-  outline: "none",
-  cursor: "pointer",
 };

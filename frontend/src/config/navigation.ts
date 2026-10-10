@@ -24,6 +24,7 @@ import {
   Building2,
   ShieldCheck,
   QrCode,
+  Vote,
 } from 'lucide-react';
 
 /**
@@ -68,6 +69,14 @@ export const navigationConfig: NavigationItem[] = [
     allowedRoles: [ROLES.STUDENT],
     group: 'MEMBERSHIP',
   },
+  {
+    id: 'student-elections',
+    label: 'Officer Elections & Voting',
+    path: '/student/elections',
+    icon: Vote,
+    allowedRoles: [ROLES.STUDENT],
+    group: 'CAMPUS SERVICES',
+  },
 
   // Member Hub
   {
@@ -107,6 +116,14 @@ export const navigationConfig: NavigationItem[] = [
     label: 'Member Announcements',
     path: '/member/announcements',
     icon: Megaphone,
+    allowedRoles: [ROLES.MEMBER],
+    group: 'MEMBER HUB',
+  },
+  {
+    id: 'member-elections',
+    label: 'Officer Elections & Voting',
+    path: '/member/elections',
+    icon: Vote,
     allowedRoles: [ROLES.MEMBER],
     group: 'MEMBER HUB',
   },
@@ -301,6 +318,14 @@ export const navigationConfig: NavigationItem[] = [
     icon: DollarSign,
     allowedRoles: [ROLES.PRESIDENT],
     group: 'FINANCIAL OVERSIGHT',
+  },
+  {
+    id: 'president-elections',
+    label: 'Officer Elections & Results',
+    path: '/president/elections',
+    icon: Vote,
+    allowedRoles: [ROLES.PRESIDENT],
+    group: 'CLUB GOVERNANCE',
   },
 
   // ===========================================================================
