@@ -205,6 +205,10 @@ export const router = createBrowserRouter([
             path: 'tickets',
             element: <EventsTicketingModule />,
           },
+          {
+            path: 'merchandise',
+            element: <MerchandiseTaskModule />,
+          },
         ],
       },
 
@@ -406,6 +410,10 @@ export const router = createBrowserRouter([
           {
             path: 'fundraisers',
             element: <EventsModulePage roleVariant="PRESIDENT" />,
+          },
+          {
+            path: 'merchandise',
+            element: <MerchandiseTaskModule />,
           },
         ],
       },

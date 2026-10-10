@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   Award,
   CreditCard,
+  ShoppingBag,
 } from 'lucide-react';
 import {
   studentService,
@@ -387,8 +388,8 @@ export const StudentModulePage: React.FC = () => {
             </div>
           )}
 
-          {/* 3 Core Metric Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* 4 Core Metric Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Notifications Card */}
             <div
               onClick={() => navigate('/student/notifications')}
@@ -450,6 +451,26 @@ export const StudentModulePage: React.FC = () => {
               <div className="flex items-center gap-1 mt-2 text-xs font-medium text-slate-500">
                 <Users className="w-3.5 h-3.5 text-indigo-600" />
                 <span>Explore clubs and apply for membership →</span>
+              </div>
+            </div>
+
+            {/* Merchandise Store Card */}
+            <div
+              onClick={() => navigate('/student/merchandise')}
+              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between text-slate-500 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Campus Merchandise</span>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-purple-100 text-purple-800">
+                  Odoo Swag
+                </span>
+              </div>
+              <div className="text-3xl font-black text-slate-900 group-hover:text-emerald-600 transition-colors">
+                Store
+              </div>
+              <div className="flex items-center gap-1 mt-2 text-xs font-medium text-slate-500">
+                <ShoppingBag className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Shop Odoo goodies & apparel with member discount →</span>
               </div>
             </div>
           </div>

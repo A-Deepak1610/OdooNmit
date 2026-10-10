@@ -150,8 +150,10 @@ model Organization {
   membershipApplications MembershipApplication[]
   announcements          Announcement[]
 
-  // Added for event management
-  events Event[]
+  // Added for event & merchandise management
+  events             Event[]
+  merchProducts      MerchProduct[]
+  studentMerchOrders StudentMerchOrder[]
 
   @@map("organizations")
 }
@@ -468,5 +470,69 @@ model Announcement {
   @@index([authorId])
   @@index([createdAt])
   @@map("announcements")
+}
+
+model MerchProduct {
+  id                String   @id
+  organizationId    String
+  name              String
+  description       String   @db.Text
+  category          String
+  image             String   @db.Text
+  sellingPrice      Int
+  costPrice         Int?
+  memberPrice       Int?
+  sku               String
+  status            String   @default("ACTIVE")
+  lowStockThreshold Int      @default(10)
+  variants          Json
+  stockHistory      Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([category])
+  @@map("merch_products")
+}
+
+model StudentMerchOrder {
+  id                 String   @id
+  organizationId     String
+  orderNumber        String
+  orderDate          String
+  studentName        String
+  studentId          String
+  studentEmail       String
+  studentPhone       String?
+  department         String?
+  productId          String
+  productName        String
+  variantSize        String
+  quantity           Int      @default(1)
+  unitPrice          Int
+  orderTotal         Int
+  amountPaid         Int
+  outstandingBalance Int      @default(0)
+  paymentStatus      String   @default("PAID")
+  fulfillmentStatus  String   @default("PENDING")
+  paymentMethod      String?
+  transactionRef     String?
+  expectedPickupDate String?
+  handoverAt         String?
+  handoverBy         String?
+  notes              String?  @db.Text
+  cancellationReason String?  @db.Text
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([studentEmail])
+  @@index([paymentStatus])
+  @@index([fulfillmentStatus])
+  @@map("student_merch_orders")
 }
 

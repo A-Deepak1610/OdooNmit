@@ -71,6 +71,14 @@ export const navigationConfig: NavigationItem[] = [
     allowedRoles: [ROLES.STUDENT],
     badge: 'Events',
   },
+  {
+    id: 'student-merchandise',
+    label: 'Campus Merchandise & Store',
+    path: '/student/merchandise',
+    icon: ShoppingBag,
+    allowedRoles: [ROLES.STUDENT],
+    badge: 'Store',
+  },
 
   // Member Hub
   {
@@ -323,6 +331,14 @@ export const navigationConfig: NavigationItem[] = [
     path: '/president/events',
     icon: Calendar,
     allowedRoles: [ROLES.PRESIDENT],
+  },
+  {
+    id: 'president-merchandise',
+    label: 'Merchandise & Analytics',
+    path: '/president/merchandise',
+    icon: ShoppingBag,
+    allowedRoles: [ROLES.PRESIDENT],
+    badge: 'Store',
   },
 
   // ===========================================================================
