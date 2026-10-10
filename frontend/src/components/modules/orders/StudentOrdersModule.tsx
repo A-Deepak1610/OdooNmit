@@ -146,7 +146,7 @@ export const StudentOrdersModule: React.FC = () => {
           {[
             { id: 'ALL', label: 'All Records' },
             { id: 'MERCH', label: `Merchandise Orders (${orders.length})` },
-            { id: 'PAYMENTS', label: `Razorpay Receipts (${paymentReceipts.length})` },
+            { id: 'PAYMENTS', label: `Payment Receipts (${paymentReceipts.length})` },
           ].map((tab) => (
             <button
               key={tab.id}

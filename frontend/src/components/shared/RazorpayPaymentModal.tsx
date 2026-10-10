@@ -214,22 +214,22 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
           </button>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            {/* Razorpay Brand Mark */}
+            {/* Payment Brand Mark */}
             <div
               style={{
-                background: '#3395ff',
+                background: '#2563eb',
                 color: '#ffffff',
-                fontWeight: 900,
-                fontSize: '14px',
+                fontWeight: 800,
+                fontSize: '12px',
                 padding: '2px 8px',
                 borderRadius: '4px',
-                letterSpacing: '-0.5px',
+                letterSpacing: '0.5px',
               }}
             >
-              R
+              PAY
             </div>
             <span style={{ fontSize: '16px', fontWeight: 700, letterSpacing: '-0.3px' }}>
-              Razorpay Checkout
+              Payment Checkout
             </span>
             <span
               style={{
@@ -299,7 +299,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                 fontWeight: 600,
               }}
             >
-              Razorpay Sandbox Simulation Active
+              Secure 256-Bit Payment Gateway
             </div>
           </div>
         ) : paymentStatus === 'SUCCESS' ? (
@@ -665,7 +665,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                 }}
               >
                 <ExternalLink style={{ width: '16px', height: '16px' }} />
-                <span>Launch Official Razorpay Dialog Box</span>
+                <span>Pay ₹{amount.toLocaleString('en-IN')}</span>
               </button>
 
               <button
@@ -687,7 +687,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                   gap: '8px',
                 }}
               >
-                <span>Process ₹{amount.toLocaleString('en-IN')} with In-App Gateway</span>
+                <span>Pay ₹{amount.toLocaleString('en-IN')} (Direct Pay)</span>
                 <ArrowRight style={{ width: '15px', height: '15px' }} />
               </button>
 
@@ -711,7 +711,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                 }}
               >
                 <Sparkles style={{ width: '14px', height: '14px', color: '#b45309' }} />
-                <span>⚡ Instant One-Click Test Pay (Simulate Successful Checkout)</span>
+                <span>⚡ Instant One-Click Pay (Demo Mode)</span>
               </button>
             </div>
           </div>
@@ -734,7 +734,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
             <ShieldCheck style={{ width: '14px', height: '14px', color: '#15803d' }} />
             <span>PCI-DSS Level 1 Compliant</span>
           </div>
-          <div>Secured by Razorpay Payments India</div>
+          <div>256-bit Encrypted SSL Gateway</div>
         </div>
       </div>
     </div>

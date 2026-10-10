@@ -110,7 +110,7 @@ export const StudentMembershipModule: React.FC = () => {
               MEMBERSHIP GOVERNANCE
             </span>
             <span style={{ fontSize: '12px', color: '#64748b' }}>
-              Annual Dues: ₹{annualDuesAmount} • Secure Razorpay Verification
+              Annual Dues: ₹{annualDuesAmount} • Instant Verification
             </span>
           </div>
           <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', margin: '0 0 4px 0' }}>
@@ -319,7 +319,7 @@ export const StudentMembershipModule: React.FC = () => {
                 }}
               >
                 <Sparkles style={{ width: '15px', height: '15px' }} />
-                <span>Renew Membership (₹250 via Razorpay)</span>
+                <span>Renew Membership (₹250)</span>
               </button>
             </div>
           </div>
@@ -468,7 +468,7 @@ export const StudentMembershipModule: React.FC = () => {
               Register for Campus Organization
             </h3>
             <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-              Complete the form below and settle annual membership dues (₹250) via Razorpay standard dialog.
+              Complete the form below to enroll and settle annual membership dues (₹250).
             </p>
           </div>
 
@@ -599,7 +599,7 @@ export const StudentMembershipModule: React.FC = () => {
               </div>
               <div style={{ fontSize: '11px', color: '#64748b', textAlign: 'right' }}>
                 Instant Gateway Token Generation<br />
-                Secured by Razorpay India
+                256-bit Encrypted Checkout
               </div>
             </div>
 
@@ -621,7 +621,7 @@ export const StudentMembershipModule: React.FC = () => {
                 boxShadow: '0 4px 6px -1px rgba(30, 58, 138, 0.25)',
               }}
             >
-              <span>Pay Annual Dues (₹250) & Register via Razorpay</span>
+              <span>Pay ₹250 & Register</span>
               <ArrowRight style={{ width: '16px', height: '16px' }} />
             </button>
           </form>
@@ -642,7 +642,7 @@ export const StudentMembershipModule: React.FC = () => {
             if (checkoutTarget.type === 'RENEW' && checkoutTarget.memberId) {
               renewMembership(checkoutTarget.memberId, receipt);
               setAlertNotice(
-                `Membership Renewed! Annual dues of ₹250 paid via Razorpay (Payment ID: ${receipt.paymentId}). Validity extended to Dec 31, 2027.`
+                `Membership Renewed! Annual dues of ₹250 paid successfully (Payment ID: ${receipt.paymentId}). Validity extended to Dec 31, 2027.`
               );
             } else {
               const created = registerNewMember(
@@ -658,7 +658,7 @@ export const StudentMembershipModule: React.FC = () => {
                 receipt
               );
               setAlertNotice(
-                `Welcome ${created.name}! Digital pass created with ID ${created.membershipId}. Annual dues of ₹250 paid via Razorpay.`
+                `Welcome ${created.name}! Digital pass created with ID ${created.membershipId}. Annual dues of ₹250 paid.`
               );
               setActiveTab('status');
             }

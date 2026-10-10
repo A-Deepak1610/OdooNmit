@@ -79,8 +79,8 @@ const ROLE_CONFIGS: Record<string, RoleConfig> = {
       { label: 'Member Announcements & Discounts', description: 'View exclusive notices, discount codes, and meeting schedules', color: '#7c3aed', bg: '#f3e8ff', icon: Megaphone, path: '/student/announcements' },
       { label: 'Browse & Buy Merchandise', description: 'Order official club hoodies, stickers, and select apparel sizes', color: '#0d9488', bg: '#ccfbf1', icon: ShoppingBag, path: '/student/merchandise' },
       { label: 'Membership Status, Expiry & Renewal', description: 'Inspect membership card, check expiry date, benefits, and renew annual dues', color: '#1e3a8a', bg: '#eff6ff', icon: UserCheck, path: '/student/membership' },
-      { label: 'Register for Organization & Dues', description: 'Enroll in clubs and pay annual membership dues (₹250 via Razorpay)', color: '#15803d', bg: '#dcfce7', icon: CreditCard, path: '/student/apply-membership' },
-      { label: 'Order & Payment Status', description: 'Review order fulfillment status, Razorpay receipts, and HMAC hashes', color: '#475569', bg: '#f1f5f9', icon: Receipt, path: '/student/orders' },
+      { label: 'Register for Organization & Dues', description: 'Enroll in clubs and pay annual membership dues (₹250)', color: '#15803d', bg: '#dcfce7', icon: CreditCard, path: '/student/apply-membership' },
+      { label: 'Order & Payment Status', description: 'Review order fulfillment status, verified receipts, and transaction hashes', color: '#475569', bg: '#f1f5f9', icon: Receipt, path: '/student/orders' },
     ],
   },
 

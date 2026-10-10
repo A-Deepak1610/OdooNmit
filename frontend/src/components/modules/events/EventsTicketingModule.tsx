@@ -354,7 +354,7 @@ export const EventsTicketingModule: React.FC = () => {
                         }}
                       >
                         <CreditCard style={{ width: '14px', height: '14px' }} />
-                        <span>Book Pass (Razorpay)</span>
+                        <span>Book Pass • Pay</span>
                       </button>
                     </div>
                   </div>
@@ -688,7 +688,7 @@ export const EventsTicketingModule: React.FC = () => {
               receipt
             );
             setBookingSuccess(
-              `Ticket Booked! Ticket #${ticketId} created with QR Pass ${qrToken}. ₹${selectedTier.price} payment verified via Razorpay.`
+              `Ticket Booked! Ticket #${ticketId} created with QR Pass ${qrToken}. ₹${selectedTier.price} payment verified.`
             );
             setSelectedTier(null);
           }}

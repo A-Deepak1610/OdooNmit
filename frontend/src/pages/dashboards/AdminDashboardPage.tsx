@@ -113,7 +113,7 @@ const INITIAL_AUDITS: AuditEntry[] = [
     id: 'aud-04',
     action: 'Platform Dues Configuration',
     performedBy: 'Super Admin',
-    target: 'Global Razorpay Sandbox Mode',
+    target: 'Global Payment Gateway Sandbox Mode',
     timestamp: '2 days ago',
     type: 'SETTINGS',
   },

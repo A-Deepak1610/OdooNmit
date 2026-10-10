@@ -121,7 +121,7 @@ export const MerchandiseTaskModule: React.FC = () => {
             Club Merchandise Store & Fundraiser Coordination
           </h2>
           <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-            Online size collection and stock depletion with Razorpay payment, alongside volunteer task boards for charity bake sales.
+            Online size collection and stock depletion with instant payment, alongside volunteer task boards for charity bake sales.
           </p>
         </div>
 
@@ -330,7 +330,7 @@ export const MerchandiseTaskModule: React.FC = () => {
                 >
                   <CreditCard style={{ width: '16px', height: '16px' }} />
                   <span>
-                    {isOutOfStock ? `Size ${activeSize} Sold Out` : `Order Size ${activeSize} (Pay via Razorpay)`}
+                    {isOutOfStock ? `Size ${activeSize} Sold Out` : `Order Size ${activeSize} • Pay`}
                   </span>
                 </button>
               </div>
@@ -369,7 +369,7 @@ export const MerchandiseTaskModule: React.FC = () => {
                   <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Item & Size</th>
                   <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Student</th>
                   <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Amount</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Razorpay Payment ID</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Payment ID</th>
                   <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Status</th>
                 </tr>
               </thead>
@@ -676,7 +676,7 @@ export const MerchandiseTaskModule: React.FC = () => {
             );
             if (order) {
               setOrderAlert(
-                `Order Placed! Order #${order.id} for ${checkoutItem.name} (Size: ${checkoutItem.size}). Paid ₹${checkoutItem.price} via Razorpay.`
+                `Order Placed! Order #${order.id} for ${checkoutItem.name} (Size: ${checkoutItem.size}). Paid ₹${checkoutItem.price}.`
               );
             }
             setCheckoutItem(null);
