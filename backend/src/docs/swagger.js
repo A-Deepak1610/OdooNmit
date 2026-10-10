@@ -3,10 +3,10 @@ import { env } from '../config/env.js';
 export const swaggerSpec = {
   openapi: '3.0.0',
   info: {
-    title: 'CampusMitra API Documentation',
+    title: 'CampusFlow API Documentation',
     version: '1.0.0',
     description:
-      'Interactive API documentation for CampusMitra modular monolith platform. Includes Authentication, Role-based Access Control (RBAC), User Management, and Health probes.',
+      'Interactive API documentation for CampusFlow modular monolith platform. Includes Authentication, Role-based Access Control (RBAC), User Management, and Health probes.',
   },
   servers: [
     {
@@ -39,7 +39,7 @@ export const swaggerSpec = {
         properties: {
           id: { type: 'string', format: 'uuid', example: 'c1234567-89ab-cdef-0123-456789abcdef' },
           name: { type: 'string', example: 'Deepak Kumar' },
-          email: { type: 'string', example: 'deepak@campusmitra.edu' },
+          email: { type: 'string', example: 'deepak@campusFlow.edu' },
           avatarUrl: { type: 'string', example: 'https://lh3.googleusercontent.com/a/...' },
           status: { type: 'string', example: 'ACTIVE' },
           roles: {

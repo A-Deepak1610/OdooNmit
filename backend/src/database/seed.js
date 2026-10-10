@@ -6,7 +6,7 @@ export const PREDEFINED_ROLE_USERS = [
   {
     role: 'ADMIN',
     name: 'Campus Administrator',
-    email: 'admin@campusmitra.edu',
+    email: 'admin@campusFlow.edu',
     avatarUrl: 'https://api.dicebear.com/9.x/thumbs/svg?seed=Admin&backgroundColor=ffd5dc',
     roles: ['ADMIN', 'STUDENT'],
     clubRole: 'FACULTY_ADVISOR',
@@ -14,7 +14,7 @@ export const PREDEFINED_ROLE_USERS = [
   {
     role: 'PRESIDENT',
     name: 'Aarav Sharma (President)',
-    email: 'president@campusmitra.edu',
+    email: 'president@campusFlow.edu',
     avatarUrl: 'https://api.dicebear.com/9.x/thumbs/svg?seed=Aarav&backgroundColor=b6e3f4',
     roles: ['PRESIDENT', 'MEMBER', 'STUDENT'],
     clubRole: 'PRESIDENT',
@@ -22,7 +22,7 @@ export const PREDEFINED_ROLE_USERS = [
   {
     role: 'TREASURER',
     name: 'Priya Patel (Treasurer)',
-    email: 'treasurer@campusmitra.edu',
+    email: 'treasurer@campusFlow.edu',
     avatarUrl: 'https://api.dicebear.com/9.x/thumbs/svg?seed=Priya&backgroundColor=c0aede',
     roles: ['TREASURER', 'MEMBER', 'STUDENT'],
     clubRole: 'TREASURER',
@@ -30,7 +30,7 @@ export const PREDEFINED_ROLE_USERS = [
   {
     role: 'EVENT_ORGANIZER',
     name: 'Rohan Gupta (Organizer)',
-    email: 'organizer@campusmitra.edu',
+    email: 'organizer@campusFlow.edu',
     avatarUrl: 'https://api.dicebear.com/9.x/thumbs/svg?seed=Rohan&backgroundColor=ffd5dc',
     roles: ['EVENT_ORGANIZER', 'MEMBER', 'STUDENT'],
     clubRole: 'OFFICER',
@@ -38,7 +38,7 @@ export const PREDEFINED_ROLE_USERS = [
   {
     role: 'VOLUNTEER',
     name: 'Ananya Iyer (Volunteer)',
-    email: 'volunteer@campusmitra.edu',
+    email: 'volunteer@campusFlow.edu',
     avatarUrl: 'https://api.dicebear.com/9.x/thumbs/svg?seed=Ananya&backgroundColor=b6e3f4',
     roles: ['VOLUNTEER', 'MEMBER', 'STUDENT'],
     clubRole: 'VOLUNTEER',
@@ -54,7 +54,7 @@ export const PREDEFINED_ROLE_USERS = [
   {
     role: 'MEMBER',
     name: 'Vikram Malhotra (Member)',
-    email: 'member@campusmitra.edu',
+    email: 'member@campusFlow.edu',
     avatarUrl: 'https://api.dicebear.com/9.x/thumbs/svg?seed=Vikram&backgroundColor=c0aede',
     roles: ['MEMBER', 'STUDENT'],
     clubRole: 'MEMBER',
@@ -62,7 +62,7 @@ export const PREDEFINED_ROLE_USERS = [
   {
     role: 'STUDENT',
     name: 'Deepak Kumar (Student)',
-    email: 'student@campusmitra.edu',
+    email: 'student@campusFlow.edu',
     avatarUrl: 'https://api.dicebear.com/9.x/thumbs/svg?seed=Deepak&backgroundColor=b6e3f4',
     roles: ['STUDENT'],
     clubRole: null,
@@ -70,7 +70,7 @@ export const PREDEFINED_ROLE_USERS = [
 ];
 
 export async function seedDatabase() {
-  logger.info('Starting CampusMitra database seeding...');
+  logger.info('Starting CampusFlow database seeding...');
 
   try {
     // 1. Ensure Skyline Student Association tenant club exists
@@ -122,8 +122,8 @@ export async function seedDatabase() {
         });
       }
 
-      // Ensure mock OAuth account binding for @campusmitra.edu demo users
-      if (demoUser.email.endsWith('@campusmitra.edu')) {
+      // Ensure mock OAuth account binding for @campusFlow.edu demo users
+      if (demoUser.email.endsWith('@campusFlow.edu')) {
         await prisma.oAuthAccount.upsert({
           where: {
             provider_providerAccountId: {

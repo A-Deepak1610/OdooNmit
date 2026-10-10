@@ -307,7 +307,7 @@ export const VolunteerProfile: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
               <div>
                 <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: '#94a3b8' }}>
-                  CAMPUSMITRA ACCREDITATION
+                  CAMPUSFlow ACCREDITATION
                 </span>
                 <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '2px 0 0 0', color: '#ffffff' }}>
                   Skyline Student Association

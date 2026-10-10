@@ -68,7 +68,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
           notes: {
             purpose: purpose,
             organization: 'Skyline Student Association',
-            system: 'Campus Mitra Odoo-NMIT',
+            system: 'Campus Flow Odoo-NMIT',
           },
           theme: {
             color: '#1e3a8a',

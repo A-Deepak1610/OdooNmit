@@ -1,5 +1,5 @@
 /**
- * Types and interfaces for the CampusMitra Volunteer Portal.
+ * Types and interfaces for the CampusFlow Volunteer Portal.
  * Models tasks, projects, event assignments, expense claims, door check-in, and announcements.
  */
 

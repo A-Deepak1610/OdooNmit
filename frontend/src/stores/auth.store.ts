@@ -27,8 +27,8 @@ interface AuthState {
   setError: (err: string | null) => void;
 }
 
-const TOKEN_KEY = 'campusmitra_access_token';
-const REFRESH_KEY = 'campusmitra_refresh_token';
+const TOKEN_KEY = 'campusFlow_access_token';
+const REFRESH_KEY = 'campusFlow_refresh_token';
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,

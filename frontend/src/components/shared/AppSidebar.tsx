@@ -80,7 +80,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               color: '#ffffff',
               flexShrink: 0,
             }}
-            title="CampusMitra"
+            title="CampusFlow"
           >
             <GraduationCap style={{ width: '18px', height: '18px' }} />
           </div>
@@ -95,7 +95,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                   lineHeight: 1.2,
                 }}
               >
-                CampusMitra
+                CampusFlow
               </span>
               <span
                 style={{

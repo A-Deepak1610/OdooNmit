@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Building2,
   Users,
@@ -7,7 +8,6 @@ import {
   Plus,
   Download,
   MapPin,
-  Mail,
   UserCheck,
   CheckCircle2,
   AlertTriangle,
@@ -18,13 +18,14 @@ import {
   Coins,
   Info,
   X,
-  Phone,
 } from 'lucide-react';
 import { CampusClub, INITIAL_CLUBS } from './data/clubs';
 import { exportToCsv } from './utils/exportCsv';
+import { AdminClubDetailView } from './AdminClubDetailView';
 
 export const AdminClubsPage: React.FC = () => {
   const [clubs, setClubs] = useState<CampusClub[]>(INITIAL_CLUBS);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -33,6 +34,19 @@ export const AdminClubsPage: React.FC = () => {
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedClubForView, setSelectedClubForView] = useState<CampusClub | null>(null);
+
+  // Synchronize URL query parameters (?id=... or ?club=...) with selected club full view
+  useEffect(() => {
+    const clubId = searchParams.get('id');
+    const clubSlug = searchParams.get('club');
+    if (clubId) {
+      const match = clubs.find((c) => c.id === clubId);
+      if (match) setSelectedClubForView(match);
+    } else if (clubSlug) {
+      const match = clubs.find((c) => c.slug.toLowerCase() === clubSlug.toLowerCase());
+      if (match) setSelectedClubForView(match);
+    }
+  }, [searchParams, clubs]);
   const [selectedClubForEdit, setSelectedClubForEdit] = useState<CampusClub | null>(null);
   const [selectedClubForBudget, setSelectedClubForBudget] = useState<CampusClub | null>(null);
   const [budgetTopUpAmount, setBudgetTopUpAmount] = useState<number>(25000);
@@ -269,8 +283,26 @@ export const AdminClubsPage: React.FC = () => {
         </div>
       )}
 
-      {/* ── 1. Page Header ── */}
-      <div
+      {/* Main Page: Either Dedicated Full-Page Club Detail View or All Clubs Directory */}
+      {selectedClubForView ? (
+        <AdminClubDetailView
+          club={clubs.find((c) => c.id === selectedClubForView.id) || selectedClubForView}
+          onBack={() => {
+            setSelectedClubForView(null);
+            if (searchParams.get('id') || searchParams.get('club')) {
+              const newParams = new URLSearchParams(searchParams);
+              newParams.delete('id');
+              newParams.delete('club');
+              setSearchParams(newParams);
+            }
+          }}
+          onEdit={(c) => setSelectedClubForEdit(c)}
+          onGrantBudget={(c) => setSelectedClubForBudget(c)}
+        />
+      ) : (
+        <>
+          {/* ── 1. Page Header ── */}
+          <div
         style={{
           background: 'white',
           borderRadius: '12px',
@@ -739,6 +771,7 @@ export const AdminClubsPage: React.FC = () => {
             return (
               <div
                 key={club.id}
+                onClick={() => setSelectedClubForView(club)}
                 style={{
                   background: 'white',
                   borderRadius: '12px',
@@ -747,7 +780,18 @@ export const AdminClubsPage: React.FC = () => {
                   overflow: 'hidden',
                   display: 'flex',
                   flexDirection: 'column',
-                  transition: 'transform 0.15s, box-shadow 0.15s',
+                  transition: 'all 0.15s ease',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(30, 58, 138, 0.08)';
+                  e.currentTarget.style.borderColor = '#93c5fd';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.03)';
+                  e.currentTarget.style.borderColor = '#e2e8f0';
                 }}
               >
                 {/* Colored Top Accent Bar */}
@@ -813,12 +857,13 @@ export const AdminClubsPage: React.FC = () => {
 
                     {/* Status Pill */}
                     <button
-                      onClick={() =>
+                      onClick={(e) => {
+                        e.stopPropagation();
                         handleToggleStatus(
                           club.id,
                           isSuspended ? 'Active' : isPending ? 'Active' : 'Suspended'
-                        )
-                      }
+                        );
+                      }}
                       title={`Click to ${isSuspended || isPending ? 'Activate' : 'Suspend'} Charter`}
                       style={{
                         fontSize: '11px',
@@ -974,7 +1019,10 @@ export const AdminClubsPage: React.FC = () => {
                   }}
                 >
                   <button
-                    onClick={() => setSelectedClubForView(club)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedClubForView(club);
+                    }}
                     style={{
                       flex: 1,
                       display: 'flex',
@@ -996,7 +1044,10 @@ export const AdminClubsPage: React.FC = () => {
                   </button>
 
                   <button
-                    onClick={() => setSelectedClubForBudget(club)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedClubForBudget(club);
+                    }}
                     title="Top-up Treasury Grant"
                     style={{
                       display: 'flex',
@@ -1017,7 +1068,10 @@ export const AdminClubsPage: React.FC = () => {
                   </button>
 
                   <button
-                    onClick={() => setSelectedClubForEdit(club)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedClubForEdit(club);
+                    }}
                     style={{
                       flex: 1,
                       display: 'flex',
@@ -1079,8 +1133,12 @@ export const AdminClubsPage: React.FC = () => {
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
                     >
                       {/* Name & Slug */}
-                      <td style={{ padding: '12px 16px' }}>
-                        <div style={{ fontWeight: 600, color: '#1e293b' }}>{club.name}</div>
+                      <td
+                        style={{ padding: '12px 16px', cursor: 'pointer' }}
+                        onClick={() => setSelectedClubForView(club)}
+                        title="Click to view full club profile, members, dues, and events"
+                      >
+                        <div style={{ fontWeight: 600, color: '#1e3a8a' }}>{club.name}</div>
                         <div style={{ fontSize: '11px', color: '#64748b', fontFamily: 'monospace' }}>
                           {club.slug} • Est. {club.foundedYear}
                         </div>
@@ -1241,6 +1299,8 @@ export const AdminClubsPage: React.FC = () => {
             </table>
           </div>
         </div>
+      )}
+        </>
       )}
 
       {/* ── MODAL 1: CHARTER NEW CLUB ── */}
@@ -1988,227 +2048,6 @@ export const AdminClubsPage: React.FC = () => {
                 </div>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* ── MODAL 3: VIEW CLUB PROFILE DETAILS ── */}
-      {selectedClubForView && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px',
-          }}
-        >
-          <div
-            style={{
-              background: 'white',
-              borderRadius: '14px',
-              maxWidth: '650px',
-              width: '100%',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-            }}
-          >
-            <div
-              style={{
-                height: '8px',
-                background: selectedClubForView.accentColor || '#1e3a8a',
-                borderTopLeftRadius: '14px',
-                borderTopRightRadius: '14px',
-              }}
-            />
-            <div
-              style={{
-                padding: '20px 24px',
-                borderBottom: '1px solid #e2e8f0',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      padding: '2px 8px',
-                      borderRadius: '4px',
-                      background: '#eff6ff',
-                      color: '#1d4ed8',
-                    }}
-                  >
-                    {selectedClubForView.category}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      padding: '2px 8px',
-                      borderRadius: '12px',
-                      fontWeight: 600,
-                      background: selectedClubForView.status === 'Active' ? '#dcfce7' : '#fef3c7',
-                      color: selectedClubForView.status === 'Active' ? '#15803d' : '#b45309',
-                    }}
-                  >
-                    {selectedClubForView.status}
-                  </span>
-                </div>
-                <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#1e293b', margin: 0 }}>
-                  {selectedClubForView.name}
-                </h2>
-                <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0' }}>
-                  {selectedClubForView.tagline}
-                </p>
-              </div>
-
-              <button
-                onClick={() => setSelectedClubForView(null)}
-                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
-              >
-                <X style={{ width: '20px', height: '20px' }} />
-              </button>
-            </div>
-
-            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {/* Description */}
-              <div style={{ fontSize: '13px', color: '#475569', lineHeight: 1.6, background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                {selectedClubForView.description}
-              </div>
-
-              {/* Financial Health Progress */}
-              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
-                    Treasury Reserves vs Allocated Budget
-                  </span>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#1e3a8a' }}>
-                    ₹{selectedClubForView.treasuryBalance.toLocaleString()} / ₹{selectedClubForView.allocatedBudget.toLocaleString()}
-                  </span>
-                </div>
-                {/* Progress bar */}
-                <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div
-                    style={{
-                      height: '100%',
-                      background: selectedClubForView.accentColor || '#1e3a8a',
-                      width: `${Math.min(100, (selectedClubForView.treasuryBalance / (selectedClubForView.allocatedBudget || 1)) * 100)}%`,
-                    }}
-                  />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b', marginTop: '6px' }}>
-                  <span>Annual Member Dues: ₹{selectedClubForView.duesAmount}/yr</span>
-                  <span>Active Members: {selectedClubForView.memberCount}</span>
-                </div>
-              </div>
-
-              {/* Leadership Contacts */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                <div style={{ padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#ffffff' }}>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
-                    Club President
-                  </div>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#1e293b', marginTop: '4px' }}>
-                    {selectedClubForView.presidentName}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#475569', marginTop: '6px' }}>
-                    <Mail style={{ width: '12px', height: '12px' }} />
-                    <span>{selectedClubForView.presidentEmail}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#475569', marginTop: '4px' }}>
-                    <Phone style={{ width: '12px', height: '12px' }} />
-                    <span>{selectedClubForView.presidentPhone}</span>
-                  </div>
-                </div>
-
-                <div style={{ padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#ffffff' }}>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
-                    Faculty Advisor
-                  </div>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#1e293b', marginTop: '4px' }}>
-                    {selectedClubForView.facultyAdvisor}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#475569', marginTop: '6px' }}>
-                    <Mail style={{ width: '12px', height: '12px' }} />
-                    <span>{selectedClubForView.advisorEmail}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#475569', marginTop: '4px' }}>
-                    <MapPin style={{ width: '12px', height: '12px' }} />
-                    <span>{selectedClubForView.meetingVenue}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Charter details */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', textAlign: 'center', background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
-                <div>
-                  <div style={{ fontSize: '11px', color: '#64748b' }}>Chartered Date</div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', marginTop: '2px' }}>
-                    {selectedClubForView.establishedDate}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '11px', color: '#64748b' }}>Charter Expiration</div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', marginTop: '2px' }}>
-                    {selectedClubForView.charterExpiry}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '11px', color: '#64748b' }}>Events Coordinated</div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', marginTop: '2px' }}>
-                    {selectedClubForView.activeEventsCount} Active
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer Actions */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
-                <button
-                  onClick={() => setSelectedClubForView(null)}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    background: 'white',
-                    color: '#475569',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedClubForEdit(selectedClubForView);
-                    setSelectedClubForView(null);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 18px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: '#1e3a8a',
-                    color: 'white',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  <Edit3 style={{ width: '14px', height: '14px' }} />
-                  <span>Edit Club Governance</span>
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       )}

@@ -91,7 +91,7 @@ export const AuthCallbackPage: React.FC = () => {
             <CheckCircle2 className="h-10 w-10 text-emerald-500 mx-auto" />
             <h2 className="text-lg font-semibold text-white">Signed in successfully</h2>
             <p className="text-xs text-slate-400">
-              Welcome to CampusMitra. Redirecting to your dashboard...
+              Welcome to CampusFlow. Redirecting to your dashboard...
             </p>
           </div>
         )}
