@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Link ,useNavigate} from 'react-router-dom';
-import { Vote } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Building2,
   Users,
@@ -17,6 +16,7 @@ import {
   ArrowUpRight,
   Activity,
   Layers,
+  Vote,
 } from 'lucide-react';
 
 interface OrganizationItem {
