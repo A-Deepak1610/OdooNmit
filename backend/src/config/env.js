@@ -41,8 +41,8 @@ export const env = {
   REFRESH_TOKEN_EXPIRES_DAYS: parseInt(process.env.REFRESH_TOKEN_EXPIRES_DAYS || '7', 10),
 
   // Google OAuth 2.0 Credentials
-  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
-  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || (process.env.NODE_ENV === 'test' ? 'test-google-client-id' : ''),
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || (process.env.NODE_ENV === 'test' ? 'test-google-client-secret' : ''),
   GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/v1/auth/google/callback',
 
   // Client Web App Hand-off
