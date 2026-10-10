@@ -1,9 +1,9 @@
 import React from 'react';
-import { RoleDashboardPage } from '../../dashboards/RoleDashboardPage';
-import { ROLES } from '../../../config/roles';
+import { PresidentModulePage } from '../PresidentModulePage';
 
 export const PresidentDashboardPage: React.FC = () => {
-  return <RoleDashboardPage role={ROLES.PRESIDENT} />;
+  return <PresidentModulePage />;
 };
 
 export default PresidentDashboardPage;
+

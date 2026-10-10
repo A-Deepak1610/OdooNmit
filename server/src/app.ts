@@ -6,6 +6,7 @@ import { authRouter } from './modules/auth/auth.routes.js';
 import { userRouter } from './modules/user/user.routes.js';
 import { adminRouter } from './modules/admin/admin.routes.js';
 import { studentRouter } from './modules/student/student.routes.js';
+import { presidentRouter } from './modules/president/president.routes.js';
 import { errorHandler } from './common/middlewares/error.middleware.js';
 
 export const app = express();
@@ -32,6 +33,7 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/student', studentRouter);
+app.use('/api/v1/president', presidentRouter);
 
 app.use('*', (req, res) => {
   res.status(404).json({

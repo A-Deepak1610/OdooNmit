@@ -254,24 +254,43 @@ export const navigationConfig: NavigationItem[] = [
 
   // ===========================================================================
   // 2. CLUB PRESIDENT / ORGANIZATION ADMIN NAVIGATION
-  // Oversees activities & leadership; profile/website; announcements;
-  // events/merch/fundraisers; membership/attendance; assign duties; finance summary.
+  // Strictly scoped to user specification:
+  // - Executive Hub (Live KPIs & Overview)
+  // - Manage Club Profile (Branding, public site, socials)
+  // - Publish Announcements (5 Active broadcasts, pin, member-only)
+  // - Membership & Fees (3 Pending applications, set fees, approve members)
+  // - Events & Fundraisers (Events management & ticketing)
   // ===========================================================================
   {
     id: 'president-dashboard',
-    label: 'Executive Suite',
+    label: 'Executive Hub',
     path: '/president/dashboard',
     icon: LayoutDashboard,
     allowedRoles: [ROLES.PRESIDENT],
-    group: 'MAIN',
   },
   {
-    id: 'president-members',
-    label: 'Membership Oversight',
-    path: '/president/members',
+    id: 'president-profile',
+    label: 'Club Profile',
+    path: '/president/profile',
+    icon: Building2,
+    allowedRoles: [ROLES.PRESIDENT],
+    badge: 'Branding',
+  },
+  {
+    id: 'president-announcements',
+    label: 'Announcements',
+    path: '/president/announcements',
+    icon: Megaphone,
+    allowedRoles: [ROLES.PRESIDENT],
+    badge: '5 Active',
+  },
+  {
+    id: 'president-membership',
+    label: 'Membership & Fees',
+    path: '/president/membership',
     icon: Users,
     allowedRoles: [ROLES.PRESIDENT],
-    group: 'CLUB GOVERNANCE',
+    badge: '3 Pending',
   },
   {
     id: 'president-events',
@@ -279,31 +298,6 @@ export const navigationConfig: NavigationItem[] = [
     path: '/president/events',
     icon: Calendar,
     allowedRoles: [ROLES.PRESIDENT],
-    group: 'CLUB GOVERNANCE',
-  },
-  {
-    id: 'president-announcements',
-    label: 'Official Announcements',
-    path: '/president/announcements',
-    icon: Megaphone,
-    allowedRoles: [ROLES.PRESIDENT],
-    group: 'COMMUNICATIONS',
-  },
-  {
-    id: 'president-finance',
-    label: 'Financial Summaries',
-    path: '/president/finance',
-    icon: DollarSign,
-    allowedRoles: [ROLES.PRESIDENT],
-    group: 'FINANCIAL OVERSIGHT',
-  },
-  {
-    id: 'president-elections',
-    label: 'Officer Elections & Results',
-    path: '/president/elections',
-    icon: Vote,
-    allowedRoles: [ROLES.PRESIDENT],
-    group: 'CLUB GOVERNANCE',
   },
 
   // ===========================================================================

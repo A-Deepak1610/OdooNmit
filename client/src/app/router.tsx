@@ -26,6 +26,7 @@ import { useAuthStore } from '../stores/auth.store';
 import { ROLES, getDefaultRole, ROLE_DEFAULT_PATHS } from '../config/roles';
 
 import { LandingPage } from '../pages/LandingPage';
+import { PresidentModulePage } from '../pages/president/PresidentModulePage';
 import { PresidentEventsFundraisersPage } from '../pages/president/PresidentEventsFundraisersPage';
 import { OrganizerEventsPage } from '../pages/organizer/OrganizerEventsPage';
 
@@ -350,11 +351,23 @@ export const router = createBrowserRouter([
         children: [
           {
             path: 'dashboard',
-            element: <RoleDashboardPage role={ROLES.PRESIDENT} />,
+            element: <PresidentModulePage />,
+          },
+          {
+            path: 'profile',
+            element: <PresidentModulePage />,
+          },
+          {
+            path: 'announcements',
+            element: <PresidentModulePage />,
+          },
+          {
+            path: 'membership',
+            element: <PresidentModulePage />,
           },
           {
             path: 'members',
-            element: <MembershipModule />,
+            element: <PresidentModulePage />,
           },
           {
             path: 'events',
@@ -363,22 +376,6 @@ export const router = createBrowserRouter([
           {
             path: 'fundraisers',
             element: <PresidentEventsFundraisersPage />,
-          },
-          {
-            path: 'announcements',
-            element: <AnnouncementBoardModule />,
-          },
-          {
-            path: 'finance',
-            element: <FinanceLedgerModule />,
-          },
-          {
-            path: 'elections',
-            element: <ElectionsVotingModule />,
-          },
-          {
-            path: 'voting',
-            element: <ElectionsVotingModule />,
           },
         ],
       },
