@@ -41,6 +41,8 @@ import { AdminRolesPage } from '../pages/admin/AdminRolesPage';
 import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage';
 import { AdminAuditLogPage } from '../pages/admin/AdminAuditLogPage';
 import { AdminClubsPage } from '../pages/admin/AdminClubsPage';
+import { AdminElectionsPage } from '../pages/admin/AdminElectionsPage';
+import { PresidentEventsFundraisersPage } from '../pages/president/PresidentEventsFundraisersPage';
 
 /**
  * Root Landing Page:
@@ -382,7 +384,11 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: <EventsTicketingModule />,
+            element: <PresidentEventsFundraisersPage />,
+          },
+          {
+            path: 'fundraisers',
+            element: <PresidentEventsFundraisersPage />,
           },
           {
             path: 'announcements',
@@ -449,6 +455,10 @@ export const router = createBrowserRouter([
           {
             path: 'winners',
             element: <AdminWinnersPage />,
+          },
+          {
+            path: 'elections',
+            element: <AdminElectionsPage />,
           },
           {
             path: 'organizations',

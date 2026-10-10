@@ -338,8 +338,16 @@ export const navigationConfig: NavigationItem[] = [
   {
     id: 'admin-organizations',
     label: 'Manage Organizations',
-    path: '/admin/dashboard',
+    path: '/admin/clubs',
     icon: Building2,
+    allowedRoles: [ROLES.ADMIN],
+    group: 'SYSTEM ADMINISTRATION',
+  },
+  {
+    id: 'admin-elections',
+    label: 'Annual Elections & Ratification',
+    path: '/admin/elections',
+    icon: Vote,
     allowedRoles: [ROLES.ADMIN],
     group: 'SYSTEM ADMINISTRATION',
   },

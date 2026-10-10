@@ -5,7 +5,6 @@ import {
   Users,
   CheckCircle2,
   Clock,
-  QrCode,
   Search,
   AlertTriangle,
   CreditCard,
@@ -13,6 +12,7 @@ import {
 import { useClubStore } from '../../../stores/club.store';
 import { useAuthStore } from '../../../stores/auth.store';
 import { RazorpayPaymentModal } from '../../shared/RazorpayPaymentModal';
+import { RealQrCode } from '../../shared/RealQrCode';
 
 export const EventsTicketingModule: React.FC = () => {
   const { user } = useAuthStore();
@@ -434,21 +434,12 @@ export const EventsTicketingModule: React.FC = () => {
                   textAlign: 'center',
                 }}
               >
-                <QrCode style={{ width: '110px', height: '110px', margin: '0 auto', color: '#1e293b' }} />
-                <div
-                  style={{
-                    fontSize: '12px',
-                    fontFamily: 'monospace',
-                    fontWeight: 800,
-                    color: '#1e3a8a',
-                    marginTop: '8px',
-                  }}
-                >
-                  SSA-GALA-2026-9812
-                </div>
-                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                  Scan at entrance for door verification
-                </div>
+                <RealQrCode
+                  value="SSA-GALA-2026-9812-DEEPAK"
+                  size={120}
+                  label="SSA-GALA-2026-9812"
+                  subLabel="Scan with camera for instant entrance verification"
+                />
               </div>
 
               <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.5 }}>
