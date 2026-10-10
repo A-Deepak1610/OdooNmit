@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Building2,
   Users,
@@ -10,6 +10,12 @@ import {
   CheckCircle2,
   Settings,
   UserCheck,
+  BarChart3,
+  PieChart,
+  TrendingUp,
+  ArrowUpRight,
+  Activity,
+  Layers,
   Vote,
 } from 'lucide-react';
 
@@ -468,8 +474,699 @@ export const AdminDashboardPage: React.FC = () => {
         })}
       </div>
 
+      {/* ── 3. Visual Charts & Stats Diagrams (Interactive Bar Chart + Donut & Capacity Diagram) ── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))',
+          gap: '24px',
+        }}
+      >
+        {/* ── CARD 1: Monthly Engagement & Event Turnout Interactive Bar Chart ── */}
+        <div
+          style={{
+            background: 'var(--card-bg, #ffffff)',
+            borderRadius: '12px',
+            border: '1px solid var(--border-color, #e2e8f0)',
+            padding: '24px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+          className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+        >
+          {/* Card Header & Metric Controls */}
+          <div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+                marginBottom: '16px',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <BarChart3 style={{ width: '18px', height: '18px', color: '#1e3a8a' }} className="dark:text-blue-400" />
+                  <h3
+                    style={{
+                      fontSize: '16px',
+                      fontWeight: 700,
+                      margin: 0,
+                      color: 'var(--foreground, #1e293b)',
+                    }}
+                    className="text-slate-900 dark:text-slate-100"
+                  >
+                    Campus Participation & Activity Volume
+                  </h3>
+                </div>
+                <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0 0 0' }}>
+                  Monthly verified student event check-ins and organization activities
+                </p>
+              </div>
 
-      {/* ── 3. Main 2:1 Content Grid ──────────────────────────────── */}
+              {/* Metric Toggle Buttons */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  background: '#f1f5f9',
+                  padding: '3px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  gap: '4px',
+                }}
+                className="bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+              >
+                <button
+                  type="button"
+                  onClick={() => setChartMetric('attendees')}
+                  style={{
+                    padding: '5px 10px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    border: 'none',
+                    background: chartMetric === 'attendees' ? '#1e3a8a' : 'transparent',
+                    color: chartMetric === 'attendees' ? '#ffffff' : '#64748b',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  Student Attendees
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChartMetric('events')}
+                  style={{
+                    padding: '5px 10px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    border: 'none',
+                    background: chartMetric === 'events' ? '#1e3a8a' : 'transparent',
+                    color: chartMetric === 'events' ? '#ffffff' : '#64748b',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  Events Hosted
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Metrics Strip */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '12px',
+                padding: '12px 14px',
+                background: '#f8fafc',
+                borderRadius: '8px',
+                marginBottom: '20px',
+              }}
+              className="bg-slate-50 dark:bg-slate-800/50"
+            >
+              <div>
+                <div style={{ fontSize: '11px', color: '#64748b' }}>Total Turnout</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1e3a8a', marginTop: '2px' }} className="dark:text-blue-400">
+                  9,620 Students
+                </div>
+                <div style={{ fontSize: '10px', color: '#16a34a', fontWeight: 600, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                  <TrendingUp size={11} />
+                  <span>+31.4% vs last term</span>
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: '11px', color: '#64748b' }}>Events Coordinated</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', marginTop: '2px' }} className="dark:text-slate-100">
+                  61 Total
+                </div>
+                <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                  <Activity size={11} color="#1e3a8a" />
+                  <span>15 active this month</span>
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: '11px', color: '#64748b' }}>Cumulative Gate Inflow</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#15803d', marginTop: '2px' }} className="dark:text-emerald-400">
+                  ₹10.04 Lakhs
+                </div>
+                <div style={{ fontSize: '10px', color: '#16a34a', fontWeight: 600, marginTop: '2px' }}>
+                  100% digital settlement
+                </div>
+              </div>
+            </div>
+
+            {/* Interactive SVG Bar Chart */}
+            <div style={{ width: '100%', height: '220px', position: 'relative' }}>
+              <svg
+                viewBox="0 0 540 200"
+                style={{ width: '100%', height: '100%', overflow: 'visible' }}
+              >
+                <defs>
+                  {/* Active Bar Gradient */}
+                  <linearGradient id="barActiveGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#1e3a8a" />
+                    <stop offset="100%" stopColor="#3b82f6" />
+                  </linearGradient>
+                  {/* Projected Bar Gradient */}
+                  <linearGradient id="barProjectedGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#059669" />
+                    <stop offset="100%" stopColor="#10b981" />
+                  </linearGradient>
+                </defs>
+
+                {/* Y-Axis dashed guidelines */}
+                {[
+                  { y: 30, label: chartMetric === 'attendees' ? '3,500' : '20' },
+                  { y: 75, label: chartMetric === 'attendees' ? '2,300' : '14' },
+                  { y: 120, label: chartMetric === 'attendees' ? '1,100' : '7' },
+                  { y: 165, label: '0' },
+                ].map((line, idx) => (
+                  <g key={idx}>
+                    <line
+                      x1="45"
+                      y1={line.y}
+                      x2="525"
+                      y2={line.y}
+                      stroke="#e2e8f0"
+                      strokeDasharray="4 4"
+                      className="stroke-slate-200 dark:stroke-slate-800"
+                    />
+                    <text
+                      x="40"
+                      y={line.y + 4}
+                      textAnchor="end"
+                      fontSize="10"
+                      fill="#94a3b8"
+                      fontFamily="monospace"
+                    >
+                      {line.label}
+                    </text>
+                  </g>
+                ))}
+
+                {/* Render 6 Bars */}
+                {MONTHLY_STATS.map((item, idx) => {
+                  const maxVal = chartMetric === 'attendees' ? 3500 : 20;
+                  const currentVal = chartMetric === 'attendees' ? item.attendees : item.events;
+                  const barHeight = Math.max(12, (currentVal / maxVal) * 135);
+                  const barY = 165 - barHeight;
+                  const slotWidth = (520 - 50) / MONTHLY_STATS.length;
+                  const barWidth = 40;
+                  const slotX = 50 + idx * slotWidth;
+                  const barX = slotX + (slotWidth - barWidth) / 2;
+                  const isHovered = hoveredBarIndex === idx;
+
+                  return (
+                    <g
+                      key={item.month}
+                      onMouseEnter={() => setHoveredBarIndex(idx)}
+                      onMouseLeave={() => setHoveredBarIndex(null)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {/* Highlight column on hover */}
+                      {isHovered && (
+                        <rect
+                          x={slotX}
+                          y={20}
+                          width={slotWidth}
+                          height={150}
+                          fill="#eff6ff"
+                          opacity={0.6}
+                          rx={6}
+                          className="dark:fill-blue-900/20"
+                        />
+                      )}
+
+                      {/* Bar Rectangle */}
+                      <rect
+                        x={barX}
+                        y={barY}
+                        width={barWidth}
+                        height={barHeight}
+                        rx={5}
+                        fill={item.isProjection ? 'url(#barProjectedGrad)' : 'url(#barActiveGrad)'}
+                        opacity={isHovered ? 1 : 0.9}
+                        style={{
+                          transition: 'all 0.2s ease',
+                          transformOrigin: `${barX + barWidth / 2}px 165px`,
+                          transform: isHovered ? 'scaleY(1.03)' : 'scaleY(1)',
+                          filter: isHovered ? 'drop-shadow(0 4px 8px rgba(30, 58, 138, 0.3))' : 'none',
+                        }}
+                      />
+
+                      {/* Value label above bar */}
+                      <text
+                        x={barX + barWidth / 2}
+                        y={barY - 6}
+                        textAnchor="middle"
+                        fontSize="11"
+                        fontWeight="700"
+                        fill={isHovered ? '#1e3a8a' : '#475569'}
+                        className="dark:fill-slate-200"
+                      >
+                        {chartMetric === 'attendees' ? currentVal.toLocaleString() : currentVal}
+                      </text>
+
+                      {/* Month label under baseline */}
+                      <text
+                        x={barX + barWidth / 2}
+                        y={183}
+                        textAnchor="middle"
+                        fontSize="11"
+                        fontWeight={isHovered ? '700' : '500'}
+                        fill={isHovered ? '#1e3a8a' : '#64748b'}
+                        className="dark:fill-slate-400"
+                      >
+                        {item.month}
+                      </text>
+
+                      {/* Projected indicator pill text */}
+                      {item.isProjection && (
+                        <text
+                          x={barX + barWidth / 2}
+                          y={195}
+                          textAnchor="middle"
+                          fontSize="9"
+                          fontWeight="600"
+                          fill="#059669"
+                        >
+                          Target
+                        </text>
+                      )}
+                    </g>
+                  );
+                })}
+              </svg>
+
+              {/* Dynamic Hover Tooltip */}
+              {hoveredBarIndex !== null && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '8px',
+                    right: '12px',
+                    background: '#0f172a',
+                    color: '#ffffff',
+                    padding: '8px 14px',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+                    zIndex: 10,
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <div style={{ fontWeight: 700, marginBottom: '2px' }}>
+                    {MONTHLY_STATS[hoveredBarIndex].month} Summary
+                  </div>
+                  <div>
+                    👥 Attendees: <strong>{MONTHLY_STATS[hoveredBarIndex].attendees.toLocaleString()}</strong>
+                  </div>
+                  <div>
+                    📅 Events Hosted: <strong>{MONTHLY_STATS[hoveredBarIndex].events}</strong>
+                  </div>
+                  <div>
+                    💰 Ticket Volume: <strong>₹{MONTHLY_STATS[hoveredBarIndex].revenue.toLocaleString()}</strong>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom Chart Footer Legend */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderTop: '1px solid #f1f5f9',
+              paddingTop: '12px',
+              marginTop: '12px',
+              fontSize: '11px',
+              color: '#64748b',
+            }}
+            className="border-slate-100 dark:border-slate-800"
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ width: '10px', height: '10px', borderRadius: '3px', background: '#1e3a8a' }} />
+                <span>Verified Actuals</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ width: '10px', height: '10px', borderRadius: '3px', background: '#059669' }} />
+                <span>Target Projections</span>
+              </div>
+            </div>
+            <span style={{ fontWeight: 500 }}>Semester Term: Fall 2026</span>
+          </div>
+        </div>
+
+        {/* ── CARD 2: Stats Diagram (Donut Distribution + Top Clubs Capacity Bars) ── */}
+        <div
+          style={{
+            background: 'var(--card-bg, #ffffff)',
+            borderRadius: '12px',
+            border: '1px solid var(--border-color, #e2e8f0)',
+            padding: '24px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+          className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+        >
+          {/* Header */}
+          <div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                marginBottom: '14px',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <PieChart style={{ width: '18px', height: '18px', color: '#1e3a8a' }} className="dark:text-blue-400" />
+                  <h3
+                    style={{
+                      fontSize: '16px',
+                      fontWeight: 700,
+                      margin: 0,
+                      color: 'var(--foreground, #1e293b)',
+                    }}
+                    className="text-slate-900 dark:text-slate-100"
+                  >
+                    Organization Portfolio & Roster Density
+                  </h3>
+                </div>
+                <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0 0 0' }}>
+                  Domain representation and capacity utilization across student bodies
+                </p>
+              </div>
+
+              <Link
+                to="/admin/clubs"
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#1e3a8a',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+                className="hover:underline"
+              >
+                <span>View Clubs</span>
+                <ArrowUpRight size={13} />
+              </Link>
+            </div>
+
+            {/* TOP HALF: Donut Stats Diagram & Legend */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '24px',
+                padding: '12px 14px',
+                background: '#f8fafc',
+                borderRadius: '10px',
+                marginBottom: '20px',
+              }}
+              className="bg-slate-50 dark:bg-slate-800/50"
+            >
+              {/* SVG Donut Circle */}
+              <div style={{ width: '130px', height: '130px', flexShrink: 0, position: 'relative' }}>
+                <svg viewBox="0 0 160 160" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+                  {/* Background Track */}
+                  <circle
+                    cx="80"
+                    cy="80"
+                    r="52"
+                    fill="none"
+                    stroke="#e2e8f0"
+                    strokeWidth="18"
+                    className="stroke-slate-200 dark:stroke-slate-700"
+                  />
+
+                  {/* Dynamic Donut Segments */}
+                  {(() => {
+                    const circumference = 2 * Math.PI * 52;
+                    let accumulatedOffset = 0;
+                    return DOMAIN_DISTRIBUTION.map((domain) => {
+                      const strokeDash = (domain.percentage / 100) * circumference;
+                      const strokeGap = circumference - strokeDash;
+                      const currentOffset = -accumulatedOffset;
+                      accumulatedOffset += strokeDash;
+                      const isHovered = hoveredDomain === domain.label;
+
+                      return (
+                        <circle
+                          key={domain.label}
+                          cx="80"
+                          cy="80"
+                          r="52"
+                          fill="none"
+                          stroke={domain.color}
+                          strokeWidth={isHovered ? 22 : 18}
+                          strokeDasharray={`${strokeDash} ${strokeGap}`}
+                          strokeDashoffset={currentOffset}
+                          style={{
+                            transition: 'stroke-width 0.2s ease, opacity 0.2s ease',
+                            cursor: 'pointer',
+                            opacity: hoveredDomain && !isHovered ? 0.4 : 1,
+                          }}
+                          onMouseEnter={() => setHoveredDomain(domain.label)}
+                          onMouseLeave={() => setHoveredDomain(null)}
+                        />
+                      );
+                    });
+                  })()}
+                </svg>
+
+                {/* Donut Center Display */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <span style={{ fontSize: '20px', fontWeight: 800, color: '#1e293b', lineHeight: 1 }} className="dark:text-slate-100">
+                    12
+                  </span>
+                  <span style={{ fontSize: '10px', color: '#64748b', fontWeight: 600, marginTop: '2px' }}>
+                    Charters
+                  </span>
+                </div>
+              </div>
+
+              {/* Donut Legend */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {DOMAIN_DISTRIBUTION.map((domain) => (
+                  <div
+                    key={domain.label}
+                    onMouseEnter={() => setHoveredDomain(domain.label)}
+                    onMouseLeave={() => setHoveredDomain(null)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      padding: '2px 4px',
+                      borderRadius: '4px',
+                      background: hoveredDomain === domain.label ? '#ffffff' : 'transparent',
+                      transition: 'background 0.15s ease',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span
+                        style={{
+                          width: '9px',
+                          height: '9px',
+                          borderRadius: '50%',
+                          background: domain.color,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontWeight: hoveredDomain === domain.label ? 700 : 500,
+                          color: '#334155',
+                        }}
+                        className="dark:text-slate-300"
+                      >
+                        {domain.label}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ color: '#64748b', fontSize: '10px' }}>{domain.count} clubs</span>
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          color: domain.color,
+                          background: domain.bg,
+                          padding: '1px 6px',
+                          borderRadius: '4px',
+                          fontSize: '10px',
+                        }}
+                      >
+                        {domain.percentage}%
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* BOTTOM HALF: Top Clubs Enrollment Capacity Comparison */}
+            <div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '10px',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    color: '#64748b',
+                    letterSpacing: '0.4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                  }}
+                >
+                  <Layers size={13} color="#1e3a8a" className="dark:text-blue-400" />
+                  <span>Key Student Body Capacity Quotas</span>
+                </span>
+                <span style={{ fontSize: '11px', color: '#15803d', fontWeight: 600 }}>
+                  Active Dues Compliance
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {TOP_CLUBS_CAPACITY.map((club) => {
+                  const pct = Math.round((club.enrolled / club.capacity) * 100);
+                  return (
+                    <div key={club.slug}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          fontSize: '12px',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        <Link
+                          to={`/admin/clubs?club=${club.slug}`}
+                          style={{
+                            fontWeight: 600,
+                            color: '#1e3a8a',
+                            textDecoration: 'none',
+                          }}
+                          className="hover:underline"
+                        >
+                          {club.name}
+                        </Link>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '11px', color: '#64748b' }}>
+                            {club.enrolled}/{club.capacity} ({pct}%)
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '10px',
+                              fontWeight: 700,
+                              color: '#15803d',
+                              background: '#dcfce7',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                            }}
+                          >
+                            {club.duesRate}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '7px',
+                          background: '#f1f5f9',
+                          borderRadius: '4px',
+                          overflow: 'hidden',
+                        }}
+                        className="bg-slate-100 dark:bg-slate-800"
+                      >
+                        <div
+                          style={{
+                            width: `${pct}%`,
+                            height: '100%',
+                            background: club.color,
+                            borderRadius: '4px',
+                            transition: 'width 0.3s ease',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Status Bar */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderTop: '1px solid #f1f5f9',
+              paddingTop: '12px',
+              marginTop: '14px',
+              fontSize: '11px',
+              color: '#64748b',
+            }}
+            className="border-slate-100 dark:border-slate-800"
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#15803d', fontWeight: 600 }}>
+              <CheckCircle2 size={13} />
+              <span>All 12 Charters in Good Standing</span>
+            </span>
+            <Link
+              to="/admin/analytics"
+              style={{
+                color: '#1e3a8a',
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}
+              className="hover:underline"
+            >
+              Comprehensive Analytics →
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 4. Main 2:1 Content Grid ──────────────────────────────── */}
       <div
         className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.8fr)_minmax(320px,1fr)] gap-6"
       >
