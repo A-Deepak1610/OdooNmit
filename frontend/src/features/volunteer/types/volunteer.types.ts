@@ -1,6 +1,6 @@
 /**
  * Types and interfaces for the CampusMitra Volunteer Portal.
- * Models tasks, projects, event assignments, and expense claims.
+ * Models tasks, projects, event assignments, expense claims, door check-in, and announcements.
  */
 
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'COMPLETED';
@@ -90,4 +90,37 @@ export interface VolunteerOverviewStats {
   upcomingEventsCount: number;
   pendingExpenseAmount: number;
   reimbursedExpenseAmount: number;
+}
+
+/**
+ * Door check-in ticket interface for fast entrance admission
+ * Solves: "Selling tickets for the spring gala: On the night, someone at the door should be able to check a ticket in seconds, without a printed list."
+ */
+export interface DoorTicket {
+  id: string;
+  ticketCode: string;
+  guestName: string;
+  email: string;
+  tier: 'STUDENT_MEMBER' | 'GENERAL' | 'VIP';
+  eventTitle: string;
+  seatInfo: string;
+  admitted: boolean;
+  admittedAt?: string;
+  admittedBy?: string;
+}
+
+/**
+ * Official club announcement interface
+ * Solves: "Announcing the next meeting: post one announcement that reaches everyone... instead of it getting lost in a chat."
+ */
+export interface ClubAnnouncement {
+  id: string;
+  title: string;
+  category: 'VOLUNTEER_BRIEFING' | 'MEETING' | 'DEADLINE' | 'GENERAL';
+  content: string;
+  date: string;
+  postedBy: string;
+  priority: 'URGENT' | 'IMPORTANT' | 'NORMAL';
+  targetAudience: string;
+  acknowledged?: boolean;
 }

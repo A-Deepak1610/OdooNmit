@@ -5,6 +5,8 @@ import {
   VolunteerEventAssignment,
   VolunteerExpenseClaim,
   TaskStatus,
+  DoorTicket,
+  ClubAnnouncement,
 } from '../types/volunteer.types';
 
 /**
@@ -378,4 +380,205 @@ export const volunteerApi = {
     sessionExpenses = [newClaim, ...sessionExpenses];
     return newClaim;
   },
+
+  /**
+   * Fetches tickets for Door Check-in Scanner at club events.
+   * Solves: "On the night, someone at the door should be able to check a ticket in seconds, without a printed list."
+   */
+  async getTickets(): Promise<DoorTicket[]> {
+    return [...sessionTickets];
+  },
+
+  /**
+   * Admits an attendee by ticket code or ID at the venue door in real time.
+   */
+  async admitTicket(
+    ticketIdOrCode: string,
+    admittedBy = 'Volunteer Desk'
+  ): Promise<{ success: boolean; ticket: DoorTicket; message: string }> {
+    const cleanQuery = ticketIdOrCode.trim().toUpperCase();
+    const index = sessionTickets.findIndex(
+      (t) => t.id === cleanQuery || t.ticketCode.toUpperCase() === cleanQuery
+    );
+
+    if (index === -1) {
+      throw new Error(`Ticket "${ticketIdOrCode}" not found in registered guest list.`);
+    }
+
+    const currentTicket = sessionTickets[index];
+    if (currentTicket.admitted) {
+      return {
+        success: false,
+        ticket: currentTicket,
+        message: `Already admitted at ${currentTicket.admittedAt || 'earlier today'} by ${currentTicket.admittedBy || 'door staff'}.`,
+      };
+    }
+
+    const now = new Date();
+    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    sessionTickets[index] = {
+      ...currentTicket,
+      admitted: true,
+      admittedAt: timeString,
+      admittedBy,
+    };
+
+    return {
+      success: true,
+      ticket: sessionTickets[index],
+      message: `Verified and Admitted! Welcome, ${currentTicket.guestName}.`,
+    };
+  },
+
+  /**
+   * Fetches club announcements and volunteer directives.
+   * Solves: "The club needs to tell every member about a meeting... instead of it getting lost in a chat."
+   */
+  async getAnnouncements(): Promise<ClubAnnouncement[]> {
+    return [...sessionAnnouncements];
+  },
+
+  /**
+   * Acknowledges that volunteer has read an announcement.
+   */
+  async acknowledgeAnnouncement(id: string): Promise<ClubAnnouncement> {
+    const idx = sessionAnnouncements.findIndex((a) => a.id === id);
+    if (idx !== -1) {
+      sessionAnnouncements[idx] = {
+        ...sessionAnnouncements[idx],
+        acknowledged: true,
+      };
+      return sessionAnnouncements[idx];
+    }
+    throw new Error('Announcement not found.');
+  },
 };
+
+const INITIAL_TICKETS: DoorTicket[] = [
+  {
+    id: 'tkt-01',
+    ticketCode: 'GALA-TKT-1089',
+    guestName: 'Aarav Patel',
+    email: 'aarav.patel@skyline.edu',
+    tier: 'VIP',
+    eventTitle: 'Skyline Annual Spring Gala 2026',
+    seatInfo: 'VIP Table #4 - Seat A',
+    admitted: false,
+  },
+  {
+    id: 'tkt-02',
+    ticketCode: 'GALA-TKT-1090',
+    guestName: 'Priya Sharma',
+    email: 'priya.s@skyline.edu',
+    tier: 'STUDENT_MEMBER',
+    eventTitle: 'Skyline Annual Spring Gala 2026',
+    seatInfo: 'General Section Row C - Seat 12',
+    admitted: true,
+    admittedAt: '06:15 PM',
+    admittedBy: 'Volunteer Desk (RITHISH S)',
+  },
+  {
+    id: 'tkt-03',
+    ticketCode: 'GALA-TKT-1091',
+    guestName: 'Rohan Mehta',
+    email: 'rohan.m@skyline.edu',
+    tier: 'STUDENT_MEMBER',
+    eventTitle: 'Skyline Annual Spring Gala 2026',
+    seatInfo: 'General Section Row D - Seat 08',
+    admitted: false,
+  },
+  {
+    id: 'tkt-04',
+    ticketCode: 'GALA-TKT-1092',
+    guestName: 'Ananya Iyer',
+    email: 'ananya.iyer@skyline.edu',
+    tier: 'GENERAL',
+    eventTitle: 'Skyline Annual Spring Gala 2026',
+    seatInfo: 'General Section Row B - Seat 05',
+    admitted: false,
+  },
+  {
+    id: 'tkt-05',
+    ticketCode: 'GALA-TKT-1093',
+    guestName: 'Karthik Rajan',
+    email: 'karthik.r@skyline.edu',
+    tier: 'STUDENT_MEMBER',
+    eventTitle: 'Skyline Annual Spring Gala 2026',
+    seatInfo: 'General Section Row A - Seat 19',
+    admitted: true,
+    admittedAt: '06:40 PM',
+    admittedBy: 'Volunteer Desk (RITHISH S)',
+  },
+  {
+    id: 'tkt-06',
+    ticketCode: 'GALA-TKT-1094',
+    guestName: 'Sneha Nambiar',
+    email: 'sneha.n@skyline.edu',
+    tier: 'VIP',
+    eventTitle: 'Skyline Annual Spring Gala 2026',
+    seatInfo: 'VIP Table #2 - Seat B',
+    admitted: false,
+  },
+  {
+    id: 'tkt-07',
+    ticketCode: 'GALA-TKT-1095',
+    guestName: 'Vikram Sundaram',
+    email: 'vikram.s@skyline.edu',
+    tier: 'GENERAL',
+    eventTitle: 'Skyline Annual Spring Gala 2026',
+    seatInfo: 'Balcony Tier Row A - Seat 04',
+    admitted: false,
+  },
+];
+
+const INITIAL_ANNOUNCEMENTS: ClubAnnouncement[] = [
+  {
+    id: 'anc-01',
+    title: 'Spring Gala Door Entrance & Scanner Briefing',
+    category: 'VOLUNTEER_BRIEFING',
+    content: 'All door check-in volunteers are requested to assemble at Main Auditorium East Gate at 4:45 PM sharp for QR scanner tablet testing and badge lanyard distribution. Verify student memberships for discounted ticket holders.',
+    date: '2026-05-15',
+    postedBy: 'Event Organizer Committee',
+    priority: 'URGENT',
+    targetAudience: 'Event Volunteers & Gate Marshals',
+    acknowledged: false,
+  },
+  {
+    id: 'anc-02',
+    title: 'Bake Sale Quad Booth Schedule & Pastry Drop-off',
+    category: 'VOLUNTEER_BRIEFING',
+    content: 'Plaza tables 1-4 are confirmed for May 2. Bakers should drop off labeled cookie and pastry batches between 9:00 AM - 9:30 AM at the Student Union kitchenette. Morning table shifts begin at 10:00 AM.',
+    date: '2026-04-30',
+    postedBy: 'Charity Fundraiser Leads',
+    priority: 'IMPORTANT',
+    targetAudience: 'Bake Sale Squad',
+    acknowledged: true,
+  },
+  {
+    id: 'anc-03',
+    title: 'Semester Reimbursement Cutoff: Submit All Bills Before Friday',
+    category: 'DEADLINE',
+    content: 'The Treasurer will close the audited semester books on Friday 5:00 PM. Any out-of-pocket receipts for baking ingredients, decor, or cables must be uploaded via the Volunteer Portal today to ensure prompt bank disbursement.',
+    date: '2026-04-28',
+    postedBy: 'Treasurer Office',
+    priority: 'URGENT',
+    targetAudience: 'All Club Volunteers',
+    acknowledged: true,
+  },
+  {
+    id: 'anc-04',
+    title: 'General Club Meeting & Hoodies Distribution Announcement',
+    category: 'MEETING',
+    content: 'Our monthly general assembly will take place next Tuesday at 3:30 PM in Hall B. Pre-ordered Skyline branded hoodies will be distributed to active members. Check your digital membership pass at the welcome table.',
+    date: '2026-04-25',
+    postedBy: 'Skyline Executive Board',
+    priority: 'NORMAL',
+    targetAudience: 'All Members & Volunteers',
+    acknowledged: false,
+  },
+];
+
+let sessionTickets = [...INITIAL_TICKETS];
+let sessionAnnouncements = [...INITIAL_ANNOUNCEMENTS];
+

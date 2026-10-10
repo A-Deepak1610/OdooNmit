@@ -12,7 +12,7 @@ export const VolunteerProjects: React.FC = () => {
       <div
         style={{
           display: 'flex',
-          justifyContent: 'space-between',
+            justifyContent: 'space-between',
           alignItems: 'flex-start',
           marginBottom: '28px',
         }}

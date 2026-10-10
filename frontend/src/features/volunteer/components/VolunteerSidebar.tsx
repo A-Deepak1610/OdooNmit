@@ -4,13 +4,15 @@ import { useAuthStore } from '../../../stores/auth.store';
 import {
   LayoutDashboard,
   CheckSquare,
-  Layers,
+  QrCode,
   Calendar,
   Receipt,
   User,
   GraduationCap,
   LogOut,
   X,
+  Bell,
+  HeartHandshake,
 } from 'lucide-react';
 
 interface VolunteerSidebarProps {
@@ -23,42 +25,54 @@ const NAVIGATION_GROUPS = [
     items: [
       {
         id: 'volunteer-dashboard',
-        label: 'Operations Desk',
+        label: 'Operations Hub',
         path: '/volunteer/dashboard',
         icon: LayoutDashboard,
       },
       {
         id: 'volunteer-tasks',
-        label: 'My Task Board',
+        label: 'Bake Sale Tasks',
         path: '/volunteer/tasks',
         icon: CheckSquare,
       },
       {
+        id: 'volunteer-scanner',
+        label: 'Door Ticket Scanner',
+        path: '/volunteer/scanner',
+        icon: QrCode,
+      },
+      {
         id: 'volunteer-projects',
-        label: 'Fundraisers & Projects',
+        label: 'Charity Fundraisers',
         path: '/volunteer/projects',
-        icon: Layers,
+        icon: HeartHandshake,
       },
       {
         id: 'volunteer-events',
-        label: 'Event Day Shifts',
+        label: 'Event Shift Roster',
         path: '/volunteer/events',
         icon: Calendar,
       },
       {
         id: 'volunteer-expenses',
-        label: 'Reimbursement Claims',
+        label: 'Expense Claims',
         path: '/volunteer/expenses',
         icon: Receipt,
+      },
+      {
+        id: 'volunteer-announcements',
+        label: 'Club Announcements',
+        path: '/volunteer/announcements',
+        icon: Bell,
       },
     ],
   },
   {
-    groupTitle: 'IDENTITY & ACCOUNT',
+    groupTitle: 'IDENTITY & CREDENTIALS',
     items: [
       {
         id: 'volunteer-profile',
-        label: 'Volunteer Credentials',
+        label: 'Volunteer Pass & ID',
         path: '/volunteer/profile',
         icon: User,
       },
