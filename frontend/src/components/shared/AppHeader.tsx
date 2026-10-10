@@ -5,11 +5,20 @@ import {
   Sun,
   Bell,
 } from 'lucide-react';
+import { NotificationDropdown } from './NotificationDropdown';
+import { useNotificationStore } from '../../stores/notification.store';
 
 export const AppHeader: React.FC = () => {
   const [isDark, setIsDark] = React.useState<boolean>(() => {
     return document.documentElement.getAttribute('data-theme') === 'dark';
   });
+  const [isNotificationsOpen, setIsNotificationsOpen] = React.useState(false);
+
+  const { unreadCount, fetchNotifications } = useNotificationStore();
+
+  React.useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   const toggleTheme = () => {
     const nextTheme = isDark ? 'light' : 'dark';
@@ -101,46 +110,70 @@ export const AppHeader: React.FC = () => {
           )}
         </button>
 
-        {/* Notification Bell with red dot */}
-        <button
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: 'var(--muted-foreground)',
-            padding: '6px',
-            borderRadius: 'var(--radius-md)',
-            transition: 'color 0.2s, background 0.2s',
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          title="Notifications"
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--muted)';
-            e.currentTarget.style.color = 'var(--foreground)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = 'var(--muted-foreground)';
-          }}
-        >
-          <Bell style={{ width: '20px', height: '20px' }} />
-          {/* Red Notification Dot (8×8px absolute, border 2px var(--background)) */}
-          <span
+        {/* Notification Bell with Dropdown */}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setIsNotificationsOpen((prev) => !prev)}
             style={{
-              position: 'absolute',
-              top: '4px',
-              right: '4px',
-              width: '8px',
-              height: '8px',
-              background: 'var(--destructive)',
-              borderRadius: '50%',
-              border: '2px solid var(--background)',
+              background: isNotificationsOpen ? 'var(--muted)' : 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: isNotificationsOpen ? 'var(--foreground)' : 'var(--muted-foreground)',
+              padding: '6px',
+              borderRadius: 'var(--radius-md)',
+              transition: 'color 0.2s, background 0.2s',
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
+            title="Notifications"
+            aria-label="View notifications"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--muted)';
+              e.currentTarget.style.color = 'var(--foreground)';
+            }}
+            onMouseLeave={(e) => {
+              if (!isNotificationsOpen) {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = 'var(--muted-foreground)';
+              }
+            }}
+          >
+            <Bell style={{ width: '20px', height: '20px' }} />
+            {/* Dynamic Unread Badge Pill */}
+            {unreadCount > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '-2px',
+                  right: '-2px',
+                  minWidth: '16px',
+                  height: '16px',
+                  padding: '0 4px',
+                  background: '#ef4444',
+                  color: '#ffffff',
+                  borderRadius: '10px',
+                  border: '2px solid var(--background)',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  lineHeight: 1,
+                }}
+              >
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {/* Notifications Dropdown Panel */}
+          <NotificationDropdown
+            isOpen={isNotificationsOpen}
+            onClose={() => setIsNotificationsOpen(false)}
           />
-        </button>
+        </div>
       </div>
     </header>
   );
