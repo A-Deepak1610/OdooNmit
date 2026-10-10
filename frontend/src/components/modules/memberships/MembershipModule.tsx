@@ -6,13 +6,23 @@ import {
   CheckCircle2,
   Award,
   Search,
+  Check,
+  Copy,
+  CreditCard,
+  RefreshCw,
+  Send,
 } from "lucide-react";
-import { mockMembers } from "../../../data/mockClubData";
+import { mockMembers, MockMember } from "../../../data/mockClubData";
 
 export const MembershipModule: React.FC = () => {
-  const [members, setMembers] = useState(mockMembers);
+  const [members, setMembers] = useState<MockMember[]>(mockMembers);
+  const [selectedMember, setSelectedMember] = useState<MockMember>(mockMembers[0]);
   const [search, setSearch] = useState("");
   const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [copiedToken, setCopiedToken] = useState(false);
+  const [isSendingBatch, setIsSendingBatch] = useState(false);
+  const [batchNotice, setBatchNotice] = useState<string | null>(null);
+
   const [newStudent, setNewStudent] = useState({
     name: "",
     email: "",
@@ -33,12 +43,12 @@ export const MembershipModule: React.FC = () => {
     if (!newStudent.name || !newStudent.email) return;
 
     const newId = `SSA-2026-${String(members.length + 101).padStart(4, "0")}`;
-    const addedMember = {
+    const addedMember: MockMember = {
       id: `mem-${Date.now()}`,
       name: newStudent.name,
       email: newStudent.email,
       membershipId: newId,
-      tier: "STANDARD" as const,
+      tier: "PREMIUM",
       duesPaid: true,
       duesExpiresAt: "May 31, 2027",
       renewalAlert: false,
@@ -46,9 +56,10 @@ export const MembershipModule: React.FC = () => {
     };
 
     setMembers([addedMember, ...members]);
+    setSelectedMember(addedMember);
     setShowRegisterForm(false);
     setRegisteredNotice(
-      `Welcome ${newStudent.name}! Member profile created with ID ${newId}. Dues of ₹250 recorded as Paid.`,
+      `Welcome ${newStudent.name}! Digital pass created with ID ${newId}. Annual dues of ₹250 recorded as Paid.`
     );
     setNewStudent({
       name: "",
@@ -56,6 +67,46 @@ export const MembershipModule: React.FC = () => {
       rollNo: "",
       dept: "Computer Science",
     });
+  };
+
+  const handleToggleDues = (memberId: string) => {
+    setMembers((prev) =>
+      prev.map((m) => {
+        if (m.id === memberId) {
+          const nextStatus = !m.duesPaid;
+          const updated: MockMember = {
+            ...m,
+            duesPaid: nextStatus,
+            duesExpiresAt: nextStatus ? "May 31, 2027" : "Overdue",
+            discountEligible: nextStatus,
+            renewalAlert: !nextStatus,
+          };
+          if (selectedMember.id === memberId) {
+            setSelectedMember(updated);
+          }
+          return updated;
+        }
+        return m;
+      })
+    );
+  };
+
+  const handleSendBatchReminders = () => {
+    setIsSendingBatch(true);
+    setTimeout(() => {
+      setIsSendingBatch(false);
+      setBatchNotice(
+        "Automated renewal notifications & SMS payment links dispatched to all 18 student members with pending or lapsing dues."
+      );
+    }, 600);
+  };
+
+  const handleCopyToken = () => {
+    navigator.clipboard.writeText(
+      `VERIFIED-PASS:${selectedMember.membershipId}:${selectedMember.name}:DUE_PAID_2026`
+    );
+    setCopiedToken(true);
+    setTimeout(() => setCopiedToken(false), 2000);
   };
 
   return (
@@ -88,17 +139,17 @@ export const MembershipModule: React.FC = () => {
                 letterSpacing: "0.5px",
               }}
             >
-              Dev 2 Workstream
+              Institutional Operations
             </span>
             <span style={{ fontSize: "12px", color: "#64748b" }}>
-              Problem Scene: "A new student joins & dues tracking"
+              Skyline Student Association • Active Term 2025-26
             </span>
           </div>
           <h2 style={{ fontSize: "20px", fontWeight: 700, color: "#1e293b", margin: "0 0 4px 0" }}>
             Membership Lifecycle & Dues Management
           </h2>
           <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
-            Instant table sign-up, annual dues payment tracking (₹250/yr), renewal lapse alerts, and digital verification passes.
+            Instant table sign-up, annual dues payment tracking (₹250/yr), renewal lapse alerts, and live digital verification passes.
           </p>
         </div>
 
@@ -120,7 +171,7 @@ export const MembershipModule: React.FC = () => {
           }}
         >
           <UserPlus size={16} />
-          Table Sign-up (New Member)
+          {showRegisterForm ? "Close Form" : "Table Sign-up (New Member)"}
         </button>
       </div>
 
@@ -158,7 +209,41 @@ export const MembershipModule: React.FC = () => {
         </div>
       )}
 
-      {/* Renewal Expiry Warning Alert (Problem Statement Scene) */}
+      {batchNotice && (
+        <div
+          style={{
+            padding: "14px 18px",
+            borderRadius: "8px",
+            background: "#eff6ff",
+            border: "1px solid #bfdbfe",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontSize: "13px",
+            color: "#1d4ed8",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <CheckCircle2 size={16} color="#1d4ed8" />
+            <span>{batchNotice}</span>
+          </div>
+          <button
+            onClick={() => setBatchNotice(null)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#1d4ed8",
+              fontWeight: 600,
+              cursor: "pointer",
+              fontSize: "12px",
+            }}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Renewal Expiry Warning Alert */}
       <div
         style={{
           background: "#fef3c7",
@@ -198,6 +283,8 @@ export const MembershipModule: React.FC = () => {
         </div>
 
         <button
+          onClick={handleSendBatchReminders}
+          disabled={isSendingBatch}
           style={{
             background: "#b45309",
             color: "white",
@@ -207,9 +294,14 @@ export const MembershipModule: React.FC = () => {
             fontSize: "12px",
             fontWeight: 600,
             cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            opacity: isSendingBatch ? 0.7 : 1,
           }}
         >
-          Send Batch Reminders
+          {isSendingBatch ? <RefreshCw size={14} className="animate-spin" /> : <Send size={14} />}
+          {isSendingBatch ? "Dispatching..." : "Send Batch Reminders"}
         </button>
       </div>
 
@@ -270,7 +362,7 @@ export const MembershipModule: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Rahul Sharma"
+                  placeholder="e.g. Thirumurugan K"
                   value={newStudent.name}
                   onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
                   style={inputStyle}
@@ -281,7 +373,7 @@ export const MembershipModule: React.FC = () => {
                 <input
                   type="email"
                   required
-                  placeholder="e.g. rahul@bitsathy.ac.in"
+                  placeholder="e.g. thirumurugank.al24@bitsathy.ac.in"
                   value={newStudent.email}
                   onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
                   style={inputStyle}
@@ -294,6 +386,7 @@ export const MembershipModule: React.FC = () => {
                   onChange={(e) => setNewStudent({ ...newStudent, dept: e.target.value })}
                   style={selectStyle}
                 >
+                  <option value="Artificial Intelligence & DS">Artificial Intelligence & DS</option>
                   <option value="Computer Science">Computer Science</option>
                   <option value="Information Tech">Information Tech</option>
                   <option value="Electronics & Comm">Electronics & Comm</option>
@@ -323,7 +416,7 @@ export const MembershipModule: React.FC = () => {
         </div>
       )}
 
-      {/* Main 2:1 Split: Member Directory (2fr) & Digital ID Card Showcase (1fr) */}
+      {/* Main 2:1 Split: Member Directory (2fr) & Live Digital ID Card Showcase (1fr) */}
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "20px" }}>
         {/* Left Column (2fr): Member Directory & Verification Table */}
         <div
@@ -346,10 +439,10 @@ export const MembershipModule: React.FC = () => {
           >
             <div>
               <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#1e293b", margin: "0 0 2px 0" }}>
-                Member Verification & Dues Ledger (248 Members)
+                Member Verification & Dues Ledger ({members.length} Members)
               </h3>
               <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }}>
-                Instant verification of dues status, expiry timeline, and discount eligibility.
+                Click any row or "View Pass" to instantly preview and verify their live Digital Pass.
               </p>
             </div>
 
@@ -361,7 +454,7 @@ export const MembershipModule: React.FC = () => {
               />
               <input
                 type="text"
-                placeholder="Search member or ID..."
+                placeholder="Search member, email, or ID..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 style={{
@@ -388,31 +481,63 @@ export const MembershipModule: React.FC = () => {
                   <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>DUES STATUS</th>
                   <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>EXPIRY</th>
                   <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>BENEFIT</th>
-                  <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px", textAlign: "right" }}>ACTION</th>
+                  <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px", textAlign: "right" }}>ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredMembers.map((m, idx) => {
                   const avatarBg = ["ffd5dc", "b6e3f4", "c0aede"][idx % 3];
+                  const isSelected = selectedMember.id === m.id;
+
                   return (
                     <tr
                       key={m.id}
+                      onClick={() => setSelectedMember(m)}
                       style={{
                         borderBottom: "1px solid #f1f5f9",
-                        transition: "background-color 0.2s",
+                        backgroundColor: isSelected ? "#eff6ff" : "transparent",
+                        cursor: "pointer",
+                        transition: "background-color 0.15s",
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f8fafc")}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) e.currentTarget.style.backgroundColor = "#f8fafc";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) e.currentTarget.style.backgroundColor = "transparent";
+                      }}
                     >
                       <td style={{ padding: "12px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                           <img
                             src={`https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(m.name)}&backgroundColor=${avatarBg}`}
                             alt={m.name}
-                            style={{ width: "32px", height: "32px", borderRadius: "50%", flexShrink: 0 }}
+                            style={{
+                              width: "32px",
+                              height: "32px",
+                              borderRadius: "50%",
+                              flexShrink: 0,
+                              border: isSelected ? "2px solid #2563eb" : "1px solid #e2e8f0",
+                            }}
                           />
                           <div>
-                            <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>{m.name}</div>
+                            <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>
+                              {m.name}
+                              {m.email.includes("thirumurugan") && (
+                                <span
+                                  style={{
+                                    marginLeft: "6px",
+                                    fontSize: "10px",
+                                    background: "#dbeafe",
+                                    color: "#1e40af",
+                                    padding: "1px 6px",
+                                    borderRadius: "4px",
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  You (Admin)
+                                </span>
+                              )}
+                            </div>
                             <div style={{ fontSize: "11px", color: "#64748b" }}>{m.email}</div>
                           </div>
                         </div>
@@ -478,18 +603,48 @@ export const MembershipModule: React.FC = () => {
                         )}
                       </td>
                       <td style={{ padding: "12px", textAlign: "right" }}>
-                        <button
-                          style={{
-                            background: "none",
-                            border: "none",
-                            color: "#1e3a8a",
-                            fontWeight: 600,
-                            fontSize: "12px",
-                            cursor: "pointer",
-                          }}
-                        >
-                          View Pass
-                        </button>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "8px" }}>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleDues(m.id);
+                            }}
+                            title="Toggle Annual Dues Payment"
+                            style={{
+                              background: m.duesPaid ? "#f8fafc" : "#15803d",
+                              color: m.duesPaid ? "#475569" : "white",
+                              border: m.duesPaid ? "1px solid #cbd5e1" : "none",
+                              borderRadius: "4px",
+                              padding: "4px 8px",
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            {m.duesPaid ? "Toggle" : "Collect ₹250"}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedMember(m);
+                            }}
+                            style={{
+                              background: isSelected ? "#2563eb" : "#f1f5f9",
+                              color: isSelected ? "white" : "#1e3a8a",
+                              border: "none",
+                              borderRadius: "4px",
+                              padding: "4px 8px",
+                              fontWeight: 600,
+                              fontSize: "11px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            {isSelected ? "Active Pass" : "View Pass"}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -500,7 +655,7 @@ export const MembershipModule: React.FC = () => {
         </div>
 
         {/* Right Column (1fr): Skyline Digital ID Card */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div
             style={{
               background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
@@ -511,6 +666,7 @@ export const MembershipModule: React.FC = () => {
               display: "flex",
               flexDirection: "column",
               justifyContent: "space-between",
+              boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
             }}
           >
             <div>
@@ -532,29 +688,37 @@ export const MembershipModule: React.FC = () => {
                 </div>
                 <span
                   style={{
-                    background: "rgba(34,197,94,0.2)",
-                    color: "#4ade80",
-                    border: "1px solid rgba(74,222,128,0.3)",
+                    background: selectedMember.duesPaid ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)",
+                    color: selectedMember.duesPaid ? "#4ade80" : "#f87171",
+                    border: selectedMember.duesPaid
+                      ? "1px solid rgba(74,222,128,0.3)"
+                      : "1px solid rgba(248,113,113,0.3)",
                     padding: "2px 8px",
                     borderRadius: "4px",
                     fontSize: "10px",
                     fontWeight: 600,
                   }}
                 >
-                  ACTIVE MEMBER
+                  {selectedMember.duesPaid ? "ACTIVE MEMBER" : "PENDING DUES"}
                 </span>
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
                 <img
-                  src="https://api.dicebear.com/9.x/thumbs/svg?seed=Deepak&backgroundColor=b6e3f4"
-                  alt="Deepak Kumar"
-                  style={{ width: "44px", height: "44px", borderRadius: "50%", border: "2px solid #818cf8" }}
+                  src={`https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(selectedMember.name)}&backgroundColor=b6e3f4`}
+                  alt={selectedMember.name}
+                  style={{ width: "48px", height: "48px", borderRadius: "50%", border: "2px solid #818cf8" }}
                 />
                 <div>
-                  <div style={{ fontSize: "15px", fontWeight: 700 }}>Deepak Kumar</div>
-                  <div style={{ fontSize: "12px", color: "#94a3b8", fontFamily: "monospace" }}>SSA-2026-0042</div>
-                  <div style={{ fontSize: "11px", color: "#818cf8" }}>Dept: Computer Science</div>
+                  <div style={{ fontSize: "15px", fontWeight: 700, color: "white" }}>
+                    {selectedMember.name}
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#94a3b8", fontFamily: "monospace" }}>
+                    {selectedMember.membershipId}
+                  </div>
+                  <div style={{ fontSize: "11px", color: "#818cf8" }}>
+                    {selectedMember.email}
+                  </div>
                 </div>
               </div>
 
@@ -573,18 +737,28 @@ export const MembershipModule: React.FC = () => {
               >
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span style={{ color: "#94a3b8" }}>Dues Valid Until:</span>
-                  <span style={{ fontWeight: 600, color: "white" }}>May 31, 2026</span>
+                  <span style={{ fontWeight: 600, color: "white" }}>{selectedMember.duesExpiresAt}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span style={{ color: "#94a3b8" }}>Annual Dues Status:</span>
-                  <span style={{ fontWeight: 600, color: "#4ade80" }}>₹250 (Paid)</span>
+                  <span
+                    style={{
+                      fontWeight: 600,
+                      color: selectedMember.duesPaid ? "#4ade80" : "#f87171",
+                    }}
+                  >
+                    {selectedMember.duesPaid ? "₹250 (Paid)" : "₹250 (Unpaid)"}
+                  </span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span style={{ color: "#94a3b8" }}>Member Discounts:</span>
-                  <span style={{ fontWeight: 600, color: "#818cf8" }}>Gala 60% • Merch 20%</span>
+                  <span style={{ fontWeight: 600, color: "#818cf8" }}>
+                    {selectedMember.discountEligible ? "Gala 60% • Merch 20%" : "None (Pay Dues)"}
+                  </span>
                 </div>
               </div>
 
+              {/* Dynamic QR Verification Box */}
               <div
                 style={{
                   background: "white",
@@ -595,10 +769,60 @@ export const MembershipModule: React.FC = () => {
                 }}
               >
                 <QrCode size={110} style={{ margin: "0 auto" }} />
-                <p style={{ fontSize: "11px", color: "#64748b", margin: "8px 0 0" }}>
+                <p style={{ fontSize: "11px", color: "#64748b", margin: "8px 0 2px" }}>
                   Scan at event entrance or checkout desk for instant validation
                 </p>
+                <div style={{ fontSize: "10px", color: "#94a3b8", fontFamily: "monospace" }}>
+                  TOKEN: {selectedMember.membershipId}-SECURE
+                </div>
               </div>
+            </div>
+
+            {/* Quick Actions on Pass */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "16px" }}>
+              <button
+                onClick={handleCopyToken}
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  borderRadius: "6px",
+                  background: "rgba(255,255,255,0.1)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  color: "white",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                }}
+              >
+                {copiedToken ? <Check size={14} color="#4ade80" /> : <Copy size={14} />}
+                {copiedToken ? "Token Copied to Clipboard!" : "Copy Verification Token"}
+              </button>
+
+              <button
+                onClick={() => handleToggleDues(selectedMember.id)}
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  borderRadius: "6px",
+                  background: selectedMember.duesPaid ? "#dc2626" : "#16a34a",
+                  border: "none",
+                  color: "white",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                }}
+              >
+                <CreditCard size={14} />
+                {selectedMember.duesPaid ? "Revoke / Mark Dues Unpaid" : "Record ₹250 Payment as Paid"}
+              </button>
             </div>
 
             <div
@@ -655,4 +879,3 @@ const selectStyle: React.CSSProperties = {
   outline: "none",
   cursor: "pointer",
 };
-

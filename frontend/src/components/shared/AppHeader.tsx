@@ -146,7 +146,7 @@ export const AppHeader: React.FC = () => {
       </div>
 
       {/* 3. Navbar Right — Actions (Theme toggle + Bell with red dot) */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
