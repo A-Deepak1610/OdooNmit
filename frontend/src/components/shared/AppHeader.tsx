@@ -8,14 +8,14 @@ import {
 
 } from 'lucide-react';
 import { useUiStore } from '../../stores/ui.store';
+import { useThemeStore } from '../../stores/theme.store';
 import { useNotificationStore } from '../../stores/notification.store';
 import { NotificationDropdown } from './NotificationDropdown';
 
 export const AppHeader: React.FC = () => {
   const { toggleSidebar, toggleMobileSidebar } = useUiStore();
-  const [isDark, setIsDark] = React.useState<boolean>(() => {
-    return document.documentElement.getAttribute('data-theme') === 'dark';
-  });
+  const { resolvedTheme, toggleTheme } = useThemeStore();
+  const isDark = resolvedTheme === 'dark';
   const [isNotificationsOpen, setIsNotificationsOpen] = React.useState(false);
 
   const { unreadCount, fetchNotifications } = useNotificationStore();
@@ -23,13 +23,6 @@ export const AppHeader: React.FC = () => {
   React.useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
-
-  const toggleTheme = () => {
-    const nextTheme = isDark ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', nextTheme);
-    localStorage.setItem('campus_theme', nextTheme);
-    setIsDark(!isDark);
-  };
 
   const handleHamburgerClick = () => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
@@ -123,21 +116,22 @@ export const AppHeader: React.FC = () => {
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           style={{
             background: 'none',
             border: 'none',
             cursor: 'pointer',
             color: 'var(--muted-foreground)',
-            padding: '6px',
+            padding: '7px',
             borderRadius: 'var(--radius-md)',
             transition: 'color 0.2s, background 0.2s',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}
-          title="Toggle Light/Dark Theme"
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--muted)';
+            e.currentTarget.style.backgroundColor = 'var(--secondary)';
             e.currentTarget.style.color = 'var(--foreground)';
           }}
           onMouseLeave={(e) => {
@@ -146,7 +140,7 @@ export const AppHeader: React.FC = () => {
           }}
         >
           {isDark ? (
-            <Sun style={{ width: '20px', height: '20px' }} />
+            <Sun style={{ width: '20px', height: '20px', color: '#f59e0b' }} />
           ) : (
             <Moon style={{ width: '20px', height: '20px' }} />
           )}

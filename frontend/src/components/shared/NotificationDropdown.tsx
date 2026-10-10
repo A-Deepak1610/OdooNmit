@@ -171,9 +171,10 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         right: '0',
         width: '380px',
         maxWidth: '92vw',
-        backgroundColor: '#ffffff',
+        backgroundColor: 'var(--card)',
         borderRadius: '14px',
-        boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.08)',
+        boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--border)',
+        border: '1px solid var(--border)',
         zIndex: 1000,
         overflow: 'hidden',
         display: 'flex',
@@ -186,11 +187,11 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       <div
         style={{
           padding: '14px 16px',
-          borderBottom: '1px solid #e2e8f0',
+          borderBottom: '1px solid var(--border)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          background: '#f8fafc',
+          background: 'var(--background)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -205,12 +206,13 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
               alignItems: 'center',
               justifyContent: 'center',
             }}
+            className="dark:bg-blue-950/60 dark:text-blue-400"
           >
             <Bell style={{ width: '16px', height: '16px' }} />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--foreground)' }}>
                 Notifications
               </span>
               {unreadCount > 0 && (
@@ -228,7 +230,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 </span>
               )}
             </div>
-            <div style={{ fontSize: '11px', color: '#64748b' }}>
+            <div style={{ fontSize: '11px', color: 'var(--muted-foreground)' }}>
               Live updates & alerts
             </div>
           </div>
@@ -287,8 +289,8 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
           display: 'flex',
           gap: '4px',
           padding: '8px 12px',
-          background: '#ffffff',
-          borderBottom: '1px solid #f1f5f9',
+          background: 'var(--background)',
+          borderBottom: '1px solid var(--border)',
           overflowX: 'auto',
         }}
       >
@@ -315,8 +317,8 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 fontWeight: isActive ? 700 : 500,
                 whiteSpace: 'nowrap',
                 cursor: 'pointer',
-                background: isActive ? '#0f172a' : '#f1f5f9',
-                color: isActive ? '#ffffff' : '#64748b',
+                background: isActive ? 'var(--primary)' : 'var(--secondary)',
+                color: isActive ? '#ffffff' : 'var(--muted-foreground)',
                 transition: 'all 0.15s ease',
               }}
             >
@@ -331,7 +333,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         style={{
           maxHeight: '340px',
           overflowY: 'auto',
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--card)',
         }}
       >
         {filteredNotifications.length === 0 ? (
@@ -350,19 +352,19 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 width: '42px',
                 height: '42px',
                 borderRadius: '50%',
-                background: '#f1f5f9',
+                background: 'var(--secondary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#94a3b8',
+                color: 'var(--muted-foreground)',
               }}
             >
               <Bell style={{ width: '20px', height: '20px' }} />
             </div>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--foreground)' }}>
               No notifications here
             </div>
-            <div style={{ fontSize: '11px', color: '#94a3b8', maxWidth: '240px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--muted-foreground)', maxWidth: '240px' }}>
               You are all caught up on announcements, ballots, and financial receipts.
             </div>
           </div>
@@ -373,8 +375,8 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
               onClick={() => handleNotificationClick(n)}
               style={{
                 padding: '12px 16px',
-                borderBottom: '1px solid #f1f5f9',
-                backgroundColor: n.read ? '#ffffff' : '#f8faff',
+                borderBottom: '1px solid var(--border)',
+                backgroundColor: n.read ? 'var(--card)' : 'var(--muted)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'flex-start',
@@ -383,10 +385,10 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 transition: 'background-color 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = n.read ? '#f8fafc' : '#eff6ff';
+                e.currentTarget.style.backgroundColor = 'var(--secondary)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = n.read ? '#ffffff' : '#f8faff';
+                e.currentTarget.style.backgroundColor = n.read ? 'var(--card)' : 'var(--muted)';
               }}
             >
               {/* Category Icon Container */}
@@ -424,7 +426,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                     style={{
                       fontSize: '13px',
                       fontWeight: n.read ? 600 : 700,
-                      color: '#0f172a',
+                      color: 'var(--foreground)',
                       lineHeight: '1.3',
                     }}
                   >
@@ -442,6 +444,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                         textTransform: 'uppercase',
                         marginLeft: 'auto',
                       }}
+                      className="dark:bg-red-950/80 dark:text-red-400"
                     >
                       Urgent
                     </span>
@@ -451,7 +454,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 <div
                   style={{
                     fontSize: '12px',
-                    color: '#475569',
+                    color: 'var(--muted-foreground)',
                     lineHeight: '1.4',
                     marginBottom: '6px',
                   }}
@@ -460,7 +463,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--muted-foreground)' }}>
                     {formatRelativeTime(n.timestamp)}
                   </span>
 
@@ -473,6 +476,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                       alignItems: 'center',
                       gap: '3px',
                     }}
+                    className="dark:text-blue-400"
                   >
                     <span>Open</span>
                     <ExternalLink style={{ width: '11px', height: '11px' }} />
@@ -491,7 +495,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: '#94a3b8',
+                  color: 'var(--muted-foreground)',
                   cursor: 'pointer',
                   padding: '3px',
                   borderRadius: '4px',
@@ -505,7 +509,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.opacity = '0.6';
-                  e.currentTarget.style.color = '#94a3b8';
+                  e.currentTarget.style.color = 'var(--muted-foreground)';
                 }}
               >
                 <X style={{ width: '13px', height: '13px' }} />
@@ -519,13 +523,13 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       <div
         style={{
           padding: '10px 16px',
-          background: '#f8fafc',
-          borderTop: '1px solid #e2e8f0',
+          background: 'var(--background)',
+          borderTop: '1px solid var(--border)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           fontSize: '11px',
-          color: '#64748b',
+          color: 'var(--muted-foreground)',
         }}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -554,6 +558,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
             padding: 0,
             fontSize: '11px',
           }}
+          className="dark:text-blue-400"
         >
           View All Announcements →
         </button>
