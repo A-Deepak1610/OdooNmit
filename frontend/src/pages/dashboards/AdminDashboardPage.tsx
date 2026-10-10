@@ -11,7 +11,6 @@ import {
   Settings,
   UserCheck,
   Vote,
-  ArrowRight,
 } from 'lucide-react';
 
 interface OrganizationItem {
