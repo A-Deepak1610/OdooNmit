@@ -36,6 +36,14 @@ import { AdminAuditLogPage } from '../pages/admin/AdminAuditLogPage';
 import { AdminClubsPage } from '../pages/admin/AdminClubsPage';
 import { AdminElectionsPage } from '../pages/admin/AdminElectionsPage';
 import { PresidentEventsFundraisersPage } from '../pages/president/PresidentEventsFundraisersPage';
+import { AdminEventsPage } from '@/pages/admin/AdminEventsPage';
+import { AdminIncomingEventsPage } from '@/pages/admin/AdminIncomingEventsPage';
+import { AdminEventsOverviewPage } from '@/pages/admin/AdminEventsOverviewPage';
+import { AdminAnalyticsPage } from '@/pages/admin/AdminAnalyticsPage';
+import { AdminDbAssistantPage } from '@/pages/admin/AdminDbAssistantPage';
+import { AdminEventAnalyticsPage } from '@/pages/admin/AdminEventAnalyticsPage';
+import { AdminReportsPage } from '@/pages/admin/AdminReportsPage';
+import { AdminWinnersPage } from '@/pages/admin/AdminWinnersPage';
 
 /**
  * Root Landing Page:
@@ -417,7 +425,6 @@ export const router = createBrowserRouter([
             element: <AdminClubsPage />,
           },
           {
-<<<<<<< HEAD
             path: 'events',
             element: <AdminEventsPage />,
           },
@@ -454,8 +461,6 @@ export const router = createBrowserRouter([
             element: <AdminElectionsPage />,
           },
           {
-=======
->>>>>>> 249e6e922e960f2f5d34b00aac7dbc69cd669531
             path: 'organizations',
             element: <AdminClubsPage />,
           },

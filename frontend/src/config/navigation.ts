@@ -362,13 +362,8 @@ export const navigationConfig: NavigationItem[] = [
     group: 'MAIN',
   },
   {
-<<<<<<< HEAD
     id: 'admin-organizations',
     label: 'Manage Organizations',
-=======
-    id: 'admin-clubs',
-    label: 'Clubs & Charters',
->>>>>>> 249e6e922e960f2f5d34b00aac7dbc69cd669531
     path: '/admin/clubs',
     icon: Building2,
     allowedRoles: [ROLES.ADMIN],
