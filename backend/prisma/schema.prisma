@@ -11,10 +11,92 @@ datasource db {
 }
 
 // Infrastructure entity required by Prisma Client generator.
-// Future business models can be added below when the problem statement is decided.
+// Preserved for database connection verification.
 model HealthCheckLog {
   id        String   @id @default(uuid())
   checkedAt DateTime @default(now())
 
   @@map("_system_health_check_logs")
+}
+
+// -----------------------------------------------------------------------------
+// CampusMitra: User & Authentication Core
+// -----------------------------------------------------------------------------
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+enum RoleType {
+  STUDENT
+  MEMBER
+  VOLUNTEER
+  EVENT_ORGANIZER
+  TREASURER
+  PRESIDENT
+  ADMIN
+}
+
+model User {
+  id        String        @id @default(uuid())
+  name      String?
+  email     String?
+  avatarUrl String?       @map("avatar_url")
+  status    AccountStatus @default(ACTIVE)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  oauthAccounts OAuthAccount[]
+  roles         UserRole[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model OAuthAccount {
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  provider          String
+  providerAccountId String   @map("provider_account_id")
+  email             String?
+  emailVerified     Boolean  @default(false) @map("email_verified")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("oauth_accounts")
+}
+
+model UserRole {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  role       RoleType
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+  @@index([userId])
+  @@map("user_roles")
+}
+
+model RefreshToken {
+  id                  String    @id @default(uuid())
+  tokenHash           String    @unique @map("token_hash")
+  userId              String    @map("user_id")
+  expiresAt           DateTime  @map("expires_at")
+  revokedAt           DateTime? @map("revoked_at")
+  replacedByTokenHash String?   @map("replaced_by_token_hash")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
 }
