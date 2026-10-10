@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useAuthStore } from '../stores/auth.store';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -6,8 +7,14 @@ interface ProvidersProps {
 
 /**
  * Global application providers wrapper.
- * Can be extended with React Query, ThemeProvider, ToastProvider, etc.
+ * Validates session integrity with the backend on app boot.
  */
 export const Providers: React.FC<ProvidersProps> = ({ children }) => {
+  const initializeAuth = useAuthStore((state) => state.initializeAuth);
+
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
+
   return <>{children}</>;
 };

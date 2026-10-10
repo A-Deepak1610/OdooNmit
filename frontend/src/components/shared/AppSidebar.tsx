@@ -3,44 +3,44 @@ import { NavLink } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth.store';
 import { useUiStore } from '../../stores/ui.store';
 import { getPermittedNavigationItems } from '../../config/navigation';
+import { ROLE_DISPLAY_NAMES } from '../../config/roles';
 import { cn } from '../../utils/cn';
-import { LayoutGrid, Layers, ChevronRight, X } from 'lucide-react';
+import { GraduationCap, LogOut, X } from 'lucide-react';
 
 export const AppSidebar: React.FC = () => {
-  const role = useAuthStore((state) => state.role);
+  const { user, role, logout } = useAuthStore();
   const { sidebarCollapsed, mobileSidebarOpen, setMobileSidebarOpen } = useUiStore();
 
   const permittedItems = getPermittedNavigationItems(role);
 
-  // Group items if any group is specified
+  // Group items according to their designated section group
   const groupedItems = React.useMemo(() => {
     const groups: Record<string, typeof permittedItems> = {};
     permittedItems.forEach((item) => {
-      const groupKey = item.group || 'Navigation';
+      const groupKey = item.group || 'MAIN';
       if (!groups[groupKey]) groups[groupKey] = [];
       groups[groupKey].push(item);
     });
     return groups;
   }, [permittedItems]);
 
+  const handleSignOut = async () => {
+    await logout();
+  };
+
   const sidebarContent = (
-    <div className="flex h-full flex-col justify-between overflow-y-auto">
+    <div className="flex h-full flex-col justify-between bg-white select-none">
       {/* Top Branding Header */}
-      <div className="space-y-6">
-        <div className="flex h-16 items-center justify-between px-4 border-b border-surface-200/80">
-          <NavLink to="/" className="flex items-center gap-3 group">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-white shadow-md shadow-brand-500/20 group-hover:bg-brand-700 transition-colors">
-              <Layers className="h-5 w-5" />
+      <div>
+        <div className="flex h-16 items-center justify-between px-5 border-b border-slate-100">
+          <NavLink to="/" className="flex items-center gap-2.5 group">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/20 group-hover:bg-blue-700 transition-colors">
+              <GraduationCap className="h-5 w-5" />
             </div>
             {!sidebarCollapsed && (
-              <div className="flex flex-col">
-                <span className="text-sm font-bold tracking-tight text-surface-900 leading-tight">
-                  Hackathon App
-                </span>
-                <span className="text-[11px] font-medium text-surface-400">
-                  Starter Template
-                </span>
-              </div>
+              <span className="text-base font-bold tracking-tight text-blue-600">
+                CampusMitra
+              </span>
             )}
           </NavLink>
 
@@ -48,7 +48,7 @@ export const AppSidebar: React.FC = () => {
           <button
             type="button"
             onClick={() => setMobileSidebarOpen(false)}
-            className="md:hidden p-1.5 rounded-lg text-surface-400 hover:text-surface-700 hover:bg-surface-100"
+            className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
             aria-label="Close navigation"
           >
             <X className="w-5 h-5" />
@@ -56,94 +56,92 @@ export const AppSidebar: React.FC = () => {
         </div>
 
         {/* Navigation Items List */}
-        <div className="px-3">
-          {permittedItems.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-surface-200 bg-surface-50/50 p-4 text-center my-4">
-              <LayoutGrid className="mx-auto h-6 w-6 text-surface-400 mb-2" />
+        <div className="px-3 py-4 space-y-6 overflow-y-auto max-h-[calc(100vh-14rem)]">
+          {Object.entries(groupedItems).map(([groupTitle, items]) => (
+            <div key={groupTitle} className="space-y-1">
               {!sidebarCollapsed && (
-                <>
-                  <p className="text-xs font-semibold text-surface-700">No Features Registered</p>
-                  <p className="mt-1 text-[11px] text-surface-400 leading-normal">
-                    Add feature links to navigation.ts once modules are built.
-                  </p>
-                </>
-              )}
-            </div>
-          ) : (
-            <nav className="space-y-4">
-              {Object.entries(groupedItems).map(([groupTitle, items]) => (
-                <div key={groupTitle} className="space-y-1">
-                  {!sidebarCollapsed && groupTitle !== 'Navigation' && (
-                    <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-surface-400">
-                      {groupTitle}
-                    </div>
-                  )}
-                  {items.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <NavLink
-                        key={item.id}
-                        to={item.path}
-                        onClick={() => setMobileSidebarOpen(false)}
-                        className={({ isActive }) =>
-                          cn(
-                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
-                            isActive
-                              ? 'bg-brand-50 text-brand-700 font-semibold shadow-xs'
-                              : 'text-surface-600 hover:bg-surface-100/80 hover:text-surface-900',
-                            sidebarCollapsed && 'justify-center px-2'
-                          )
-                        }
-                        title={sidebarCollapsed ? item.label : undefined}
-                      >
-                        <Icon className="h-4 w-4 shrink-0 transition-transform group-hover:scale-105" />
-                        {!sidebarCollapsed && (
-                          <>
-                            <span className="truncate flex-1">{item.label}</span>
-                            <ChevronRight className="h-3.5 w-3.5 opacity-0 group-hover:opacity-60 transition-opacity" />
-                          </>
-                        )}
-                      </NavLink>
-                    );
-                  })}
+                <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  {groupTitle}
                 </div>
-              ))}
-            </nav>
-          )}
+              )}
+              {items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.id}
+                    to={item.path}
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={({ isActive }) =>
+                      cn(
+                        'group flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-150',
+                        isActive
+                          ? 'bg-blue-50 text-blue-600 font-semibold'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
+                        sidebarCollapsed && 'justify-center px-2'
+                      )
+                    }
+                    title={sidebarCollapsed ? item.label : undefined}
+                  >
+                    <Icon className="h-4 w-4 shrink-0 transition-transform group-hover:scale-105" />
+                    {!sidebarCollapsed && (
+                      <span className="truncate flex-1">{item.label}</span>
+                    )}
+                  </NavLink>
+                );
+              })}
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Role State Indicator at bottom */}
-      <div className="p-3 border-t border-surface-200/80">
-        <div
+      {/* User Profile & Sign Out at Sidebar Bottom (matches screenshot) */}
+      <div className="p-4 border-t border-slate-100 space-y-3 bg-white">
+        {!sidebarCollapsed && (
+          <div className="flex items-center gap-3">
+            {user?.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user.name || 'User avatar'}
+                className="h-9 w-9 rounded-full object-cover border border-slate-200"
+              />
+            ) : (
+              <div className="h-9 w-9 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                {user?.name ? user.name.substring(0, 2).toUpperCase() : 'CM'}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-slate-900 truncate">
+                {user?.name || 'CampusMitra User'}
+              </p>
+              <p className="text-[11px] text-slate-500 truncate">
+                {role ? (ROLE_DISPLAY_NAMES[role] || role) : 'Student'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={handleSignOut}
           className={cn(
-            'rounded-lg bg-surface-100/80 p-2.5 text-xs text-surface-600',
-            sidebarCollapsed ? 'text-center' : 'flex items-center justify-between'
+            'w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors',
+            sidebarCollapsed && 'px-2'
           )}
+          title="Sign Out"
         >
-          {!sidebarCollapsed ? (
-            <>
-              <span className="font-medium text-surface-500">Active Role:</span>
-              <span className="font-semibold text-surface-800">
-                {role ? String(role) : 'Public / None'}
-              </span>
-            </>
-          ) : (
-            <span className="text-[10px] font-bold text-surface-500">
-              {role ? String(role).substring(0, 3).toUpperCase() : 'PUB'}
-            </span>
-          )}
-        </div>
+          <LogOut className="h-3.5 w-3.5 shrink-0" />
+          {!sidebarCollapsed && <span>Sign Out</span>}
+        </button>
       </div>
     </div>
   );
 
   return (
     <>
-      {/* Mobile Backdrop Overlay */}
+      {/* Mobile Drawer Overlay */}
       {mobileSidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-surface-950/40 backdrop-blur-xs transition-opacity md:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-xs transition-opacity md:hidden"
           onClick={() => setMobileSidebarOpen(false)}
           aria-hidden="true"
         />
@@ -152,7 +150,7 @@ export const AppSidebar: React.FC = () => {
       {/* Mobile Drawer */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl transition-transform duration-200 ease-in-out md:hidden',
+          'fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-2xl transition-transform duration-200 ease-in-out md:hidden border-r border-slate-200',
           mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -162,8 +160,8 @@ export const AppSidebar: React.FC = () => {
       {/* Desktop Persistent Sidebar */}
       <aside
         className={cn(
-          'hidden md:flex flex-col border-r border-surface-200 bg-white transition-all duration-200 shrink-0 select-none',
-          sidebarCollapsed ? 'w-20' : 'w-64'
+          'hidden md:flex flex-col border-r border-slate-200 bg-white transition-all duration-200 shrink-0 select-none shadow-xs',
+          sidebarCollapsed ? 'w-18' : 'w-64'
         )}
       >
         {sidebarContent}
