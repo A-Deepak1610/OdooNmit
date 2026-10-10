@@ -1,133 +1,135 @@
-import React, { useEffect, useState } from 'react';
-import { Menu, PanelLeftClose, PanelLeft, Activity, Shield } from 'lucide-react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Menu,
+  PanelLeftClose,
+  PanelLeft,
+  Building2,
+  Search,
+  Moon,
+  Bell,
+  Shield,
+} from 'lucide-react';
 import { useUiStore } from '../../stores/ui.store';
 import { useAuthStore } from '../../stores/auth.store';
-import { apiClient } from '../../services/api-client';
-import { SystemHealthSummary } from '../../types';
-import { Badge } from '../ui/Badge';
+import { ROLE_DEFAULT_PATHS, ROLE_DISPLAY_NAMES, UserRole } from '../../config/roles';
 
 export const AppHeader: React.FC = () => {
+  const navigate = useNavigate();
   const { sidebarCollapsed, toggleSidebar, toggleMobileSidebar } = useUiStore();
-  const { role, setRole } = useAuthStore();
-  const [health, setHealth] = useState<SystemHealthSummary | null>(null);
-  const [isCheckingHealth, setIsCheckingHealth] = useState<boolean>(true);
+  const { user, role, roles, switchRole, collegeName } = useAuthStore();
 
-  // Poll backend health indicator on mount
-  useEffect(() => {
-    let isMounted = true;
-
-    const checkSystemHealth = async () => {
-      try {
-        const response = await apiClient.get<SystemHealthSummary>('/health');
-        if (isMounted) {
-          setHealth(response.data);
-          setIsCheckingHealth(false);
-        }
-      } catch {
-        if (isMounted) {
-          setHealth({
-            status: 'error',
-            service: 'backend',
-            uptimeSeconds: 0,
-            timestamp: new Date().toISOString(),
-            checks: {
-              process: 'error',
-              database: { status: 'disconnected' },
-            },
-          });
-          setIsCheckingHealth(false);
-        }
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const targetRole = e.target.value as UserRole;
+    if (targetRole && roles.includes(targetRole)) {
+      switchRole(targetRole);
+      const defaultPath = ROLE_DEFAULT_PATHS[targetRole];
+      if (defaultPath) {
+        navigate(defaultPath);
       }
-    };
-
-    checkSystemHealth();
-    const interval = setInterval(checkSystemHealth, 15000); // 15s refresh
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, []);
+    }
+  };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-surface-200 bg-white/95 px-4 backdrop-blur-sm sm:px-6">
-      {/* Left: Sidebar toggle controls */}
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200/80 bg-white px-4 sm:px-6">
+      {/* Left: Mobile menu toggle + College indicator */}
       <div className="flex items-center gap-3">
-        {/* Mobile menu button */}
         <button
           type="button"
           onClick={toggleMobileSidebar}
-          className="rounded-lg p-2 text-surface-500 hover:bg-surface-100 hover:text-surface-800 md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 md:hidden"
           aria-label="Open mobile navigation"
         >
           <Menu className="h-5 w-5" />
         </button>
 
-        {/* Desktop collapse toggle */}
         <button
           type="button"
           onClick={toggleSidebar}
-          className="hidden rounded-lg p-2 text-surface-500 hover:bg-surface-100 hover:text-surface-800 md:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          className="hidden md:inline-flex rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
           aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {sidebarCollapsed ? (
-            <PanelLeft className="h-5 w-5" />
-          ) : (
-            <PanelLeftClose className="h-5 w-5" />
-          )}
+          {sidebarCollapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
         </button>
 
-        <span className="hidden sm:inline-block h-4 w-px bg-surface-200" />
-
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-surface-500 uppercase tracking-wider">
-            Workspace
-          </span>
-          <span className="text-xs font-medium text-surface-400">/</span>
-          <span className="text-xs font-medium text-surface-800">
-            Hackathon Production Shell
+        {/* College Name Pill (Matches UI reference) */}
+        <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 shadow-xs text-xs font-medium text-slate-700">
+          <Building2 className="h-4 w-4 text-slate-500 shrink-0" />
+          <span className="truncate max-w-[200px] sm:max-w-[320px] md:max-w-none">
+            {collegeName}
           </span>
         </div>
       </div>
 
-      {/* Right: Health indicator & Role Simulator */}
-      <div className="flex items-center gap-4">
-        {/* Live Backend & TiDB Health Status */}
-        <div className="hidden sm:flex items-center gap-2 text-xs">
-          <Activity className="h-4 w-4 text-surface-400" />
-          <span className="text-surface-500 font-medium">Backend:</span>
-          {isCheckingHealth ? (
-            <Badge variant="outline">checking...</Badge>
-          ) : health?.status === 'healthy' ? (
-            <Badge variant="success" className="gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Healthy ({health.checks.database.latencyMs ?? 0}ms)
-            </Badge>
-          ) : (
-            <Badge variant="danger" className="gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-              {health?.status || 'Offline'}
-            </Badge>
-          )}
+      {/* Center / Right Section */}
+      <div className="flex items-center gap-3 sm:gap-4">
+        {/* Search input (Matches UI reference) */}
+        <div className="relative hidden lg:block w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Find hackathons, mentors, or skills..."
+            className="w-full pl-9 pr-4 py-1.5 rounded-lg border border-slate-200 bg-slate-50/60 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+          />
         </div>
 
-        {/* Role Simulator Selector for 4-person team testing */}
-        <div className="flex items-center gap-2 border-l border-surface-200 pl-4">
-          <Shield className="h-3.5 w-3.5 text-surface-400 hidden lg:inline" />
-          <label htmlFor="role-select" className="text-xs font-medium text-surface-500 hidden lg:inline">
-            Role:
-          </label>
-          <select
-            id="role-select"
-            value={role || ''}
-            onChange={(e) => setRole(e.target.value || null)}
-            className="h-8 rounded-lg border border-surface-300 bg-white px-2 text-xs font-medium text-surface-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
-          >
-            <option value="">No Role (Public)</option>
-            <option value="DEVELOPER">DEVELOPER</option>
-            <option value="ADMIN">ADMIN (Demo)</option>
-            <option value="USER">USER (Demo)</option>
-          </select>
-        </div>
+        {/* Role Workspace Switcher (for multi-role users) */}
+        {roles.length > 1 ? (
+          <div className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50/60 px-2.5 py-1 text-xs">
+            <Shield className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+            <select
+              value={role || ''}
+              onChange={handleRoleChange}
+              className="bg-transparent text-xs font-semibold text-blue-800 focus:outline-none cursor-pointer pr-1"
+              aria-label="Switch role workspace"
+            >
+              {roles.map((r) => (
+                <option key={r} value={r}>
+                  {ROLE_DISPLAY_NAMES[r] || r} Workspace
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div className="hidden sm:flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-xs text-slate-600 font-medium">
+            <Shield className="h-3.5 w-3.5 text-slate-500" />
+            <span>{role ? (ROLE_DISPLAY_NAMES[role] || role) : 'Student'}</span>
+          </div>
+        )}
+
+        {/* Dark Mode Icon Button (Matches UI reference) */}
+        <button
+          type="button"
+          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"
+          title="Toggle theme"
+          aria-label="Toggle theme"
+        >
+          <Moon className="h-4 w-4" />
+        </button>
+
+        {/* Notifications Icon Button with Dot (Matches UI reference) */}
+        <button
+          type="button"
+          className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"
+          title="Notifications"
+          aria-label="Notifications"
+        >
+          <Bell className="h-4 w-4" />
+          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-blue-600 ring-2 ring-white" />
+        </button>
+
+        {/* User Avatar Thumbnail */}
+        {user?.avatarUrl ? (
+          <img
+            src={user.avatarUrl}
+            alt={user.name || 'User'}
+            className="h-8 w-8 rounded-full border border-slate-200 object-cover"
+          />
+        ) : (
+          <div className="h-8 w-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+            {user?.name ? user.name.substring(0, 2).toUpperCase() : 'CM'}
+          </div>
+        )}
       </div>
     </header>
   );

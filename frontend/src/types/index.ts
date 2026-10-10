@@ -2,15 +2,17 @@ import { LucideIcon } from 'lucide-react';
 import { UserRole } from '../config/roles';
 
 /**
- * Standard User entity interface.
- * Fields remain optional/extensible until authentication schema is defined.
+ * Standard User entity interface matching CampusMitra backend identity schema.
  */
 export interface User {
   id: string;
-  username: string;
-  role: UserRole;
+  name?: string;
+  username?: string;
   email?: string;
   avatarUrl?: string;
+  status?: string;
+  roles: UserRole[];
+  role?: UserRole;
 }
 
 /**

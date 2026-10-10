@@ -33,9 +33,9 @@ export const authController = {
     const { code } = authValidation.validateOAuthCallbackQuery(req.query);
     const result = await authService.handleGoogleCallback(code);
 
-    // Content negotiation: redirect if explicitly requested or exclusively HTML browser navigation
-    const prefersHtmlOnly = req.accepts('html') && !req.accepts('json');
-    const isRedirectRequested = req.query.redirect === 'true' || prefersHtmlOnly;
+    // Content negotiation: redirect browser navigations to frontend application
+    const isBrowserNavigation = req.headers.accept ? req.headers.accept.includes('text/html') : false;
+    const isRedirectRequested = (isBrowserNavigation || req.query.redirect === 'true') && req.query.format !== 'json';
 
     if (isRedirectRequested && env.FRONTEND_URL) {
       const redirectUrl = new URL(`${env.FRONTEND_URL}/auth/callback`);
