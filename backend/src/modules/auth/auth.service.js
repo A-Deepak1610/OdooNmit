@@ -1,4 +1,5 @@
 import { authRepository } from './auth.repository.js';
+import { userRepository } from '../users/user.repository.js';
 import { prisma } from '../../config/database.js';
 import { seedDatabase } from '../../database/seed.js';
 import { env } from '../../config/env.js';
@@ -122,16 +123,45 @@ export const authService = {
       }
       // Note: Existing roles are strictly preserved and never overwritten
     } else {
-      // Create new user with default STUDENT role
-      user = await authRepository.createOAuthUserWithAccount({
-        provider: 'google',
-        providerAccountId: sub,
-        email: safeEmail,
-        emailVerified: isEmailVerified,
-        name: name || 'Student User',
-        avatarUrl: picture || null,
-        defaultRole: 'STUDENT',
-      });
+      // Check if user already exists by verified email (e.g. pre-seeded account)
+      const existingUserByEmail = safeEmail
+        ? await userRepository.findByEmail(safeEmail)
+        : null;
+
+      if (existingUserByEmail) {
+        await authRepository.createOAuthAccountForExistingUser({
+          userId: existingUserByEmail.id,
+          provider: 'google',
+          providerAccountId: sub,
+          email: safeEmail,
+          emailVerified: isEmailVerified,
+        });
+        user = await userRepository.findById(existingUserByEmail.id);
+      } else {
+        // Create new user with default role (VOLUNTEER for rithishs.cs24@bitsathy.ac.in, otherwise STUDENT)
+        const defaultRole = (safeEmail && safeEmail.toLowerCase() === 'rithishs.cs24@bitsathy.ac.in')
+          ? 'VOLUNTEER'
+          : 'STUDENT';
+
+        user = await authRepository.createOAuthUserWithAccount({
+          provider: 'google',
+          providerAccountId: sub,
+          email: safeEmail,
+          emailVerified: isEmailVerified,
+          name: name || 'Student User',
+          avatarUrl: picture || null,
+          defaultRole,
+        });
+      }
+    }
+
+    // Ensure VOLUNTEER role for rithishs.cs24@bitsathy.ac.in
+    if (safeEmail && safeEmail.toLowerCase() === 'rithishs.cs24@bitsathy.ac.in') {
+      const hasVolunteer = (user.roles || []).some((r) => r.role === 'VOLUNTEER');
+      if (!hasVolunteer) {
+        await userRepository.assignRole(user.id, 'VOLUNTEER');
+        user = await userRepository.findById(user.id);
+      }
     }
 
     // 4. Extract assigned roles

@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { prisma } from '../config/database.js';
 import { logger } from '../utils/logger.js';
 
@@ -39,6 +40,14 @@ export const PREDEFINED_ROLE_USERS = [
     name: 'Ananya Iyer (Volunteer)',
     email: 'volunteer@campusmitra.edu',
     avatarUrl: 'https://api.dicebear.com/9.x/thumbs/svg?seed=Ananya&backgroundColor=b6e3f4',
+    roles: ['VOLUNTEER', 'MEMBER', 'STUDENT'],
+    clubRole: 'VOLUNTEER',
+  },
+  {
+    role: 'VOLUNTEER',
+    name: 'RITHISH S',
+    email: 'rithishs.cs24@bitsathy.ac.in',
+    avatarUrl: 'https://api.dicebear.com/9.x/thumbs/svg?seed=Rithish&backgroundColor=b6e3f4',
     roles: ['VOLUNTEER', 'MEMBER', 'STUDENT'],
     clubRole: 'VOLUNTEER',
   },
@@ -106,32 +115,34 @@ export async function seedDatabase() {
         user = await prisma.user.update({
           where: { id: user.id },
           data: {
-            name: demoUser.name,
-            avatarUrl: demoUser.avatarUrl,
+            name: user.name || demoUser.name,
+            avatarUrl: user.avatarUrl || demoUser.avatarUrl,
             status: 'ACTIVE',
           },
         });
       }
 
-      // Ensure mock OAuth account binding
-      await prisma.oAuthAccount.upsert({
-        where: {
-          provider_providerAccountId: {
+      // Ensure mock OAuth account binding for @campusmitra.edu demo users
+      if (demoUser.email.endsWith('@campusmitra.edu')) {
+        await prisma.oAuthAccount.upsert({
+          where: {
+            provider_providerAccountId: {
+              provider: 'demo_oauth',
+              providerAccountId: `demo-${demoUser.role.toLowerCase()}`,
+            },
+          },
+          create: {
+            userId: user.id,
             provider: 'demo_oauth',
             providerAccountId: `demo-${demoUser.role.toLowerCase()}`,
+            email: demoUser.email,
+            emailVerified: true,
           },
-        },
-        create: {
-          userId: user.id,
-          provider: 'demo_oauth',
-          providerAccountId: `demo-${demoUser.role.toLowerCase()}`,
-          email: demoUser.email,
-          emailVerified: true,
-        },
-        update: {
-          email: demoUser.email,
-        },
-      });
+          update: {
+            email: demoUser.email,
+          },
+        });
+      }
 
       // Clear existing user roles to ensure exact predefined role synchronization
       await prisma.userRole.deleteMany({
@@ -150,6 +161,10 @@ export async function seedDatabase() {
 
       // Add Club Membership if applicable
       if (demoUser.clubRole && club) {
+        const memNumber = demoUser.email.startsWith('rithish')
+          ? 'SSA-2026-VOL-01'
+          : `SSA-2026-${demoUser.role.substring(0, 3)}-001`;
+
         await prisma.clubMember.upsert({
           where: {
             clubId_userId: {
@@ -160,7 +175,7 @@ export async function seedDatabase() {
           create: {
             clubId: club.id,
             userId: user.id,
-            membershipNumber: `SSA-2026-${demoUser.role.substring(0, 3)}-001`,
+            membershipNumber: memNumber,
             tier: 'STANDARD',
             status: 'ACTIVE',
             duesPaid: true,

@@ -12,6 +12,10 @@
     "test:watch": "vitest",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
+    "seed": "node src/database/seed.js",
+    "db:seed": "node src/database/seed.js"
+  },
+  "prisma": {
     "seed": "node src/database/seed.js"
   },
   "dependencies": {
