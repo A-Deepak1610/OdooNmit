@@ -393,26 +393,6 @@ Aditya Verma,aditya.v@campus.edu,Member,Biotechnology,4,+91 98555 66677`;
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          {/* Bulk Access Recovery Modal Trigger */}
-          <button
-            onClick={() => setShowBulkRecoveryModal(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '10px 16px',
-              background: '#f8fafc',
-              color: '#1e3a8a',
-              border: '1px solid #cbd5e1',
-              borderRadius: '8px',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            <KeyRound size={15} />
-            <span>Bulk Recovery</span>
-          </button>
 
           {/* Bulk Upload Modal Trigger */}
           <button
@@ -574,38 +554,6 @@ Aditya Verma,aditya.v@campus.edu,Member,Biotechnology,4,+91 98555 66677`;
             <div style={{ fontSize: '12px', color: '#64748b' }}>Locked / Suspended</div>
             <div style={{ fontSize: '22px', fontWeight: 700, color: '#dc2626' }}>{suspendedCount}</div>
             <div style={{ fontSize: '11px', color: '#64748b' }}>Access restricted</div>
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '18px 20px',
-            border: '1px solid #e2e8f0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '14px',
-          }}
-        >
-          <div
-            style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '10px',
-              background: '#faf5ff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#7e22ce',
-            }}
-          >
-            <ShieldCheck size={20} />
-          </div>
-          <div>
-            <div style={{ fontSize: '12px', color: '#64748b' }}>Access Recovery</div>
-            <div style={{ fontSize: '22px', fontWeight: 700, color: '#1e293b' }}>SSO / 2FA</div>
-            <div style={{ fontSize: '11px', color: '#15803d' }}>Self-Service & Admin Pin</div>
           </div>
         </div>
       </div>
