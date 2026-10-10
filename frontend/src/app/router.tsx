@@ -16,6 +16,19 @@ import { AnnouncementBoardModule } from '../components/modules/announcements/Ann
 import { useAuthStore } from '../stores/auth.store';
 import { ROLES, getDefaultRole, ROLE_DEFAULT_PATHS } from '../config/roles';
 
+import { AdminUsersPage } from '../pages/admin/AdminUsersPage';
+import { AdminDbAssistantPage } from '../pages/admin/AdminDbAssistantPage';
+import { AdminWinnersPage } from '../pages/admin/AdminWinnersPage';
+import { AdminAnalyticsPage } from '../pages/admin/AdminAnalyticsPage';
+import { AdminReportsPage } from '../pages/admin/AdminReportsPage';
+import { AdminEventsPage } from '../pages/admin/AdminEventsPage';
+import { AdminEventsOverviewPage } from '../pages/admin/AdminEventsOverviewPage';
+import { AdminEventAnalyticsPage } from '../pages/admin/AdminEventAnalyticsPage';
+import { AdminIncomingEventsPage } from '../pages/admin/AdminIncomingEventsPage';
+import { AdminRolesPage } from '../pages/admin/AdminRolesPage';
+import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage';
+import { AdminAuditLogPage } from '../pages/admin/AdminAuditLogPage';
+
 /**
  * Root Landing Page:
  * Redirects authenticated users to their primary role workspace dashboard,
@@ -262,41 +275,51 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: <EventsTicketingModule />,
+            element: <AdminEventsPage />,
           },
           {
             path: 'incoming-events',
-            element: <EventsTicketingModule />,
+            element: <AdminIncomingEventsPage />,
           },
           {
             path: 'events-overview',
-            element: <EventsTicketingModule />,
+            element: <AdminEventsOverviewPage />,
           },
           {
             path: 'event-analytics',
-            element: <EventsTicketingModule />,
+            element: <AdminEventAnalyticsPage />,
           },
           {
             path: 'analytics',
-            element: <FinanceLedgerModule />,
+            element: <AdminAnalyticsPage />,
           },
           {
             path: 'reports',
-            element: <FinanceLedgerModule />,
+            element: <AdminReportsPage />,
+          },
+          {
+            path: 'db-assistant',
+            element: <AdminDbAssistantPage />,
+          },
+          {
+            path: 'winners',
+            element: <AdminWinnersPage />,
           },
           {
             path: 'users',
-            element: <MembershipModule />,
+            element: <AdminUsersPage />,
+          },
+          {
+            path: 'roles',
+            element: <AdminRolesPage />,
           },
           {
             path: 'settings',
-            element: (
-              <PlaceholderPage
-                title="Institutional Settings"
-                role={ROLES.ADMIN}
-                group="PLATFORM SETTINGS"
-              />
-            ),
+            element: <AdminSettingsPage />,
+          },
+          {
+            path: 'audit-log',
+            element: <AdminAuditLogPage />,
           },
         ],
       },
