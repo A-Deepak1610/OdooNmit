@@ -267,6 +267,55 @@ export const swaggerSpec = {
         },
       },
     },
+    '/api/v1/auth/demo-login': {
+      post: {
+        tags: ['Authentication'],
+        summary: '1-Click Predefined Role Demo Login',
+        description: 'Authenticates directly as any predefined role (ADMIN, PRESIDENT, TREASURER, EVENT_ORGANIZER, VOLUNTEER, MEMBER, STUDENT). Auto-seeds database with dedicated accounts if necessary.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  role: {
+                    type: 'string',
+                    enum: ['ADMIN', 'PRESIDENT', 'TREASURER', 'EVENT_ORGANIZER', 'VOLUNTEER', 'MEMBER', 'STUDENT'],
+                    example: 'PRESIDENT',
+                  },
+                },
+                required: ['role'],
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Authentication successful',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', example: 'success' },
+                    message: { type: 'string', example: 'Authentication successful as PRESIDENT' },
+                    data: {
+                      type: 'object',
+                      properties: {
+                        accessToken: { type: 'string' },
+                        refreshToken: { type: 'string' },
+                        user: { $ref: '#/components/schemas/UserResponse' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/api/v1/auth/me': {
       get: {
         tags: ['Authentication'],

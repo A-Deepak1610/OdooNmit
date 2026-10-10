@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { useAuthStore } from '../../stores/auth.store';
 import {
   Calendar,
   Users,
   Trophy,
   IndianRupee,
   Plus,
-  Building2,
   ShieldCheck,
+  Building2,
 } from 'lucide-react';
 import { activeClub } from '../../data/mockClubData';
 import { TeamWorkstreamBanner, WorkstreamId } from '../../components/modules/TeamWorkstreamBanner';
@@ -18,18 +17,30 @@ import { FinanceLedgerModule } from '../../components/modules/finance/FinanceLed
 import { AnnouncementBoardModule } from '../../components/modules/announcements/AnnouncementBoardModule';
 
 export const AdminDashboardPage: React.FC = () => {
-  const { user, collegeName } = useAuthStore();
   const [activeStream, setActiveStream] = useState<WorkstreamId>('all');
 
+  const statsCards = [
+    { icon: Calendar, label: 'Total Events', value: '10', subtitle: '9 active this term', color: '#1e3a8a', bg: '#eff6ff' },
+    { icon: Users, label: 'Club Participants', value: '1,013', subtitle: 'Across 6 active clubs', color: '#15803d', bg: '#dcfce7' },
+    { icon: Trophy, label: 'Active Clubs', value: '6 Clubs', subtitle: 'All charters verified', color: '#b45309', bg: '#fef3c7' },
+    { icon: IndianRupee, label: 'Total Inflow', value: '₹367,500', subtitle: 'Dues & Gala tickets', color: '#7c3aed', bg: '#f3e8ff' },
+  ];
+
+  const quickActions = [
+    { label: 'Register Club Tenant', description: 'Onboard new campus chapter with dues settings', color: '#1e3a8a', bg: '#eff6ff', icon: Building2, targetStream: 'all' as WorkstreamId },
+    { label: 'Audit Treasury Ledger', description: 'Inspect end-of-semester income & closing balances', color: '#15803d', bg: '#dcfce7', icon: IndianRupee, targetStream: 'finance_announcements' as WorkstreamId },
+    { label: 'Manage All Events', description: 'Monitor Spring Gala quotas and door check-in rates', color: '#b45309', bg: '#fef3c7', icon: Calendar, targetStream: 'events' as WorkstreamId },
+  ];
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-200">
+    <div style={{ fontFamily: 'var(--font-family-body)' }}>
       {/* 4-Developer Workstream Banner */}
       <TeamWorkstreamBanner
         activeStream={activeStream}
         onSelectStream={(s) => setActiveStream(s)}
       />
 
-      {/* Module Inspector or Admin Overview */}
+      {/* Module Inspector or Master Admin Overview */}
       {activeStream === 'events' ? (
         <EventsTicketingModule />
       ) : activeStream === 'memberships' ? (
@@ -37,188 +48,369 @@ export const AdminDashboardPage: React.FC = () => {
       ) : activeStream === 'merch_tasks' ? (
         <MerchandiseTaskModule />
       ) : activeStream === 'finance_announcements' ? (
-        <div className="space-y-8">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <FinanceLedgerModule />
           <AnnouncementBoardModule />
         </div>
       ) : (
-        <div className="space-y-8">
-          {/* Page Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1">
+        <div>
+          {/* ── 1. PAGE HEADER (Part 13 Spec) ───────────────────────── */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginBottom: '28px',
+            }}
+          >
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
-                  Campus Admin Console
-                </span>
-                <span className="text-xs text-slate-500 font-medium">Multi-Tenant Management</span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mt-1">
-                Admin Dashboard
+              <h1
+                style={{
+                  fontSize: '26px',
+                  fontWeight: 700,
+                  margin: '0 0 8px 0',
+                  color: '#1e293b',
+                  letterSpacing: '-0.3px',
+                }}
+              >
+                Campus Admin Dashboard
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Welcome back{user?.name ? `, ${user.name}` : ''}! Managing club organizations, events, and campus finances.
+              <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>
+                Institutional oversight of student organizations, event quotas, and multi-tenant club accounts.
               </p>
             </div>
 
-            {/* Right Header Badges */}
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2 text-xs text-slate-600 bg-white border border-slate-200 px-3.5 py-2 rounded-xl shadow-xs">
-                <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
-                <span className="font-medium truncate max-w-[200px] sm:max-w-none">{collegeName}</span>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                  A++
-                </span>
-              </div>
-
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <button
-                type="button"
-                className="flex items-center gap-2 bg-[#1e3a8a] hover:bg-[#172554] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-xs transition-colors"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 18px',
+                  background: '#1e3a8a',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#172554';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#1e3a8a';
+                }}
               >
-                <Plus className="h-4 w-4" />
+                <Plus style={{ width: '16px', height: '16px' }} />
                 <span>Register New Club Tenant</span>
               </button>
             </div>
           </div>
 
-          {/* 4 Stat Cards Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-            <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100/60">
-                <Calendar className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-slate-500">Total Events</p>
-                <p className="text-2xl font-bold text-slate-900 mt-0.5">10</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">9 active this semester</p>
-              </div>
-            </div>
+          {/* ── 2. STAT CARDS (4-col, Part 13 & Part 17 Rule 4) ─────── */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              gap: '16px',
+              marginBottom: '28px',
+            }}
+          >
+            {statsCards.map((stat, i) => {
+              const Icon = stat.icon;
+              return (
+                <div
+                  key={i}
+                  style={{
+                    background: 'white',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    border: '1px solid #e2e8f0',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '14px',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '10px',
+                      background: stat.bg,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Icon style={{ width: '22px', height: '22px', color: stat.color }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 500, marginBottom: '4px' }}>
+                      {stat.label}
+                    </div>
+                    <div style={{ fontSize: '24px', fontWeight: 700, color: '#1e293b', marginBottom: '2px', letterSpacing: '-0.5px' }}>
+                      {stat.value}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                      {stat.subtitle}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
-            <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100/60">
-                <Users className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-slate-500">Club Members</p>
-                <p className="text-2xl font-bold text-slate-900 mt-0.5">1,013</p>
-                <p className="text-[11px] text-emerald-600 font-medium mt-0.5">↗+16% across 6 clubs</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100/60">
-                <Trophy className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-slate-500">Active Clubs</p>
-                <p className="text-2xl font-bold text-slate-900 mt-0.5">6</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">Skyline SA, Coding, Roboclub</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100/60">
-                <IndianRupee className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-slate-500">Total Fund Inflow</p>
-                <p className="text-2xl font-bold text-slate-900 mt-0.5">₹367,500</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">Dues & Gala tickets</p>
-              </div>
+          {/* ── 3. QUICK ACTIONS (3-col, Part 13 & Part 17 Rule 13) ──── */}
+          <div style={{ marginBottom: '28px' }}>
+            <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#1e293b', margin: '0 0 16px 0' }}>
+              Quick Actions
+            </h2>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '14px',
+              }}
+            >
+              {quickActions.map((action, i) => {
+                const Icon = action.icon;
+                return (
+                  <div
+                    key={i}
+                    onClick={() => action.targetStream && setActiveStream(action.targetStream)}
+                    style={{
+                      background: 'white',
+                      borderRadius: '12px',
+                      padding: '18px 20px',
+                      border: '1px solid #e2e8f0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      transition: 'all 0.2s',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = action.color;
+                      e.currentTarget.style.boxShadow = `0 4px 12px ${action.color}15`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#e2e8f0';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '10px',
+                        background: action.bg,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Icon style={{ width: '22px', height: '22px', color: action.color }} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b', marginBottom: '2px' }}>
+                        {action.label}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                        {action.description}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Multi-Tenant Club Management Table */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5 text-indigo-600" />
-                  Campus Club Tenants (Multi-Tenant Architecture)
+          {/* ── 4. MAIN CONTENT (2:1 split, Part 13 & Part 17 Rule 14) ─ */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '2fr 1fr',
+              gap: '20px',
+            }}
+          >
+            {/* Left Column (2fr): Multi-Tenant Club Directory Table */}
+            <div
+              style={{
+                background: 'white',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                padding: '20px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '16px',
+                }}
+              >
+                <h3
+                  style={{
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    color: '#1e293b',
+                    margin: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <ShieldCheck style={{ width: '16px', height: '16px', color: '#1e3a8a' }} />
+                  Multi-Tenant Club Directory
                 </h3>
-                <p className="text-xs text-slate-500">
-                  Each student club operates as an isolated tenant with dedicated membership dues, role hierarchies, and treasury books.
-                </p>
+                <span
+                  style={{
+                    color: '#15803d',
+                    background: '#dcfce7',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    fontWeight: 600,
+                    fontSize: '11px',
+                  }}
+                >
+                  Active Isolation
+                </span>
+              </div>
+
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textAlign: 'left' }}>
+                      <th style={{ padding: '10px 12px', fontWeight: 600 }}>Club Tenant</th>
+                      <th style={{ padding: '10px 12px', fontWeight: 600 }}>Slug</th>
+                      <th style={{ padding: '10px 12px', fontWeight: 600 }}>Annual Dues</th>
+                      <th style={{ padding: '10px 12px', fontWeight: 600 }}>Members</th>
+                      <th style={{ padding: '10px 12px', fontWeight: 600 }}>Treasury Balance</th>
+                      <th style={{ padding: '10px 12px', fontWeight: 600, textAlign: 'right' }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '12px' }}>
+                        <div style={{ fontWeight: 600, color: '#1e293b' }}>{activeClub.name}</div>
+                        <div style={{ fontSize: '11px', color: '#94a3b8' }}>Skyline Student Chapter</div>
+                      </td>
+                      <td style={{ padding: '12px', fontFamily: 'monospace', color: '#64748b' }}>
+                        {activeClub.slug}
+                      </td>
+                      <td style={{ padding: '12px', fontWeight: 600, color: '#1e293b' }}>
+                        ₹{activeClub.duesAmount}/yr
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <span style={{ color: '#15803d', background: '#dcfce7', padding: '2px 6px', borderRadius: '4px', fontWeight: 600, fontSize: '11px' }}>
+                          {activeClub.memberCount} Members
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px', fontWeight: 700, color: '#1e3a8a' }}>
+                        ₹{activeClub.activeBudget.toLocaleString()}
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'right' }}>
+                        <button
+                          onClick={() => setActiveStream('finance_announcements')}
+                          style={{
+                            color: '#1e3a8a',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                          }}
+                        >
+                          Audit →
+                        </button>
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style={{ padding: '12px' }}>
+                        <div style={{ fontWeight: 600, color: '#1e293b' }}>Developer Student Club</div>
+                        <div style={{ fontSize: '11px', color: '#94a3b8' }}>Technical Hackathons</div>
+                      </td>
+                      <td style={{ padding: '12px', fontFamily: 'monospace', color: '#64748b' }}>
+                        dsc-chapter
+                      </td>
+                      <td style={{ padding: '12px', fontWeight: 600, color: '#1e293b' }}>
+                        ₹300/yr
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <span style={{ color: '#15803d', background: '#dcfce7', padding: '2px 6px', borderRadius: '4px', fontWeight: 600, fontSize: '11px' }}>
+                          185 Members
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px', fontWeight: 700, color: '#1e3a8a' }}>
+                        ₹64,200
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'right' }}>
+                        <button
+                          style={{
+                            color: '#64748b',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: 500,
+                          }}
+                        >
+                          Details
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-xl border border-slate-100">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-                  <tr>
-                    <th className="py-3 px-4">Club Organization</th>
-                    <th className="py-3 px-4">Tenant Slug</th>
-                    <th className="py-3 px-4">Annual Dues</th>
-                    <th className="py-3 px-4">Active Members</th>
-                    <th className="py-3 px-4">Treasury Balance</th>
-                    <th className="py-3 px-4 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  <tr className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">
-                          SSA
-                        </div>
-                        <div>
-                          <p className="font-bold text-slate-900">{activeClub.name}</p>
-                          <p className="text-[11px] text-slate-400">Primary Student Association</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 font-mono font-medium text-slate-700">{activeClub.slug}</td>
-                    <td className="py-3.5 px-4 font-bold text-slate-900">₹{activeClub.duesAmount}/yr</td>
-                    <td className="py-3.5 px-4">
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        {activeClub.memberCount} Members
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 font-bold text-indigo-600">₹{activeClub.activeBudget.toLocaleString()}</td>
-                    <td className="py-3.5 px-4 text-right">
-                      <button
-                        onClick={() => setActiveStream('finance_announcements')}
-                        className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold"
-                      >
-                        Audit Ledger →
-                      </button>
-                    </td>
-                  </tr>
+            {/* Right Column (1fr): Institutional Status Panel */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div
+                style={{
+                  background: 'white',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  padding: '20px',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '14px',
+                  }}
+                >
+                  <h3 style={{ fontSize: '15px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
+                    Campus Event Quota
+                  </h3>
+                  <span style={{ color: '#1e3a8a', fontSize: '12px', fontWeight: 600 }}>Active</span>
+                </div>
 
-                  <tr className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 rounded-lg bg-amber-600 text-white flex items-center justify-center font-bold text-xs">
-                          DSC
-                        </div>
-                        <div>
-                          <p className="font-bold text-slate-900">Developer Student Club</p>
-                          <p className="text-[11px] text-slate-400">Technical Hackathon Chapter</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 font-mono font-medium text-slate-700">dsc-chapter</td>
-                    <td className="py-3.5 px-4 font-bold text-slate-900">₹300/yr</td>
-                    <td className="py-3.5 px-4">
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        185 Members
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 font-bold text-indigo-600">₹64,200</td>
-                    <td className="py-3.5 px-4 text-right">
-                      <button className="text-xs text-slate-400 hover:text-slate-600 font-semibold">
-                        View Details
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Approved Auditorium Dates:</span>
+                    <span style={{ fontWeight: 600, color: '#1e293b' }}>14 Days</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Pending Student Petitions:</span>
+                    <span style={{ fontWeight: 600, color: '#b45309' }}>2 Under Review</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Institution Grade:</span>
+                    <span style={{ fontWeight: 700, color: '#15803d' }}>NAAC A++</span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-
-          {/* Quick Workstream Showcase */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <EventsTicketingModule />
-            <FinanceLedgerModule />
           </div>
         </div>
       )}

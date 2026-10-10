@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Receipt,
   ArrowUpRight,
@@ -6,12 +6,15 @@ import {
   CheckCircle2,
   Download,
   Landmark,
-} from 'lucide-react';
+  Wallet,
+  TrendingUp,
+  CreditCard,
+} from "lucide-react";
 import {
   mockTreasurerLedger,
   mockExpenses,
   MockExpense,
-} from '../../../data/mockClubData';
+} from "../../../data/mockClubData";
 
 export const FinanceLedgerModule: React.FC = () => {
   const [expenses, setExpenses] = useState<MockExpense[]>(mockExpenses);
@@ -23,258 +26,550 @@ export const FinanceLedgerModule: React.FC = () => {
     setExpenses((prev) =>
       prev.map((e) =>
         e.id === id
-          ? { ...e, status: e.status === 'PENDING' ? 'APPROVED' : 'REIMBURSED' }
-          : e
-      )
+          ? { ...e, status: e.status === "PENDING" ? "APPROVED" : "REIMBURSED" }
+          : e,
+      ),
     );
     setActionNotice(`Expense claim #${id} status updated successfully.`);
   };
 
   return (
-    <div className="space-y-6">
-      {/* Module Title Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      {/* ── 1. MODULE HEADER ───────────────────────────────── */}
+      <div
+        style={{
+          background: "white",
+          borderRadius: "12px",
+          border: "1px solid #e2e8f0",
+          padding: "20px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "16px",
+        }}
+      >
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+            <span
+              style={{
+                fontSize: "11px",
+                fontWeight: 600,
+                color: "#1e3a8a",
+                background: "#eff6ff",
+                padding: "2px 8px",
+                borderRadius: "4px",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+              }}
+            >
               Dev 4 Workstream
             </span>
-            <span className="text-xs text-slate-400 font-medium">Problem Statement Scene:</span>
-            <span className="text-xs font-semibold text-slate-700">"The treasurer closing the books at semester end"</span>
+            <span style={{ fontSize: "12px", color: "#64748b" }}>
+              Problem Scene: "The treasurer closing the books at semester end"
+            </span>
           </div>
-          <h2 className="text-xl font-bold text-slate-900 mt-1">
+          <h2 style={{ fontSize: "20px", fontWeight: 700, color: "#1e293b", margin: "0 0 4px 0" }}>
             Treasury Books & Volunteer Reimbursement Ledger
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Real-time audited accounting replacing chaotic paper notebooks: track dues, ticket sales, merch income, and volunteer receipts.
+          <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
+            Real-time audited accounting replacing chaotic paper notebooks: dues, gala tickets, merch sales, and volunteer receipts.
           </p>
         </div>
 
-        <button className="flex items-center gap-2 bg-purple-700 hover:bg-purple-800 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-xs transition-colors self-start sm:self-center">
-          <Download className="h-4 w-4" />
-          <span>Export Semester Audit PDF</span>
+        <button
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "10px 18px",
+            background: "#1e3a8a",
+            color: "white",
+            border: "none",
+            borderRadius: "8px",
+            fontSize: "13px",
+            fontWeight: 600,
+            cursor: "pointer",
+            transition: "all 0.2s",
+          }}
+        >
+          <Download size={16} />
+          Export Semester Audit PDF
         </button>
       </div>
 
       {actionNotice && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs text-emerald-800 animate-in fade-in">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+        <div
+          style={{
+            padding: "14px 18px",
+            borderRadius: "8px",
+            background: "#dcfce7",
+            border: "1px solid #bbf7d0",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontSize: "13px",
+            color: "#15803d",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <CheckCircle2 size={16} color="#15803d" />
             <span>{actionNotice}</span>
           </div>
           <button
             onClick={() => setActionNotice(null)}
-            className="font-bold underline hover:text-emerald-900"
+            style={{
+              background: "none",
+              border: "none",
+              color: "#15803d",
+              fontWeight: 600,
+              cursor: "pointer",
+              fontSize: "12px",
+            }}
           >
             Dismiss
           </button>
         </div>
       )}
 
-      {/* 4 Financial Health Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <span className="text-xs font-medium text-slate-500">Opening Balance</span>
-          <p className="text-2xl font-bold text-slate-900 mt-1">₹{ledger.openingBalance.toLocaleString()}</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Rolled over from Fall 2025</p>
+      {/* ── 2. 4 FINANCIAL STAT CARDS (Rule 4: Mandatory 4-col row) ─── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
+        <div
+          style={{
+            background: "white",
+            borderRadius: "12px",
+            padding: "20px",
+            border: "1px solid #e2e8f0",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "14px",
+          }}
+        >
+          <div
+            style={{
+              width: "44px",
+              height: "44px",
+              borderRadius: "10px",
+              background: "#eff6ff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Wallet size={22} color="#1e3a8a" />
+          </div>
+          <div>
+            <div style={{ fontSize: "12px", color: "#64748b", fontWeight: 500, marginBottom: "4px" }}>
+              Opening Balance
+            </div>
+            <div style={{ fontSize: "24px", fontWeight: 700, color: "#1e293b", marginBottom: "2px" }}>
+              ₹{ledger.openingBalance.toLocaleString()}
+            </div>
+            <div style={{ fontSize: "12px", color: "#94a3b8" }}>Rolled from Fall 2025</div>
+          </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Total Inflow (Income)</span>
-            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
-              <ArrowUpRight className="h-3 w-3" /> Inflow
-            </span>
+        <div
+          style={{
+            background: "white",
+            borderRadius: "12px",
+            padding: "20px",
+            border: "1px solid #e2e8f0",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "14px",
+          }}
+        >
+          <div
+            style={{
+              width: "44px",
+              height: "44px",
+              borderRadius: "10px",
+              background: "#dcfce7",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <TrendingUp size={22} color="#15803d" />
           </div>
-          <p className="text-2xl font-bold text-emerald-600 mt-1">₹{ledger.income.totalIncome.toLocaleString()}</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Dues, Gala Tickets & Fundraiser</p>
+          <div>
+            <div style={{ fontSize: "12px", color: "#64748b", fontWeight: 500, marginBottom: "4px" }}>
+              Total Inflow (Income)
+            </div>
+            <div style={{ fontSize: "24px", fontWeight: 700, color: "#15803d", marginBottom: "2px" }}>
+              ₹{ledger.income.totalIncome.toLocaleString()}
+            </div>
+            <div style={{ fontSize: "12px", color: "#15803d", fontWeight: 600 }}>+ Dues, Gala & Merch</div>
+          </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Total Outflow (Expenses)</span>
-            <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
-              <ArrowDownRight className="h-3 w-3" /> Outflow
-            </span>
+        <div
+          style={{
+            background: "white",
+            borderRadius: "12px",
+            padding: "20px",
+            border: "1px solid #e2e8f0",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "14px",
+          }}
+        >
+          <div
+            style={{
+              width: "44px",
+              height: "44px",
+              borderRadius: "10px",
+              background: "#fef2f2",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <CreditCard size={22} color="#dc2626" />
           </div>
-          <p className="text-2xl font-bold text-rose-600 mt-1">₹{ledger.expenses.totalExpenses.toLocaleString()}</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Venue, catering & reimbursements</p>
+          <div>
+            <div style={{ fontSize: "12px", color: "#64748b", fontWeight: 500, marginBottom: "4px" }}>
+              Total Outflow (Expenses)
+            </div>
+            <div style={{ fontSize: "24px", fontWeight: 700, color: "#dc2626", marginBottom: "2px" }}>
+              ₹{ledger.expenses.totalExpenses.toLocaleString()}
+            </div>
+            <div style={{ fontSize: "12px", color: "#dc2626" }}>Venue, catering & claims</div>
+          </div>
         </div>
 
-        <div className="bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-5 rounded-2xl shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-indigo-200">Net Closing Balance</span>
-            <Landmark className="h-4 w-4 text-emerald-400" />
+        <div
+          style={{
+            background: "white",
+            borderRadius: "12px",
+            padding: "20px",
+            border: "1px solid #e2e8f0",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "14px",
+          }}
+        >
+          <div
+            style={{
+              width: "44px",
+              height: "44px",
+              borderRadius: "10px",
+              background: "#eff6ff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Landmark size={22} color="#1e3a8a" />
           </div>
-          <p className="text-2xl font-bold text-emerald-300 mt-1">₹{ledger.netClosingBalance.toLocaleString()}</p>
-          <p className="text-[11px] text-indigo-200 mt-0.5">Books balanced & verified</p>
+          <div>
+            <div style={{ fontSize: "12px", color: "#64748b", fontWeight: 500, marginBottom: "4px" }}>
+              Net Closing Balance
+            </div>
+            <div style={{ fontSize: "24px", fontWeight: 700, color: "#1e3a8a", marginBottom: "2px" }}>
+              ₹{ledger.netClosingBalance.toLocaleString()}
+            </div>
+            <div style={{ fontSize: "12px", color: "#16a34a", fontWeight: 600 }}>Audited & Balanced ✓</div>
+          </div>
         </div>
       </div>
 
-      {/* Side-by-Side Breakdown: Income Inflows vs Outflows */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Income Sources */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <ArrowUpRight className="h-4 w-4 text-emerald-600" />
+      {/* ── 3. SIDE-BY-SIDE BREAKDOWN: INFLOWS VS OUTFLOWS ─── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+        {/* Inflows Card */}
+        <div
+          style={{
+            background: "white",
+            borderRadius: "12px",
+            border: "1px solid #e2e8f0",
+            padding: "20px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              borderBottom: "1px solid #e2e8f0",
+              paddingBottom: "12px",
+              marginBottom: "16px",
+            }}
+          >
+            <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#1e293b", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+              <ArrowUpRight size={18} color="#15803d" />
               Semester Inflows (Money In)
             </h3>
-            <span className="text-xs font-bold text-emerald-600">
+            <span style={{ fontSize: "14px", fontWeight: 700, color: "#15803d" }}>
               ₹{ledger.income.totalIncome.toLocaleString()}
             </span>
           </div>
 
-          <div className="space-y-3 text-xs">
-            <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div style={ledgerRowStyle}>
               <div>
-                <p className="font-bold text-slate-800">Annual Membership Dues</p>
-                <p className="text-[11px] text-slate-400">194 student dues collected at ₹250/yr</p>
+                <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>Annual Membership Dues</div>
+                <div style={{ fontSize: "11px", color: "#64748b" }}>194 verified dues collected at ₹250/yr</div>
               </div>
-              <span className="font-bold text-emerald-700">₹{ledger.income.membershipDues.toLocaleString()}</span>
+              <span style={{ fontWeight: 700, color: "#15803d", fontSize: "13px" }}>
+                ₹{ledger.income.membershipDues.toLocaleString()}
+              </span>
             </div>
 
-            <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
+            <div style={ledgerRowStyle}>
               <div>
-                <p className="font-bold text-slate-800">Spring Gala Ticket Sales</p>
-                <p className="text-[11px] text-slate-400">420 tickets sold across member/VIP tiers</p>
+                <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>Spring Gala Ticket Sales</div>
+                <div style={{ fontSize: "11px", color: "#64748b" }}>420 tickets sold across tiers</div>
               </div>
-              <span className="font-bold text-emerald-700">₹{ledger.income.galaTickets.toLocaleString()}</span>
+              <span style={{ fontWeight: 700, color: "#15803d", fontSize: "13px" }}>
+                ₹{ledger.income.galaTickets.toLocaleString()}
+              </span>
             </div>
 
-            <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
+            <div style={ledgerRowStyle}>
               <div>
-                <p className="font-bold text-slate-800">Club Hoodie & T-shirt Sales</p>
-                <p className="text-[11px] text-slate-400">Online store apparel orders</p>
+                <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>Club Merch & Apparel Orders</div>
+                <div style={{ fontSize: "11px", color: "#64748b" }}>Online store hoodie & t-shirt sales</div>
               </div>
-              <span className="font-bold text-emerald-700">₹{ledger.income.merchandise.toLocaleString()}</span>
+              <span style={{ fontWeight: 700, color: "#15803d", fontSize: "13px" }}>
+                ₹{ledger.income.merchandise.toLocaleString()}
+              </span>
             </div>
 
-            <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
+            <div style={ledgerRowStyle}>
               <div>
-                <p className="font-bold text-slate-800">Bake Sale Fundraiser</p>
-                <p className="text-[11px] text-slate-400">Campus plaza quad baked goods vouchers</p>
+                <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>Bake Sale Fundraiser</div>
+                <div style={{ fontSize: "11px", color: "#64748b" }}>Campus plaza quad baked goods coupons</div>
               </div>
-              <span className="font-bold text-emerald-700">₹{ledger.income.bakeSale.toLocaleString()}</span>
+              <span style={{ fontWeight: 700, color: "#15803d", fontSize: "13px" }}>
+                ₹{ledger.income.bakeSale.toLocaleString()}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Expense Outflows */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <ArrowDownRight className="h-4 w-4 text-rose-600" />
+        {/* Outflows Card */}
+        <div
+          style={{
+            background: "white",
+            borderRadius: "12px",
+            border: "1px solid #e2e8f0",
+            padding: "20px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              borderBottom: "1px solid #e2e8f0",
+              paddingBottom: "12px",
+              marginBottom: "16px",
+            }}
+          >
+            <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#1e293b", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+              <ArrowDownRight size={18} color="#dc2626" />
               Semester Outflows (Money Out)
             </h3>
-            <span className="text-xs font-bold text-rose-600">
+            <span style={{ fontSize: "14px", fontWeight: 700, color: "#dc2626" }}>
               ₹{ledger.expenses.totalExpenses.toLocaleString()}
             </span>
           </div>
 
-          <div className="space-y-3 text-xs">
-            <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div style={ledgerRowStyle}>
               <div>
-                <p className="font-bold text-slate-800">Campus Grand Auditorium Rental</p>
-                <p className="text-[11px] text-slate-400">Official invoice #AUD-883</p>
+                <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>Grand Auditorium Rental</div>
+                <div style={{ fontSize: "11px", color: "#64748b" }}>Official campus invoice #AUD-883</div>
               </div>
-              <span className="font-bold text-rose-600">₹{ledger.expenses.venueBooking.toLocaleString()}</span>
+              <span style={{ fontWeight: 700, color: "#dc2626", fontSize: "13px" }}>
+                ₹{ledger.expenses.venueBooking.toLocaleString()}
+              </span>
             </div>
 
-            <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
+            <div style={ledgerRowStyle}>
               <div>
-                <p className="font-bold text-slate-800">Gala Catering & Refreshments</p>
-                <p className="text-[11px] text-slate-400">450 plated dinners + mocktails</p>
+                <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>Gala Catering & Refreshments</div>
+                <div style={{ fontSize: "11px", color: "#64748b" }}>450 plated dinners + refreshments</div>
               </div>
-              <span className="font-bold text-rose-600">₹{ledger.expenses.galaCatering.toLocaleString()}</span>
+              <span style={{ fontWeight: 700, color: "#dc2626", fontSize: "13px" }}>
+                ₹{ledger.expenses.galaCatering.toLocaleString()}
+              </span>
             </div>
 
-            <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
+            <div style={ledgerRowStyle}>
               <div>
-                <p className="font-bold text-slate-800">Volunteer Expense Reimbursements</p>
-                <p className="text-[11px] text-slate-400">Verified ingredient & equipment receipts</p>
+                <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>Volunteer Expense Claims</div>
+                <div style={{ fontSize: "11px", color: "#64748b" }}>Verified supplies & ingredient receipts</div>
               </div>
-              <span className="font-bold text-rose-600">₹{ledger.expenses.volunteerReimbursements.toLocaleString()}</span>
+              <span style={{ fontWeight: 700, color: "#dc2626", fontSize: "13px" }}>
+                ₹{ledger.expenses.volunteerReimbursements.toLocaleString()}
+              </span>
             </div>
 
-            <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
+            <div style={ledgerRowStyle}>
               <div>
-                <p className="font-bold text-slate-800">Merchandise Bulk Production</p>
-                <p className="text-[11px] text-slate-400">Embroidered hoodie batch manufacture</p>
+                <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "13px" }}>Merchandise Bulk Printing</div>
+                <div style={{ fontSize: "11px", color: "#64748b" }}>Embroidered batch apparel production</div>
               </div>
-              <span className="font-bold text-rose-600">₹{ledger.expenses.merchandisePrinting.toLocaleString()}</span>
+              <span style={{ fontWeight: 700, color: "#dc2626", fontSize: "13px" }}>
+                ₹{ledger.expenses.merchandisePrinting.toLocaleString()}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Volunteer Expense Reimbursement Review Queue */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+      {/* ── 4. VOLUNTEER EXPENSE CLAIMS TABLE ──────────────── */}
+      <div
+        style={{
+          background: "white",
+          borderRadius: "12px",
+          border: "1px solid #e2e8f0",
+          padding: "20px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderBottom: "1px solid #e2e8f0",
+            paddingBottom: "12px",
+            marginBottom: "16px",
+          }}
+        >
           <div>
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Receipt className="h-5 w-5 text-indigo-600" />
+            <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#1e293b", margin: "0 0 2px 0", display: "flex", alignItems: "center", gap: "8px" }}>
+              <Receipt size={18} color="#1e3a8a" />
               Volunteer Expense Claims (Digital Receipt Audit)
             </h3>
-            <p className="text-xs text-slate-500">
+            <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }}>
               Volunteers submit receipts online so treasurers never chase faded paper slips.
             </p>
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-100">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-              <tr>
-                <th className="py-3 px-4">Claim ID</th>
-                <th className="py-3 px-4">Expense Description</th>
-                <th className="py-3 px-4">Volunteer</th>
-                <th className="py-3 px-4">Receipt Note</th>
-                <th className="py-3 px-4">Amount</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Treasurer Action</th>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid #e2e8f0", textAlign: "left", color: "#64748b" }}>
+                <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>CLAIM ID</th>
+                <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>DESCRIPTION</th>
+                <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>VOLUNTEER</th>
+                <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>RECEIPT NOTE</th>
+                <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>AMOUNT</th>
+                <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px" }}>STATUS</th>
+                <th style={{ padding: "10px 12px", fontWeight: 600, fontSize: "12px", textAlign: "right" }}>TREASURER ACTION</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody>
               {expenses.map((exp) => (
-                <tr key={exp.id} className="hover:bg-slate-50/60 transition-colors">
-                  <td className="py-3.5 px-4 font-mono font-bold text-slate-700">{exp.id}</td>
-                  <td className="py-3.5 px-4 font-bold text-slate-900">{exp.title}</td>
-                  <td className="py-3.5 px-4 text-slate-600">{exp.submittedBy}</td>
-                  <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500">{exp.receiptNote}</td>
-                  <td className="py-3.5 px-4 font-bold text-slate-900">₹{exp.amount}</td>
-                  <td className="py-3.5 px-4">
-                    {exp.status === 'REIMBURSED' ? (
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                <tr
+                  key={exp.id}
+                  style={{
+                    borderBottom: "1px solid #f1f5f9",
+                    transition: "background-color 0.2s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f8fafc")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                >
+                  <td style={{ padding: "12px", fontFamily: "monospace", fontWeight: 600, color: "#475569" }}>
+                    {exp.id}
+                  </td>
+                  <td style={{ padding: "12px", fontWeight: 600, color: "#1e293b" }}>
+                    {exp.title}
+                  </td>
+                  <td style={{ padding: "12px", color: "#475569" }}>
+                    {exp.submittedBy}
+                  </td>
+                  <td style={{ padding: "12px", fontFamily: "monospace", fontSize: "11px", color: "#64748b" }}>
+                    {exp.receiptNote}
+                  </td>
+                  <td style={{ padding: "12px", fontWeight: 700, color: "#1e293b" }}>
+                    ₹{exp.amount}
+                  </td>
+                  <td style={{ padding: "12px" }}>
+                    {exp.status === "REIMBURSED" ? (
+                      <span
+                        style={{
+                          background: "#dcfce7",
+                          color: "#15803d",
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          fontWeight: 600,
+                          fontSize: "11px",
+                        }}
+                      >
                         Reimbursed
                       </span>
-                    ) : exp.status === 'APPROVED' ? (
-                      <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                    ) : exp.status === "APPROVED" ? (
+                      <span
+                        style={{
+                          background: "#eff6ff",
+                          color: "#1e3a8a",
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          fontWeight: 600,
+                          fontSize: "11px",
+                        }}
+                      >
                         Approved (Pending Payout)
                       </span>
                     ) : (
-                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                      <span
+                        style={{
+                          background: "#fef3c7",
+                          color: "#b45309",
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          fontWeight: 600,
+                          fontSize: "11px",
+                        }}
+                      >
                         Pending Receipt Review
                       </span>
                     )}
                   </td>
-                  <td className="py-3.5 px-4 text-right">
-                    {exp.status === 'PENDING' ? (
+                  <td style={{ padding: "12px", textAlign: "right" }}>
+                    {exp.status === "PENDING" ? (
                       <button
                         onClick={() => handleApproveExpense(exp.id)}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg text-xs font-semibold shadow-xs"
+                        style={{
+                          padding: "6px 12px",
+                          borderRadius: "6px",
+                          background: "#1e3a8a",
+                          color: "white",
+                          border: "none",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
                       >
                         Approve Claim
                       </button>
-                    ) : exp.status === 'APPROVED' ? (
+                    ) : exp.status === "APPROVED" ? (
                       <button
                         onClick={() => handleApproveExpense(exp.id)}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg text-xs font-semibold shadow-xs"
+                        style={{
+                          padding: "6px 12px",
+                          borderRadius: "6px",
+                          background: "#15803d",
+                          color: "white",
+                          border: "none",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
                       >
                         Disburse Funds
                       </button>
                     ) : (
-                      <span className="text-[11px] text-slate-400 font-medium">Closed</span>
+                      <span style={{ fontSize: "12px", color: "#94a3b8" }}>Settled</span>
                     )}
                   </td>
                 </tr>
@@ -286,3 +581,14 @@ export const FinanceLedgerModule: React.FC = () => {
     </div>
   );
 };
+
+const ledgerRowStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  padding: "10px 14px",
+  borderRadius: "8px",
+  background: "#f8fafc",
+  border: "1px solid #f1f5f9",
+};
+

@@ -1,4 +1,6 @@
 import { authRepository } from './auth.repository.js';
+import { prisma } from '../../config/database.js';
+import { seedDatabase } from '../../database/seed.js';
 import { env } from '../../config/env.js';
 import {
   hashToken,
@@ -251,5 +253,86 @@ export const authService = {
     }
 
     return { success: true, message: 'Logged out successfully' };
+  },
+
+  /**
+   * Quick role login for pre-seeded demo accounts.
+   * Enables 1-click role exploration in development and evaluation.
+   */
+  async demoLogin(targetRole) {
+    const roleUpper = (targetRole || 'STUDENT').toUpperCase();
+
+    // Find demo user associated with this role
+    let user = await prisma.user.findFirst({
+      where: {
+        roles: {
+          some: {
+            role: roleUpper,
+          },
+        },
+      },
+      include: {
+        roles: true,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    // If no demo user found, automatically seed database
+    if (!user) {
+      await seedDatabase();
+      user = await prisma.user.findFirst({
+        where: {
+          roles: {
+            some: {
+              role: roleUpper,
+            },
+          },
+        },
+        include: {
+          roles: true,
+        },
+      });
+    }
+
+    if (!user) {
+      throw new AppError(`Demo account for role ${roleUpper} could not be found.`, 404);
+    }
+
+    // Extract assigned roles
+    const roleNames = user.roles.map((r) => r.role);
+
+    // Issue short-lived JWT access token
+    const accessToken = signAccessToken({
+      sub: user.id,
+      email: user.email,
+      name: user.name,
+      roles: roleNames,
+    });
+
+    // Generate and store hashed refresh token
+    const rawRefreshToken = generateRawRefreshToken();
+    const tokenHash = hashToken(rawRefreshToken);
+    const expiresAt = new Date(Date.now() + env.REFRESH_TOKEN_EXPIRES_DAYS * 24 * 60 * 60 * 1000);
+
+    await authRepository.createRefreshToken({
+      userId: user.id,
+      tokenHash,
+      expiresAt,
+    });
+
+    return {
+      accessToken,
+      refreshToken: rawRefreshToken,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+        status: user.status,
+        roles: roleNames,
+      },
+    };
   },
 };

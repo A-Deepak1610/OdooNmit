@@ -4,23 +4,49 @@ import { AppSidebar } from '../components/shared/AppSidebar';
 import { AppHeader } from '../components/shared/AppHeader';
 
 /**
- * Shared AppLayout for authenticated/core application views.
- * Hosts the centralized AppSidebar, AppHeader, and responsive content container.
+ * MainLayout shell component matching CampusMitra Master UI Architecture:
+ * - Flex row (Sidebar: 260px fixed + Content Column: flex 1)
+ * - Content Column: Navbar (h: 60px) + <main> (flex 1, overflowY: auto)
+ * - Background: var(--muted), Text: var(--foreground), Font: var(--font-family-body)
  */
 export const AppLayout: React.FC = () => {
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-surface-50">
-      {/* Shared Responsive Sidebar */}
+    <div
+      style={{
+        display: 'flex',
+        height: '100vh',
+        overflow: 'hidden',
+        backgroundColor: 'var(--muted)',
+        fontFamily: 'var(--font-family-body)',
+        color: 'var(--foreground)',
+      }}
+    >
+      {/* 260px Fixed Sidebar */}
       <AppSidebar />
 
-      {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Shared Responsive Header */}
+      {/* Main Content Column */}
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          backgroundColor: 'var(--muted)',
+        }}
+      >
+        {/* Navbar (h: 60px, sticky top 0) */}
         <AppHeader />
 
-        {/* Scrollable Viewport */}
-        <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 md:px-8">
-          <div className="mx-auto max-w-7xl">
+        {/* Scrollable Viewport with 1400px centered max-width container */}
+        <main style={{ flex: 1, overflowY: 'auto' }}>
+          <div
+            style={{
+              padding: '24px 32px',
+              maxWidth: '1400px',
+              margin: '0 auto',
+              fontFamily: 'var(--font-family-body)',
+            }}
+          >
             <Outlet />
           </div>
         </main>
