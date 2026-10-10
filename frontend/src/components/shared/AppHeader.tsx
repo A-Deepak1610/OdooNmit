@@ -55,6 +55,7 @@ export const AppHeader: React.FC = () => {
           onClick={handleHamburgerClick}
           aria-label="Toggle Navigation Menu"
           title="Toggle Navigation Menu"
+          className="lg:hidden"
           style={{
             background: 'transparent',
             border: 'none',

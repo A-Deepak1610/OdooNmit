@@ -11,6 +11,7 @@ import {
   GraduationCap,
   LogOut,
   X,
+  Menu,
 } from 'lucide-react';
 
 interface VolunteerSidebarProps {
@@ -142,13 +143,20 @@ export const VolunteerSidebar: React.FC<VolunteerSidebarProps> = ({ onCloseMobil
           </div>
         </div>
 
-        {onCloseMobile && (
+        {onCloseMobile ? (
           <button
             onClick={onCloseMobile}
             className="md:hidden p-1 text-slate-400 hover:text-slate-600 rounded"
           >
             <X style={{ width: '18px', height: '18px' }} />
           </button>
+        ) : (
+          <div
+            className="hidden md:flex items-center justify-center p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded"
+            title="Volunteer Portal"
+          >
+            <Menu style={{ width: '18px', height: '18px' }} />
+          </div>
         )}
       </div>
 

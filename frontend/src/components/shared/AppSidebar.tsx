@@ -4,7 +4,7 @@ import { useAuthStore } from '../../stores/auth.store';
 import { useUiStore } from '../../stores/ui.store';
 import { getPermittedNavigationItems } from '../../config/navigation';
 import { ROLE_DISPLAY_NAMES } from '../../config/roles';
-import { GraduationCap, LogOut, X } from 'lucide-react';
+import { GraduationCap, LogOut, X, Menu } from 'lucide-react';
 
 export interface AppSidebarProps {
   onCloseMobile?: () => void;
@@ -16,7 +16,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   isMobileDrawer = false,
 }) => {
   const { user, role, logout } = useAuthStore();
-  const { sidebarCollapsed } = useUiStore();
+  const { sidebarCollapsed, toggleSidebar } = useUiStore();
   const isCollapsed = !isMobileDrawer && sidebarCollapsed;
   const permittedItems = getPermittedNavigationItems(role);
 
@@ -59,7 +59,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
       <div
         style={{
           height: '60px',
-          padding: isCollapsed ? '0 16px' : '0 20px',
+          padding: isCollapsed ? '0 12px' : '0 16px 0 20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: isCollapsed ? 'center' : 'space-between',
@@ -67,70 +67,141 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-          <div
-            style={{
-              width: '28px',
-              height: '28px',
-              background: 'var(--primary)',
-              borderRadius: '7px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              flexShrink: 0,
-            }}
-            title="CampusMitra"
-          >
-            <GraduationCap style={{ width: '18px', height: '18px' }} />
-          </div>
-          {!isCollapsed && (
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span
-                style={{
-                  fontSize: '17px',
-                  fontWeight: 700,
-                  color: 'var(--primary)',
-                  letterSpacing: '-0.3px',
-                  lineHeight: 1.2,
-                }}
-              >
-                CampusMitra
-              </span>
-              <span
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 600,
-                  color: 'var(--muted-foreground)',
-                  letterSpacing: '0.4px',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {roleTitle}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {isMobileDrawer && onCloseMobile && (
+        {isCollapsed ? (
+          /* When collapsed: Centered Hamburger Icon button to expand the sidebar */
           <button
             type="button"
-            onClick={onCloseMobile}
-            aria-label="Close sidebar"
+            onClick={toggleSidebar}
+            aria-label="Expand sidebar"
+            title="Expand sidebar"
             style={{
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              color: 'var(--muted-foreground)',
-              padding: '6px',
+              color: 'var(--foreground)',
+              padding: '8px',
               borderRadius: 'var(--radius-md)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              transition: 'background-color 0.15s ease, color 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--secondary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
             }}
           >
-            <X style={{ width: '20px', height: '20px' }} />
+            <Menu style={{ width: '20px', height: '20px' }} />
           </button>
+        ) : (
+          /* When expanded: Brand Logo & Title on Left + Hamburger Icon on Right */
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+              <div
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  background: 'var(--primary)',
+                  borderRadius: '7px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#ffffff',
+                  flexShrink: 0,
+                }}
+                title="CampusMitra"
+              >
+                <GraduationCap style={{ width: '18px', height: '18px' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span
+                  style={{
+                    fontSize: '17px',
+                    fontWeight: 700,
+                    color: 'var(--primary)',
+                    letterSpacing: '-0.3px',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  CampusMitra
+                </span>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 600,
+                    color: 'var(--muted-foreground)',
+                    letterSpacing: '0.4px',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {roleTitle}
+                </span>
+              </div>
+            </div>
+
+            {/* Mobile Drawer: Close X button. Desktop: Hamburger Menu Button inside sidebar */}
+            {isMobileDrawer && onCloseMobile ? (
+              <button
+                type="button"
+                onClick={onCloseMobile}
+                aria-label="Close sidebar"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--muted-foreground)',
+                  padding: '6px',
+                  borderRadius: 'var(--radius-md)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background-color 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--secondary)';
+                  e.currentTarget.style.color = 'var(--foreground)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--muted-foreground)';
+                }}
+              >
+                <X style={{ width: '20px', height: '20px' }} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={toggleSidebar}
+                aria-label="Collapse sidebar"
+                title="Collapse sidebar"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--muted-foreground)',
+                  padding: '6px',
+                  borderRadius: 'var(--radius-md)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background-color 0.15s ease, color 0.15s ease',
+                  flexShrink: 0,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--secondary)';
+                  e.currentTarget.style.color = 'var(--foreground)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--muted-foreground)';
+                }}
+              >
+                <Menu style={{ width: '20px', height: '20px' }} />
+              </button>
+            )}
+          </>
         )}
       </div>
 
