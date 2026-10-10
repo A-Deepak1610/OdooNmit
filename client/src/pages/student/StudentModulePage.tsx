@@ -232,9 +232,8 @@ export const StudentModulePage: React.FC = () => {
       {/* Toast Feedback */}
       {toastMessage && (
         <div
-          className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-semibold transition-all animate-in slide-in-from-bottom-5 ${
-            toastMessage.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
-          }`}
+          className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-semibold transition-all animate-in slide-in-from-bottom-5 ${toastMessage.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
+            }`}
         >
           {toastMessage.type === 'success' ? (
             <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
@@ -297,9 +296,8 @@ export const StudentModulePage: React.FC = () => {
               <div className="flex items-center justify-between text-slate-500 mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Notifications</span>
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[11px] font-extrabold ${
-                    unreadCount > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'
-                  }`}
+                  className={`px-2 py-0.5 rounded-full text-[11px] font-extrabold ${unreadCount > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'
+                    }`}
                 >
                   {unreadCount} Unread
                 </span>
@@ -375,14 +373,12 @@ export const StudentModulePage: React.FC = () => {
                 {notifications.slice(0, 4).map((n) => (
                   <div
                     key={n.id}
-                    className={`p-3 rounded-xl border transition-all flex items-start gap-3 ${
-                      !n.isRead ? 'bg-blue-50/50 border-blue-100' : 'bg-slate-50/70 border-slate-100'
-                    }`}
+                    className={`p-3 rounded-xl border transition-all flex items-start gap-3 ${!n.isRead ? 'bg-blue-50/50 border-blue-100' : 'bg-slate-50/70 border-slate-100'
+                      }`}
                   >
                     <div
-                      className={`p-1.5 rounded-lg flex-shrink-0 mt-0.5 ${
-                        !n.isRead ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'
-                      }`}
+                      className={`p-1.5 rounded-lg flex-shrink-0 mt-0.5 ${!n.isRead ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'
+                        }`}
                     >
                       <Sparkles className="w-3.5 h-3.5" />
                     </div>
@@ -429,13 +425,12 @@ export const StudentModulePage: React.FC = () => {
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-bold text-slate-900">{elec.title}</span>
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          elec.status === 'VOTING_OPEN'
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${elec.status === 'VOTING_OPEN'
                             ? 'bg-emerald-100 text-emerald-800'
                             : elec.status === 'NOMINATION_OPEN'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-slate-100 text-slate-700'
-                        }`}
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}
                       >
                         {elec.status.replace('_', ' ')}
                       </span>
@@ -479,31 +474,28 @@ export const StudentModulePage: React.FC = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setNotificationFilter('ALL')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  notificationFilter === 'ALL'
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${notificationFilter === 'ALL'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 All ({notifications.length})
               </button>
               <button
                 onClick={() => setNotificationFilter('UNREAD')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  notificationFilter === 'UNREAD'
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${notificationFilter === 'UNREAD'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 Unread ({unreadCount})
               </button>
               <button
                 onClick={() => setNotificationFilter('SYSTEM')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  notificationFilter === 'SYSTEM'
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${notificationFilter === 'SYSTEM'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 Broadcasts
               </button>
@@ -531,19 +523,17 @@ export const StudentModulePage: React.FC = () => {
               filteredNotifications.map((notif) => (
                 <div
                   key={notif.id}
-                  className={`bg-white rounded-2xl border p-5 shadow-xs transition-all flex items-start justify-between gap-4 ${
-                    !notif.isRead
+                  className={`bg-white rounded-2xl border p-5 shadow-xs transition-all flex items-start justify-between gap-4 ${!notif.isRead
                       ? 'border-blue-200/80 bg-gradient-to-r from-blue-50/30 to-white'
                       : 'border-slate-200/80'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-start gap-3.5 flex-1 min-w-0">
                     <div
-                      className={`p-2.5 rounded-xl flex-shrink-0 mt-0.5 ${
-                        !notif.isRead
+                      className={`p-2.5 rounded-xl flex-shrink-0 mt-0.5 ${!notif.isRead
                           ? 'bg-blue-600 text-white shadow-xs'
                           : 'bg-slate-100 text-slate-500'
-                      }`}
+                        }`}
                     >
                       <Bell className="w-4 h-4" />
                     </div>
@@ -614,13 +604,12 @@ export const StudentModulePage: React.FC = () => {
                       <span className="text-slate-400">•</span>
                       <span className="text-xs font-semibold text-slate-500">Term {elec.academicYear}</span>
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          elec.status === 'VOTING_OPEN'
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${elec.status === 'VOTING_OPEN'
                             ? 'bg-emerald-100 text-emerald-800'
                             : elec.status === 'NOMINATION_OPEN'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-slate-100 text-slate-700'
-                        }`}
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}
                       >
                         {elec.status.replace('_', ' ')}
                       </span>
@@ -693,11 +682,10 @@ export const StudentModulePage: React.FC = () => {
                       {elec.candidates.map((cand) => (
                         <div
                           key={cand.id}
-                          className={`p-4 rounded-xl border transition-all flex flex-col justify-between ${
-                            elec.votedCandidateId === cand.id
+                          className={`p-4 rounded-xl border transition-all flex flex-col justify-between ${elec.votedCandidateId === cand.id
                               ? 'border-emerald-500 bg-emerald-50/30'
                               : 'border-slate-200/80 bg-slate-50/50'
-                          }`}
+                            }`}
                         >
                           <div>
                             <div className="flex items-start justify-between gap-2 mb-2">
@@ -717,11 +705,10 @@ export const StudentModulePage: React.FC = () => {
                               </div>
 
                               <span
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                                  cand.status === 'APPROVED'
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${cand.status === 'APPROVED'
                                     ? 'bg-emerald-100 text-emerald-800'
                                     : 'bg-amber-100 text-amber-800'
-                                }`}
+                                  }`}
                               >
                                 {cand.status}
                               </span>

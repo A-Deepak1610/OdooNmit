@@ -4,7 +4,7 @@ import { useAuthStore } from '../../stores/auth.store';
 import { useUiStore } from '../../stores/ui.store';
 import { getPermittedNavigationItems } from '../../config/navigation';
 import { ROLE_DISPLAY_NAMES } from '../../config/roles';
-import { LogOut, X } from 'lucide-react';
+import { Menu, LogOut, X } from 'lucide-react';
 
 export interface AppSidebarProps {
   onCloseMobile?: () => void;
@@ -16,7 +16,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   isMobileDrawer = false,
 }) => {
   const { user, role, logout } = useAuthStore();
-  const { sidebarCollapsed } = useUiStore();
+  const { sidebarCollapsed, toggleSidebar } = useUiStore();
   const isCollapsed = !isMobileDrawer && sidebarCollapsed;
   const permittedItems = getPermittedNavigationItems(role);
 
@@ -59,7 +59,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
       <div
         style={{
           height: '60px',
-          padding: isCollapsed ? '0 16px' : '0 20px',
+          padding: isCollapsed ? '0 16px' : '0 16px 0 20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: isCollapsed ? 'center' : 'space-between',
@@ -67,65 +67,129 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-          <img
-            src="/logo.png"
-            alt="CampusMitra Logo"
-            style={{
-              width: '30px',
-              height: '30px',
-              objectFit: 'contain',
-              flexShrink: 0,
-            }}
-            title="CampusMitra"
-          />
-          {!isCollapsed && (
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span
-                style={{
-                  fontSize: '17px',
-                  fontWeight: 700,
-                  color: 'var(--primary)',
-                  letterSpacing: '-0.3px',
-                  lineHeight: 1.2,
-                }}
-              >
-                CampusMitra
-              </span>
-              <span
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 600,
-                  color: 'var(--muted-foreground)',
-                  letterSpacing: '0.4px',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {roleTitle}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {isMobileDrawer && onCloseMobile && (
+        {isCollapsed ? (
           <button
             type="button"
-            onClick={onCloseMobile}
-            aria-label="Close sidebar"
+            onClick={toggleSidebar}
+            aria-label="Expand sidebar"
+            title="Expand sidebar"
             style={{
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              color: 'var(--muted-foreground)',
-              padding: '6px',
-              borderRadius: 'var(--radius-md)',
+              padding: '8px',
+              borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              color: 'var(--foreground)',
+              transition: 'background-color 0.15s, opacity 0.15s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--accent)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
             }}
           >
-            <X style={{ width: '20px', height: '20px' }} />
+            <Menu style={{ width: '20px', height: '20px' }} />
           </button>
+        ) : (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+              <img
+                src="/logo.png"
+                alt="CampusMitra Logo"
+                style={{
+                  width: '30px',
+                  height: '30px',
+                  objectFit: 'contain',
+                  flexShrink: 0,
+                }}
+                title="CampusMitra"
+              />
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span
+                  style={{
+                    fontSize: '17px',
+                    fontWeight: 700,
+                    color: 'var(--primary)',
+                    letterSpacing: '-0.3px',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  CampusMitra
+                </span>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 600,
+                    color: 'var(--muted-foreground)',
+                    letterSpacing: '0.4px',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {roleTitle}
+                </span>
+              </div>
+            </div>
+
+            {isMobileDrawer && onCloseMobile ? (
+              <button
+                type="button"
+                onClick={onCloseMobile}
+                aria-label="Close sidebar"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '6px',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--foreground)',
+                  transition: 'background-color 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--accent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
+                <X style={{ width: '18px', height: '18px' }} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={toggleSidebar}
+                aria-label="Collapse sidebar"
+                title="Collapse sidebar"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '6px',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--foreground)',
+                  transition: 'background-color 0.15s, opacity 0.15s',
+                  flexShrink: 0,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--accent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
+                <Menu style={{ width: '18px', height: '18px' }} />
+              </button>
+            )}
+          </>
         )}
       </div>
 
@@ -190,8 +254,9 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                     gap: isCollapsed ? '0' : '10px',
                     padding: isCollapsed ? '10px 0' : '9px 12px',
                     borderRadius: 'var(--radius-md)',
-                    color: isActive ? 'var(--primary)' : 'var(--foreground)',
-                    backgroundColor: isActive ? 'var(--secondary)' : 'transparent',
+                    color: isActive ? '#4F46E5' : '#334155',
+                    backgroundColor: isActive ? '#EEF2FF' : 'transparent',
+                    borderLeft: isActive && !isCollapsed ? '3px solid #4F46E5' : '3px solid transparent',
                     textDecoration: 'none',
                     fontSize: '13.5px',
                     fontWeight: isActive ? 600 : 500,
@@ -201,15 +266,24 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                   onMouseEnter={(e) => {
                     if (!e.currentTarget.getAttribute('aria-current')) {
                       e.currentTarget.style.backgroundColor = 'var(--secondary)';
+                      e.currentTarget.style.color = '#0F172A';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!e.currentTarget.getAttribute('aria-current')) {
                       e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = '#334155';
                     }
                   }}
                 >
-                  <Icon style={{ width: '17px', height: '17px', flexShrink: 0 }} />
+                  <Icon
+                    style={{
+                      width: '17px',
+                      height: '17px',
+                      flexShrink: 0,
+                      color: 'inherit',
+                    }}
+                  />
                   {!isCollapsed && (
                     <>
                       <span
@@ -232,13 +306,13 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                             backgroundColor: item.badge.includes('Open')
                               ? '#fef3c7'
                               : item.badge === 'NLP'
-                              ? '#ede9fe'
-                              : '#f1f5f9',
+                                ? '#ede9fe'
+                                : '#f1f5f9',
                             color: item.badge.includes('Open')
                               ? '#b45309'
                               : item.badge === 'NLP'
-                              ? '#6d28d9'
-                              : '#475569',
+                                ? '#6d28d9'
+                                : '#475569',
                             marginLeft: 'auto',
                             border: '1px solid rgba(0,0,0,0.06)',
                           }}

@@ -12,7 +12,6 @@ import { RoleDashboardPage } from '../pages/dashboards/RoleDashboardPage';
 import { EventsTicketingModule } from '../components/modules/events/EventsTicketingModule';
 import { MembershipModule } from '../components/modules/memberships/MembershipModule';
 import { MerchandiseTaskModule } from '../components/modules/merchandise/MerchandiseTaskModule';
-import { FinanceLedgerModule } from '../components/modules/finance/FinanceLedgerModule';
 import { AnnouncementBoardModule } from '../components/modules/announcements/AnnouncementBoardModule';
 import { ElectionsVotingModule } from '../components/modules/elections/ElectionsVotingModule';
 import {
@@ -30,6 +29,7 @@ import { LandingPage } from '../pages/LandingPage';
 import { PresidentModulePage } from '../pages/president/PresidentModulePage';
 import { PresidentEventsFundraisersPage } from '../pages/president/PresidentEventsFundraisersPage';
 import { OrganizerEventsPage } from '../pages/organizer/OrganizerEventsPage';
+import { TreasurerModulePage } from '../pages/treasurer/TreasurerModulePage';
 
 /**
  * Root Landing Page:
@@ -324,26 +324,66 @@ export const router = createBrowserRouter([
 
       // -----------------------------------------------------------------------
       // TREASURER ROLE ROUTES
+      // Responsible for club finances, records, and reimbursements:
+      // - Track membership dues, ticket sales, merchandise income, and fundraiser income.
+      // - Record and categorize expenses.
+      // - Review reimbursement requests and attached receipts.
+      // - Approve or reject reimbursements and record payouts.
+      // - View income, expenses, and current balance.
+      // - Generate semester financial reports.
+      // - Review payment records and financial audit history.
       // -----------------------------------------------------------------------
       {
         path: 'treasurer',
         element: <ProtectedRoute allowedRoles={[ROLES.TREASURER]} />,
         children: [
           {
+            index: true,
+            element: <Navigate to="/treasurer/dashboard" replace />,
+          },
+          {
             path: 'dashboard',
-            element: <RoleDashboardPage role={ROLES.TREASURER} />,
+            element: <TreasurerModulePage />,
+          },
+          {
+            path: 'dues',
+            element: <TreasurerModulePage />,
+          },
+          {
+            path: 'merchandise',
+            element: <TreasurerModulePage />,
+          },
+          {
+            path: 'finance',
+            element: <TreasurerModulePage />,
+          },
+          {
+            path: 'income',
+            element: <TreasurerModulePage />,
+          },
+          {
+            path: 'expenses',
+            element: <TreasurerModulePage />,
           },
           {
             path: 'transactions',
-            element: <FinanceLedgerModule />,
+            element: <TreasurerModulePage />,
           },
           {
             path: 'reimbursements',
-            element: <FinanceLedgerModule />,
+            element: <TreasurerModulePage />,
           },
           {
             path: 'reports',
-            element: <FinanceLedgerModule />,
+            element: <TreasurerModulePage />,
+          },
+          {
+            path: 'audit',
+            element: <TreasurerModulePage />,
+          },
+          {
+            path: 'audit-history',
+            element: <TreasurerModulePage />,
           },
         ],
       },
