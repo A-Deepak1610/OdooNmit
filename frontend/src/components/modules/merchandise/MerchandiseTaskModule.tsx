@@ -6,11 +6,12 @@ import {
 } from 'lucide-react';
 import { useClubStore } from '../../../stores/club.store';
 import { useAuthStore } from '../../../stores/auth.store';
+import { ROLES } from '../../../config/roles';
 import { RazorpayPaymentModal } from '../../shared/RazorpayPaymentModal';
 import { MockTask } from '../../../data/mockClubData';
 
 export const MerchandiseTaskModule: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user, role } = useAuthStore();
   const {
     merchandise,
     orders,
@@ -126,9 +127,9 @@ export const MerchandiseTaskModule: React.FC = () => {
 
         {/* Tab Switcher */}
         <div style={{ display: 'flex', gap: '6px', background: 'var(--muted)', padding: '4px', borderRadius: '8px' }}>
-          {(['store', 'orders', 'tasks'] as const).map((tab) => {
+          {(role === ROLES.STUDENT ? (['store', 'orders'] as const) : (['store', 'orders', 'tasks'] as const)).map((tab) => {
             const isActive = activeTab === tab;
-            const labels = {
+            const labels: Record<string, string> = {
               store: 'Merchandise Shop',
               orders: `My Orders (${orders.length})`,
               tasks: `Bake Sale Tasks (${progressPercent}%)`,

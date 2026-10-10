@@ -18,6 +18,9 @@ import {
   DollarSign,
   PieChart,
   FileText,
+  Building2,
+  CreditCard,
+  UserCheck,
 } from 'lucide-react';
 
 interface RoleDashboardProps {
@@ -59,21 +62,25 @@ const ROLE_CONFIGS: Record<string, RoleConfig> = {
   // view expiry/benefits; renew; buy tickets (QR passes); order status.
   // =========================================================================
   STUDENT: {
-    title: 'Student & Member Services Hub',
-    subtitle: 'Browse campus club events, register for membership, buy tickets, order hoodies, and access member-only perks.',
-    actionLabel: 'Join Skyline Association',
-    actionPath: '/student/apply-membership',
+    title: 'Student Services Hub',
+    subtitle: 'Browse recognized campus organizations, events, member discounts, merchandise, and access verified digital QR passes and receipts.',
+    actionLabel: 'Browse Organizations',
+    actionPath: '/student/organizations',
     stats: [
-      { label: 'Membership Status', value: 'Enrolled', subtitle: 'SSA-2026-0042 • Valid till May 2026', color: '#15803d', bg: '#dcfce7', icon: Users },
-      { label: 'Spring Gala Pass', value: '₹150 Member Rate', subtitle: '60% savings vs general ₹250 rate', color: '#1e3a8a', bg: '#eff6ff', icon: Ticket },
-      { label: 'Official Merch', value: 'Hoodie Reserved', subtitle: 'Size L • Payment Confirmed', color: '#b45309', bg: '#fef3c7', icon: ShoppingBag },
-      { label: 'Member Notices', value: '4 Published', subtitle: 'General meetings & discount alerts', color: '#7c3aed', bg: '#f3e8ff', icon: Megaphone },
+      { label: 'Organizations', value: '12 Active Charters', subtitle: 'Cultural, Tech & Academic clubs', color: '#1e3a8a', bg: '#eff6ff', icon: Building2 },
+      { label: 'Membership Status', value: 'Active Member', subtitle: 'SSA-2026-0042 • Valid till Dec 2026', color: '#15803d', bg: '#dcfce7', icon: Users },
+      { label: 'Confirmed QR Passes', value: '1 Pass Ready', subtitle: 'Spring Gala VIP Table #4', color: '#b45309', bg: '#fef3c7', icon: Ticket },
+      { label: 'Member Notices', value: '4 Announcements', subtitle: '20% discounts & perks active', color: '#7c3aed', bg: '#f3e8ff', icon: Megaphone },
     ],
     actions: [
-      { label: 'Browse Events & Buy Tickets', description: 'Book gala seats at member rates with instant QR door passes', color: '#1e3a8a', bg: '#eff6ff', icon: Ticket, path: '/student/events' },
-      { label: 'Membership & Renewal', description: 'View membership card, expiry date, perks, and pay annual dues', color: '#15803d', bg: '#dcfce7', icon: Users, path: '/student/apply-membership' },
-      { label: 'Official Merchandise Store', description: 'Order club hoodies & apparel 24/7 with live size inventory', color: '#b45309', bg: '#fef3c7', icon: ShoppingBag, path: '/member/merchandise' },
-      { label: 'Announcements & Perks', description: 'Access member-only notices, meeting recordings, and deadlines', color: '#7c3aed', bg: '#f3e8ff', icon: Megaphone, path: '/student/announcements' },
+      { label: 'Browse Organizations', description: 'Explore student clubs, meeting venues, advisors, and join charters', color: '#1e3a8a', bg: '#eff6ff', icon: Building2, path: '/student/organizations' },
+      { label: 'Browse Events & Buy Tickets', description: 'Book gala passes at member discount rates with instant QR door passes', color: '#15803d', bg: '#dcfce7', icon: Calendar, path: '/student/events' },
+      { label: 'Ticket Confirmations & QR Codes', description: 'View confirmed event passes and digital admission barcodes', color: '#b45309', bg: '#fef3c7', icon: Ticket, path: '/student/tickets' },
+      { label: 'Member Announcements & Discounts', description: 'View exclusive notices, discount codes, and meeting schedules', color: '#7c3aed', bg: '#f3e8ff', icon: Megaphone, path: '/student/announcements' },
+      { label: 'Browse & Buy Merchandise', description: 'Order official club hoodies, stickers, and select apparel sizes', color: '#0d9488', bg: '#ccfbf1', icon: ShoppingBag, path: '/student/merchandise' },
+      { label: 'Membership Status, Expiry & Renewal', description: 'Inspect membership card, check expiry date, benefits, and renew annual dues', color: '#1e3a8a', bg: '#eff6ff', icon: UserCheck, path: '/student/membership' },
+      { label: 'Register for Organization & Dues', description: 'Enroll in clubs and pay annual membership dues (₹250 via Razorpay)', color: '#15803d', bg: '#dcfce7', icon: CreditCard, path: '/student/apply-membership' },
+      { label: 'Order & Payment Status', description: 'Review order fulfillment status, Razorpay receipts, and HMAC hashes', color: '#475569', bg: '#f1f5f9', icon: Receipt, path: '/student/orders' },
     ],
   },
 

@@ -13,6 +13,10 @@ import { MerchandiseTaskModule } from '../components/modules/merchandise/Merchan
 import { FinanceLedgerModule } from '../components/modules/finance/FinanceLedgerModule';
 import { AnnouncementBoardModule } from '../components/modules/announcements/AnnouncementBoardModule';
 import { ElectionsVotingModule } from '../components/modules/elections/ElectionsVotingModule';
+import { StudentOrganizationsModule } from '../components/modules/organizations/StudentOrganizationsModule';
+import { StudentMembershipModule } from '../components/modules/memberships/StudentMembershipModule';
+import { StudentTicketsModule } from '../components/modules/tickets/StudentTicketsModule';
+import { StudentOrdersModule } from '../components/modules/orders/StudentOrdersModule';
 import {
   VolunteerDashboard,
   VolunteerTasks,
@@ -164,7 +168,7 @@ export const router = createBrowserRouter([
     children: [
 
       // -----------------------------------------------------------------------
-      // STUDENT ROLE ROUTES
+      // STUDENT ROLE ROUTES (Strictly per user specification)
       // -----------------------------------------------------------------------
       {
         path: 'student',
@@ -175,6 +179,10 @@ export const router = createBrowserRouter([
             element: <RoleDashboardPage role={ROLES.STUDENT} />,
           },
           {
+            path: 'organizations',
+            element: <StudentOrganizationsModule />,
+          },
+          {
             path: 'events',
             element: <EventsTicketingModule />,
           },
@@ -183,20 +191,24 @@ export const router = createBrowserRouter([
             element: <AnnouncementBoardModule />,
           },
           {
+            path: 'merchandise',
+            element: <MerchandiseTaskModule />,
+          },
+          {
+            path: 'membership',
+            element: <StudentMembershipModule />,
+          },
+          {
             path: 'apply-membership',
-            element: <MembershipModule />,
+            element: <StudentMembershipModule />,
           },
           {
-            path: 'applications',
-            element: <MembershipModule />,
+            path: 'tickets',
+            element: <StudentTicketsModule />,
           },
           {
-            path: 'elections',
-            element: <ElectionsVotingModule />,
-          },
-          {
-            path: 'voting',
-            element: <ElectionsVotingModule />,
+            path: 'orders',
+            element: <StudentOrdersModule />,
           },
         ],
       },

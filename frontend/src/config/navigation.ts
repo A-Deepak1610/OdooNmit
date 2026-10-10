@@ -3,7 +3,6 @@ import { ROLES, UserRole } from './roles';
 import {
   LayoutDashboard,
   Calendar,
-  Compass,
   Megaphone,
   UserCheck,
   Ticket,
@@ -29,49 +28,80 @@ import {
  */
 export const navigationConfig: NavigationItem[] = [
   // ===========================================================================
-  // 6. STUDENT / MEMBER NAVIGATION
-  // Browse orgs, events, announcements, merch; register & pay dues;
-  // view expiry/benefits; renew; buy tickets (QR passes); order status.
+  // 6. STUDENT ROLE NAVIGATION
+  // Strictly scoped to user specification:
+  // - Browse organizations, events, announcements, and merchandise.
+  // - Register for an organization and pay membership dues.
+  // - View membership status, expiry date, and benefits.
+  // - Renew membership.
+  // - Buy event tickets and merchandise.
+  // - Access ticket confirmations or QR codes.
+  // - View order and payment status.
+  // - View member-only announcements and applicable discounts.
   // ===========================================================================
   {
     id: 'student-dashboard',
-    label: 'Services Hub',
+    label: 'Student Services Hub',
     path: '/student/dashboard',
     icon: LayoutDashboard,
     allowedRoles: [ROLES.STUDENT],
     group: 'MAIN',
   },
   {
-    id: 'student-explore-events',
+    id: 'student-organizations',
+    label: 'Browse Organizations',
+    path: '/student/organizations',
+    icon: Building2,
+    allowedRoles: [ROLES.STUDENT],
+    group: 'DISCOVER & BROWSE',
+  },
+  {
+    id: 'student-events',
     label: 'Browse Events & Tickets',
     path: '/student/events',
-    icon: Compass,
+    icon: Calendar,
     allowedRoles: [ROLES.STUDENT],
-    group: 'CAMPUS SERVICES',
+    group: 'DISCOVER & BROWSE',
   },
   {
     id: 'student-announcements',
-    label: 'Club Announcements',
+    label: 'Announcements & Discounts',
     path: '/student/announcements',
     icon: Megaphone,
     allowedRoles: [ROLES.STUDENT],
-    group: 'CAMPUS SERVICES',
+    group: 'DISCOVER & BROWSE',
   },
   {
-    id: 'student-apply-membership',
-    label: 'Join Organization & Dues',
-    path: '/student/apply-membership',
+    id: 'student-merchandise',
+    label: 'Merchandise Store',
+    path: '/student/merchandise',
+    icon: ShoppingBag,
+    allowedRoles: [ROLES.STUDENT],
+    group: 'DISCOVER & BROWSE',
+  },
+  {
+    id: 'student-membership',
+    label: 'Membership, Expiry & Renewal',
+    path: '/student/membership',
     icon: UserCheck,
     allowedRoles: [ROLES.STUDENT],
-    group: 'MEMBERSHIP',
+    group: 'MEMBERSHIP & PERKS',
   },
   {
-    id: 'student-elections',
-    label: 'Officer Elections & Voting',
-    path: '/student/elections',
-    icon: Vote,
+    id: 'student-tickets',
+    label: 'Ticket Confirmations & QR Passes',
+    path: '/student/tickets',
+    icon: Ticket,
     allowedRoles: [ROLES.STUDENT],
-    group: 'CAMPUS SERVICES',
+    group: 'MY ACTIVITY',
+  },
+  {
+    id: 'student-orders',
+    label: 'Order & Payment Status',
+    path: '/student/orders',
+    icon: Receipt,
+    allowedRoles: [ROLES.STUDENT],
+    group: 'MY ACTIVITY',
   },
 
   // Member Hub
