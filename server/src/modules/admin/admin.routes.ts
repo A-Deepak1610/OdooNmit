@@ -14,6 +14,7 @@ router.get('/overview', requireRoles(['ADMIN']), (req, res) => adminController.g
 // Clubs Management
 router.get('/clubs', requireRoles(['ADMIN']), (req, res) => adminController.getClubs(req, res));
 router.post('/clubs', requireRoles(['ADMIN']), (req, res) => adminController.createClub(req, res));
+router.patch('/clubs/:id', requireRoles(['ADMIN']), (req, res) => adminController.updateClub(req, res));
 router.patch('/clubs/:id/status', requireRoles(['ADMIN']), (req, res) => adminController.updateClubStatus(req, res));
 router.post('/clubs/:id/president', requireRoles(['ADMIN']), (req, res) => adminController.assignPresident(req, res));
 
