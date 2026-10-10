@@ -67,57 +67,8 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           flexShrink: 0,
         }}
       >
-<<<<<<< HEAD
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-          <div
-            style={{
-              width: '28px',
-              height: '28px',
-              background: 'var(--primary)',
-              borderRadius: '7px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              flexShrink: 0,
-            }}
-            title="CampusFlow"
-          >
-            <GraduationCap style={{ width: '18px', height: '18px' }} />
-          </div>
-          {!isCollapsed && (
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span
-                style={{
-                  fontSize: '17px',
-                  fontWeight: 700,
-                  color: 'var(--primary)',
-                  letterSpacing: '-0.3px',
-                  lineHeight: 1.2,
-                }}
-              >
-                CampusFlow
-              </span>
-              <span
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 600,
-                  color: 'var(--muted-foreground)',
-                  letterSpacing: '0.4px',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {roleTitle}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {isMobileDrawer && onCloseMobile && (
-=======
         {isCollapsed ? (
           /* When collapsed: Centered Hamburger Icon button to expand the sidebar */
->>>>>>> bef2a34e03607a69890907cd018302e1bb6152c9
           <button
             type="button"
             onClick={toggleSidebar}
