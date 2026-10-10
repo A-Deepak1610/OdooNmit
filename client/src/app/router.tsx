@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppLayout } from '../layouts/AppLayout';
+import { AuthLayout } from '../layouts/AuthLayout';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { AuthCallbackPage } from '../pages/auth/AuthCallbackPage';
@@ -84,12 +85,17 @@ export const router = createBrowserRouter([
     element: <LandingPage />,
   },
   {
-    path: '/login',
-    element: <LoginPage />,
-  },
-  {
-    path: '/register',
-    element: <LoginPage />,
+    element: <AuthLayout />,
+    children: [
+      {
+        path: '/login',
+        element: <LoginPage />,
+      },
+      {
+        path: '/register',
+        element: <LoginPage />,
+      },
+    ],
   },
   {
     path: '/dashboard',

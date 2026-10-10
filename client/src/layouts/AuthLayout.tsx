@@ -1,30 +1,41 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
-import { Layers } from 'lucide-react';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { LandingPage } from '../modules/landing/pages/LandingPage';
 
 /**
- * Public/Auth layout used for unauthenticated or public entry pages.
+ * Public/Auth layout displaying the lightly blurred LandingPage in the background
+ * behind the authentication modal dialog.
  */
 export const AuthLayout: React.FC = () => {
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-surface-50 p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-md space-y-6">
-        <div className="flex flex-col items-center text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 text-white shadow-lg shadow-brand-500/25 mb-3">
-            <Layers className="h-6 w-6" />
-          </div>
-          <h2 className="text-xl font-bold tracking-tight text-surface-900">
-            Hackathon Starter
-          </h2>
-          <p className="text-xs text-surface-500 mt-1">
-            Modular Monolith Architecture
-          </p>
-        </div>
+  const navigate = useNavigate();
 
-        <div className="rounded-xl border border-surface-200/80 bg-white p-6 shadow-sm sm:p-8">
-          <Outlet />
-        </div>
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      navigate('/');
+    }
+  };
+
+  return (
+    <div className="relative min-h-screen w-full overflow-hidden bg-slate-900/10 isolate">
+      {/* Lightly blurred Landing Page in the background */}
+      <div
+        className="fixed inset-0 pointer-events-none select-none filter blur-[6px] scale-[1.02] opacity-85 overflow-hidden -z-10"
+        aria-hidden="true"
+      >
+        <LandingPage />
+      </div>
+
+      {/* Subtle soft tint overlay for focus & contrast */}
+      <div className="fixed inset-0 bg-slate-900/20 pointer-events-none -z-10" />
+
+      {/* Modal Dialog Viewport */}
+      <div
+        onClick={handleBackdropClick}
+        className="relative z-10 min-h-screen w-full flex items-center justify-center p-4 sm:p-6"
+      >
+        <Outlet />
       </div>
     </div>
   );
 };
+export default AuthLayout;
