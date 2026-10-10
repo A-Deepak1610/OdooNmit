@@ -1,0 +1,20 @@
+// Prisma configuration for TiDB (MySQL-compatible interface)
+// Do NOT define business-specific models until the hackathon problem statement is announced.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Infrastructure entity required by Prisma Client generator.
+// Future business models can be added below when the problem statement is decided.
+model HealthCheckLog {
+  id        String   @id @default(uuid())
+  checkedAt DateTime @default(now())
+
+  @@map("_system_health_check_logs")
+}
