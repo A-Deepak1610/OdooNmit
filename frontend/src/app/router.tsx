@@ -7,16 +7,38 @@ import { AuthCallbackPage } from '../pages/auth/AuthCallbackPage';
 import { AccessDeniedPage } from '../pages/AccessDeniedPage';
 import { AdminDashboardPage } from '../pages/dashboards/AdminDashboardPage';
 import { RoleDashboardPage } from '../pages/dashboards/RoleDashboardPage';
-import { PlaceholderPage } from '../components/shared/PlaceholderPage';
 import { EventsTicketingModule } from '../components/modules/events/EventsTicketingModule';
 import { MembershipModule } from '../components/modules/memberships/MembershipModule';
 import { MerchandiseTaskModule } from '../components/modules/merchandise/MerchandiseTaskModule';
 import { FinanceLedgerModule } from '../components/modules/finance/FinanceLedgerModule';
 import { AnnouncementBoardModule } from '../components/modules/announcements/AnnouncementBoardModule';
+import {
+  VolunteerLayout,
+  VolunteerDashboard,
+  VolunteerTasks,
+  VolunteerScanner,
+  VolunteerProjects,
+  VolunteerEvents,
+  VolunteerExpenses,
+  VolunteerAnnouncements,
+  VolunteerProfile,
+} from '../features/volunteer';
 import { useAuthStore } from '../stores/auth.store';
 import { ROLES, getDefaultRole, ROLE_DEFAULT_PATHS } from '../config/roles';
 
 import { LandingPage } from '../pages/LandingPage';
+import { AdminUsersPage } from '../pages/admin/AdminUsersPage';
+import { AdminDbAssistantPage } from '../pages/admin/AdminDbAssistantPage';
+import { AdminWinnersPage } from '../pages/admin/AdminWinnersPage';
+import { AdminAnalyticsPage } from '../pages/admin/AdminAnalyticsPage';
+import { AdminReportsPage } from '../pages/admin/AdminReportsPage';
+import { AdminEventsPage } from '../pages/admin/AdminEventsPage';
+import { AdminEventsOverviewPage } from '../pages/admin/AdminEventsOverviewPage';
+import { AdminEventAnalyticsPage } from '../pages/admin/AdminEventAnalyticsPage';
+import { AdminIncomingEventsPage } from '../pages/admin/AdminIncomingEventsPage';
+import { AdminRolesPage } from '../pages/admin/AdminRolesPage';
+import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage';
+import { AdminAuditLogPage } from '../pages/admin/AdminAuditLogPage';
 
 /**
  * Root Landing Page:
@@ -129,6 +151,60 @@ export const router = createBrowserRouter([
   },
 
   // ---------------------------------------------------------------------------
+  // Dedicated Volunteer Role Portal Shell (Separate Layout & Navigation)
+  // ---------------------------------------------------------------------------
+  {
+    path: '/volunteer',
+    element: (
+      <ProtectedRoute allowedRoles={[ROLES.VOLUNTEER]}>
+        <VolunteerLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/volunteer/dashboard" replace />,
+      },
+      {
+        path: 'dashboard',
+        element: <VolunteerDashboard />,
+      },
+      {
+        path: 'tasks',
+        element: <VolunteerTasks />,
+      },
+      {
+        path: 'scanner',
+        element: <VolunteerScanner />,
+      },
+      {
+        path: 'projects',
+        element: <VolunteerProjects />,
+      },
+      {
+        path: 'events',
+        element: <VolunteerEvents />,
+      },
+      {
+        path: 'expenses',
+        element: <VolunteerExpenses />,
+      },
+      {
+        path: 'announcements',
+        element: <VolunteerAnnouncements />,
+      },
+      {
+        path: 'submit-expense',
+        element: <Navigate to="/volunteer/expenses" replace />,
+      },
+      {
+        path: 'profile',
+        element: <VolunteerProfile />,
+      },
+    ],
+  },
+
+  // ---------------------------------------------------------------------------
   // Authenticated Application Shell Routes (Pathless Layout Route)
   // ---------------------------------------------------------------------------
   {
@@ -204,29 +280,15 @@ export const router = createBrowserRouter([
       },
 
       // -----------------------------------------------------------------------
-      // VOLUNTEER ROLE ROUTES
+      // VOLUNTEER ROLE REDIRECT (Forward to Dedicated Volunteer Portal)
       // -----------------------------------------------------------------------
       {
         path: 'volunteer',
-        element: <ProtectedRoute allowedRoles={[ROLES.VOLUNTEER]} />,
-        children: [
-          {
-            path: 'dashboard',
-            element: <RoleDashboardPage role={ROLES.VOLUNTEER} />,
-          },
-          {
-            path: 'tasks',
-            element: <MerchandiseTaskModule />,
-          },
-          {
-            path: 'events',
-            element: <EventsTicketingModule />,
-          },
-          {
-            path: 'submit-expense',
-            element: <FinanceLedgerModule />,
-          },
-        ],
+        element: <Navigate to="/volunteer/dashboard" replace />,
+      },
+      {
+        path: 'volunteer/*',
+        element: <Navigate to="/volunteer/dashboard" replace />,
       },
 
       // -----------------------------------------------------------------------
@@ -247,6 +309,10 @@ export const router = createBrowserRouter([
           {
             path: 'attendees',
             element: <EventsTicketingModule />,
+          },
+          {
+            path: 'scanner',
+            element: <VolunteerScanner />,
           },
           {
             path: 'tasks',
@@ -305,16 +371,6 @@ export const router = createBrowserRouter([
             element: <AnnouncementBoardModule />,
           },
           {
-            path: 'elections',
-            element: (
-              <PlaceholderPage
-                title="Club Elections & Balloting"
-                role={ROLES.PRESIDENT}
-                group="CLUB GOVERNANCE"
-              />
-            ),
-          },
-          {
             path: 'finance',
             element: <FinanceLedgerModule />,
           },
@@ -334,41 +390,59 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: <EventsTicketingModule />,
+            element: <AdminEventsPage />,
           },
           {
             path: 'incoming-events',
-            element: <EventsTicketingModule />,
+            element: <AdminIncomingEventsPage />,
           },
           {
             path: 'events-overview',
-            element: <EventsTicketingModule />,
+            element: <AdminEventsOverviewPage />,
           },
           {
             path: 'event-analytics',
-            element: <EventsTicketingModule />,
+            element: <AdminEventAnalyticsPage />,
           },
           {
             path: 'analytics',
-            element: <FinanceLedgerModule />,
+            element: <AdminAnalyticsPage />,
           },
           {
             path: 'reports',
-            element: <FinanceLedgerModule />,
+            element: <AdminReportsPage />,
+          },
+          {
+            path: 'db-assistant',
+            element: <AdminDbAssistantPage />,
+          },
+          {
+            path: 'winners',
+            element: <AdminWinnersPage />,
+          },
+          {
+            path: 'organizations',
+            element: <AdminDashboardPage />,
+          },
+          {
+            path: 'roles',
+            element: <AdminDashboardPage />,
           },
           {
             path: 'users',
-            element: <MembershipModule />,
+            element: <AdminUsersPage />,
+          },
+          {
+            path: 'roles',
+            element: <AdminRolesPage />,
+          },
+          {
+            path: 'audit-log',
+            element: <AdminAuditLogPage />,
           },
           {
             path: 'settings',
-            element: (
-              <PlaceholderPage
-                title="Institutional Settings"
-                role={ROLES.ADMIN}
-                group="PLATFORM SETTINGS"
-              />
-            ),
+            element: <AdminSettingsPage />,
           },
         ],
       },

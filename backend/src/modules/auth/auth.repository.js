@@ -23,6 +23,32 @@ export const authRepository = {
   },
 
   /**
+   * Link an OAuth account to an existing user record.
+   */
+  async createOAuthAccountForExistingUser({ userId, provider, providerAccountId, email, emailVerified }) {
+    return prisma.oAuthAccount.upsert({
+      where: {
+        provider_providerAccountId: {
+          provider,
+          providerAccountId,
+        },
+      },
+      create: {
+        userId,
+        provider,
+        providerAccountId,
+        email: email || null,
+        emailVerified: Boolean(emailVerified),
+      },
+      update: {
+        userId,
+        email: email || null,
+        emailVerified: Boolean(emailVerified),
+      },
+    });
+  },
+
+  /**
    * Creates a new user, connects their OAuth account, and assigns the initial role in a single transaction.
    */
   async createOAuthUserWithAccount({

@@ -89,4 +89,18 @@ export const authController = {
       },
     });
   }),
+
+  /**
+   * Predefined demo role login for quick role evaluation.
+   */
+  demoLogin: asyncHandler(async (req, res) => {
+    const { role } = req.body;
+    const result = await authService.demoLogin(role);
+
+    res.status(200).json({
+      status: 'success',
+      message: `Authentication successful as ${role || 'STUDENT'}`,
+      data: result,
+    });
+  }),
 };

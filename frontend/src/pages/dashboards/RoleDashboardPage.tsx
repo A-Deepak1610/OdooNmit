@@ -1,28 +1,24 @@
-import React, { useState } from 'react';
-import { useAuthStore } from '../../stores/auth.store';
-import { ROLE_DISPLAY_NAMES, UserRole } from '../../config/roles';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { UserRole } from '../../config/roles';
 import {
   Calendar,
   Users,
   Trophy,
-  IndianRupee,
-  Plus,
   Ticket,
-  FileText,
-  UserCheck,
+  Plus,
+  ShoppingBag,
+  Landmark,
   CheckSquare,
   Receipt,
-  PieChart,
-  Building2,
   Sparkles,
-  ShoppingBag,
+  ArrowRight,
+  QrCode,
+  Megaphone,
+  DollarSign,
+  PieChart,
+  FileText,
 } from 'lucide-react';
-import { TeamWorkstreamBanner, WorkstreamId } from '../../components/modules/TeamWorkstreamBanner';
-import { EventsTicketingModule } from '../../components/modules/events/EventsTicketingModule';
-import { MembershipModule } from '../../components/modules/memberships/MembershipModule';
-import { MerchandiseTaskModule } from '../../components/modules/merchandise/MerchandiseTaskModule';
-import { FinanceLedgerModule } from '../../components/modules/finance/FinanceLedgerModule';
-import { AnnouncementBoardModule } from '../../components/modules/announcements/AnnouncementBoardModule';
 
 interface RoleDashboardProps {
   role: UserRole;
@@ -31,305 +27,652 @@ interface RoleDashboardProps {
 interface StatConfig {
   label: string;
   value: string;
-  sub: string;
-  color: 'blue' | 'emerald' | 'amber' | 'purple';
+  subtitle: string;
+  color: string;
+  bg: string;
   icon: React.ElementType;
 }
 
 interface ActionConfig {
-  title: string;
-  desc: string;
+  label: string;
+  description: string;
+  color: string;
+  bg: string;
   icon: React.ElementType;
-  color: 'blue' | 'emerald' | 'amber' | 'purple' | 'cyan' | 'rose';
-  targetStream?: WorkstreamId;
+  path: string;
 }
 
-const ROLE_CONFIGS: Record<
-  string,
-  {
-    title: string;
-    actionLabel: string;
-    stats: StatConfig[];
-    actions: ActionConfig[];
-  }
-> = {
+interface RoleConfig {
+  title: string;
+  subtitle: string;
+  actionLabel: string;
+  actionPath: string;
+  stats: StatConfig[];
+  actions: ActionConfig[];
+}
+
+const ROLE_CONFIGS: Record<string, RoleConfig> = {
+  // =========================================================================
+  // 6. MEMBER / STUDENT
+  // Uses the club's public and member-facing services:
+  // Browse orgs, events, announcements, merch; register & pay dues;
+  // view expiry/benefits; renew; buy tickets (QR passes); order status.
+  // =========================================================================
   STUDENT: {
-    title: 'Student Dashboard',
-    actionLabel: 'Join Skyline Club',
+    title: 'Student & Member Services Hub',
+    subtitle: 'Browse campus club events, register for membership, buy tickets, order hoodies, and access member-only perks.',
+    actionLabel: 'Join Skyline Association',
+    actionPath: '/student/apply-membership',
     stats: [
-      { label: 'Spring Gala Pass', value: '₹100 (Member)', sub: '₹250 Non-Member rate', color: 'blue', icon: Ticket },
-      { label: 'Club Membership', value: 'Sign-up Open', sub: '₹250/yr with perks', color: 'emerald', icon: Users },
-      { label: 'Official Merch', value: '4 Sizes', sub: 'Embroidered hoodies in stock', color: 'amber', icon: ShoppingBag },
-      { label: 'Campus Notices', value: '3 Active', sub: 'Auditorium Gala updates', color: 'purple', icon: Sparkles },
+      { label: 'Membership Status', value: 'Enrolled', subtitle: 'SSA-2026-0042 • Valid till May 2026', color: '#15803d', bg: '#dcfce7', icon: Users },
+      { label: 'Spring Gala Pass', value: '₹150 Member Rate', subtitle: '60% savings vs general ₹250 rate', color: '#1e3a8a', bg: '#eff6ff', icon: Ticket },
+      { label: 'Official Merch', value: 'Hoodie Reserved', subtitle: 'Size L • Payment Confirmed', color: '#b45309', bg: '#fef3c7', icon: ShoppingBag },
+      { label: 'Member Notices', value: '4 Published', subtitle: 'General meetings & discount alerts', color: '#7c3aed', bg: '#f3e8ff', icon: Megaphone },
     ],
     actions: [
-      { title: 'Spring Gala Tickets', desc: 'Differential member discounts & QR pass', icon: Ticket, color: 'blue', targetStream: 'events' },
-      { title: 'Join Skyline Association', desc: 'Campus table sign-up & digital ID card', icon: UserCheck, color: 'emerald', targetStream: 'memberships' },
-      { title: 'Club Hoodie Store', desc: 'Order apparel online with size tracking', icon: ShoppingBag, color: 'amber', targetStream: 'merch_tasks' },
-      { title: 'Notice Board', desc: 'Official updates replacing WhatsApp groups', icon: Sparkles, color: 'purple', targetStream: 'finance_announcements' },
+      { label: 'Browse Events & Buy Tickets', description: 'Book gala seats at member rates with instant QR door passes', color: '#1e3a8a', bg: '#eff6ff', icon: Ticket, path: '/student/events' },
+      { label: 'Membership & Renewal', description: 'View membership card, expiry date, perks, and pay annual dues', color: '#15803d', bg: '#dcfce7', icon: Users, path: '/student/apply-membership' },
+      { label: 'Official Merchandise Store', description: 'Order club hoodies & apparel 24/7 with live size inventory', color: '#b45309', bg: '#fef3c7', icon: ShoppingBag, path: '/member/merchandise' },
+      { label: 'Announcements & Perks', description: 'Access member-only notices, meeting recordings, and deadlines', color: '#7c3aed', bg: '#f3e8ff', icon: Megaphone, path: '/student/announcements' },
     ],
   },
+
   MEMBER: {
-    title: 'Club Member Workspace',
-    actionLabel: 'View Member ID',
+    title: 'Club Member Portal',
+    subtitle: 'Access digital membership pass, discounted event tickets with QR codes, merchandise orders, and member notices.',
+    actionLabel: 'View Member Pass',
+    actionPath: '/member/membership',
     stats: [
-      { label: 'Membership Status', value: 'Active', sub: 'ID: SSA-2026-0042 (Paid)', color: 'emerald', icon: Users },
-      { label: 'Gala Discount', value: '60% Off', sub: '₹100 member tier claimed', color: 'blue', icon: Ticket },
-      { label: 'Hoodie Discount', value: '20% Off', sub: '₹700 member pricing active', color: 'amber', icon: ShoppingBag },
-      { label: 'Annual Dues', value: 'Valid', sub: 'Expires May 31, 2026', color: 'purple', icon: Trophy },
+      { label: 'Membership Tier', value: 'Active Member', subtitle: 'Annual dues paid • No arrears', color: '#15803d', bg: '#dcfce7', icon: Users },
+      { label: 'Gala Discount', value: '60% Claimed', subtitle: 'VIP Table Seat #4 Confirmed', color: '#1e3a8a', bg: '#eff6ff', icon: Ticket },
+      { label: 'Apparel Orders', value: '1 Active Order', subtitle: 'Embroidered hoodie in processing', color: '#b45309', bg: '#fef3c7', icon: ShoppingBag },
+      { label: 'Club Notices', value: '4 Announcements', subtitle: 'Latest updates replacing WhatsApp', color: '#7c3aed', bg: '#f3e8ff', icon: Megaphone },
     ],
     actions: [
-      { title: 'Digital Membership ID', desc: 'View QR pass & dues validity', icon: Users, color: 'emerald', targetStream: 'memberships' },
-      { title: 'Spring Gala VIP Pass', desc: 'Book priority seats at member rate', icon: Ticket, color: 'blue', targetStream: 'events' },
-      { title: 'Club Merch Store', desc: 'Reserve hoodie size before stock runs out', icon: ShoppingBag, color: 'amber', targetStream: 'merch_tasks' },
-      { title: 'Member Announcements', desc: 'General body meeting notices', icon: Sparkles, color: 'purple', targetStream: 'finance_announcements' },
+      { label: 'Digital Member Pass & QR', description: 'Show verified digital ID badge at event doors and booths', color: '#15803d', bg: '#dcfce7', icon: Users, path: '/member/membership' },
+      { label: 'My Event Tickets', description: 'Access confirmed ticket QR codes for the Spring Gala', color: '#1e3a8a', bg: '#eff6ff', icon: Ticket, path: '/member/tickets' },
+      { label: 'Order Merchandise', description: 'Purchase club hoodies and track delivery status', color: '#b45309', bg: '#fef3c7', icon: ShoppingBag, path: '/member/merchandise' },
+      { label: 'Member Announcements', description: 'View meeting schedules, elections notices, and discount codes', color: '#7c3aed', bg: '#f3e8ff', icon: Megaphone, path: '/member/announcements' },
     ],
   },
-  VOLUNTEER: {
-    title: 'Volunteer Operations Desk',
-    actionLabel: 'Log Shift Duty',
-    stats: [
-      { label: 'Fundraiser Tasks', value: '5 Tasks', sub: 'Baking & cashier shifts', color: 'blue', icon: CheckSquare },
-      { label: 'Shift Roster', value: 'May 2', sub: '10 AM - 12 PM Quad Table', color: 'emerald', icon: Calendar },
-      { label: 'Expense Claims', value: '₹1,450', sub: 'Ingredients claim submitted', color: 'amber', icon: Receipt },
-      { label: 'Hours Contributed', value: '18h', sub: 'Verified by Skyline officers', color: 'purple', icon: Trophy },
-    ],
-    actions: [
-      { title: 'Bake Sale Tasks', desc: 'Who is baking, buying & staffing tables', icon: CheckSquare, color: 'blue', targetStream: 'merch_tasks' },
-      { title: 'Submit Expense Claim', desc: 'Upload ingredient receipts for reimbursement', icon: Receipt, color: 'emerald', targetStream: 'finance_announcements' },
-      { title: 'Door QR Check-in', desc: 'Scan guest tickets at Gala entrance', icon: Ticket, color: 'amber', targetStream: 'events' },
-      { title: 'Volunteer Notices', desc: 'Meeting briefings and prep instructions', icon: Sparkles, color: 'purple', targetStream: 'finance_announcements' },
-    ],
-  },
+
+  // =========================================================================
+  // 4. EVENT ORGANIZER
+  // Runs events from setup through check-in and reporting:
+  // Create events, set member/non-member prices, monitor capacity,
+  // scan tickets & prevent duplicates, verify membership, view revenue.
+  // =========================================================================
   EVENT_ORGANIZER: {
     title: 'Event Organizer Console',
-    actionLabel: 'Manage Spring Gala',
+    subtitle: 'Manage events, configure member/non-member pricing, monitor ticket quotas, scan tickets, and track live turnout revenue.',
+    actionLabel: 'Create New Event',
+    actionPath: '/organizer/events',
     stats: [
-      { label: 'Gala Capacity', value: '420 / 500', sub: '84% seats sold online', color: 'blue', icon: Ticket },
-      { label: 'Ticket Revenue', value: '₹58,500', sub: 'Direct online collections', color: 'emerald', icon: IndianRupee },
-      { label: 'Turnout Rate', value: '91.6%', sub: '385 checked in at the door', color: 'amber', icon: Users },
-      { label: 'Logistics Tasks', value: '5 Active', sub: 'Fundraiser & gala prep', color: 'purple', icon: CheckSquare },
+      { label: 'Spring Gala Quota', value: '420 / 500 Seats', subtitle: '84% booked online', color: '#1e3a8a', bg: '#eff6ff', icon: Ticket },
+      { label: 'Ticket Revenue', value: '₹58,500', subtitle: 'Direct collections into club books', color: '#15803d', bg: '#dcfce7', icon: Landmark },
+      { label: 'Entrance Turnout', value: '385 Scanned', subtitle: '91.6% turnout rate verified at door', color: '#b45309', bg: '#fef3c7', icon: QrCode },
+      { label: 'Ticket Pricing', value: '₹150 / ₹250', subtitle: 'Member discount pricing applied', color: '#7c3aed', bg: '#f3e8ff', icon: DollarSign },
     ],
     actions: [
-      { title: 'Door Check-in Desk', desc: 'Scan passes in seconds without paper sheets', icon: Ticket, color: 'blue', targetStream: 'events' },
-      { title: 'Ticket Tiers & Quotas', desc: 'Adjust member pricing & seat availability', icon: Calendar, color: 'emerald', targetStream: 'events' },
-      { title: 'Fundraiser Task Board', desc: 'Assign setup & table staffing to volunteers', icon: CheckSquare, color: 'amber', targetStream: 'merch_tasks' },
-      { title: 'Post-Event Turnout', desc: 'Analyze attendance & financial balance', icon: PieChart, color: 'purple', targetStream: 'finance_announcements' },
+      { label: 'Create & Setup Event', description: 'Set date, venue, capacity, and member/non-member ticket prices', color: '#1e3a8a', bg: '#eff6ff', icon: Calendar, path: '/organizer/events' },
+      { label: 'Door Check-in Scanner', description: 'Scan QR tickets in seconds and prevent duplicate admission', color: '#15803d', bg: '#dcfce7', icon: QrCode, path: '/volunteer/scanner' },
+      { label: 'Attendance & Revenue Reports', description: 'Track live attendance count and total ticket revenue', color: '#b45309', bg: '#fef3c7', icon: PieChart, path: '/organizer/attendees' },
+      { label: 'Publish Event Announcement', description: 'Broadcast event schedule updates directly to registered guests', color: '#7c3aed', bg: '#f3e8ff', icon: Megaphone, path: '/student/announcements' },
     ],
   },
+
+  // =========================================================================
+  // 3. TREASURER
+  // Responsible for money, records, and reimbursements:
+  // Track dues, tickets, merch, fundraisers; categorize expenses;
+  // review receipts; approve/reject reimbursements; closing balance reports.
+  // =========================================================================
   TREASURER: {
-    title: 'Treasurer Ledger & Books',
-    actionLabel: 'Close The Books',
+    title: 'Treasurer Financial Books & Ledger',
+    subtitle: 'Track dues, ticket sales, merch income, categorize expenses, review volunteer receipts, and close the semester books.',
+    actionLabel: 'Record Expense',
+    actionPath: '/treasurer/transactions',
     stats: [
-      { label: 'Net Closing Balance', value: '₹101,300', sub: 'Balanced semester ledger', color: 'emerald', icon: IndianRupee },
-      { label: 'Semester Inflow', value: '₹155,300', sub: 'Dues + Gala tickets + Merch', color: 'blue', icon: IndianRupee },
-      { label: 'Semester Outflow', value: '₹99,000', sub: 'Venue, catering & production', color: 'amber', icon: Receipt },
-      { label: 'Pending Claims', value: '1 Claim', sub: '₹850 awaiting receipt review', color: 'purple', icon: FileText },
+      { label: 'Closing Net Balance', value: '₹101,300', subtitle: 'Audited semester treasury surplus', color: '#15803d', bg: '#dcfce7', icon: Landmark },
+      { label: 'Total Inflows', value: '₹155,300', subtitle: 'Dues + Gala tickets + Merch + Bake Sale', color: '#1e3a8a', bg: '#eff6ff', icon: DollarSign },
+      { label: 'Total Outflows', value: '₹99,000', subtitle: 'Venue, catering, and reimbursements', color: '#dc2626', bg: '#fef2f2', icon: Receipt },
+      { label: 'Reimbursement Audit', value: '1 Pending', subtitle: '₹450 awaiting receipt review', color: '#b45309', bg: '#fef3c7', icon: CheckSquare },
     ],
     actions: [
-      { title: 'Closing The Books', desc: 'Complete audited semester income & expense balance', icon: PieChart, color: 'blue', targetStream: 'finance_announcements' },
-      { title: 'Volunteer Reimbursements', desc: 'Audit digital receipts & disburse funds', icon: Receipt, color: 'emerald', targetStream: 'finance_announcements' },
-      { title: 'Membership Dues Ledger', desc: 'Verify 194 paid student membership dues', icon: Users, color: 'amber', targetStream: 'memberships' },
-      { title: 'Gala & Merch Revenue', desc: 'Track ticket and hoodie collections', icon: IndianRupee, color: 'purple', targetStream: 'events' },
+      { label: 'Reimbursement Audit Queue', description: 'Inspect volunteer receipts, approve/reject, and record bank payouts', color: '#15803d', bg: '#dcfce7', icon: Receipt, path: '/treasurer/reimbursements' },
+      { label: 'Record & Categorize Expense', description: 'Log outflows across venue, baking supplies, and equipment', color: '#1e3a8a', bg: '#eff6ff', icon: DollarSign, path: '/treasurer/transactions' },
+      { label: 'Membership Dues Verification', description: 'Audit 194 paid student membership dues records', color: '#b45309', bg: '#fef3c7', icon: Users, path: '/president/members' },
+      { label: 'Generate Semester Report', description: 'Export complete closing income, expense, and balance statement', color: '#7c3aed', bg: '#f3e8ff', icon: FileText, path: '/treasurer/reports' },
     ],
   },
+
+  // =========================================================================
+  // 2. CLUB PRESIDENT / ORGANIZATION ADMIN
+  // Oversees the club's activities and leadership:
+  // Manage profile/website; publish announcements; oversee events, merch,
+  // fundraisers; view reports; assign duties; review financial summaries.
+  // =========================================================================
   PRESIDENT: {
-    title: 'President Executive Suite',
-    actionLabel: 'Broadcast Notice',
+    title: 'Club President Executive Suite',
+    subtitle: 'Oversees Skyline Student Association activities, announcements, events, merchandise, fundraisers, and semester reports.',
+    actionLabel: 'Broadcast Announcement',
+    actionPath: '/president/announcements',
     stats: [
-      { label: 'Total Membership', value: '248 Members', sub: 'Skyline Student Association', color: 'blue', icon: Users },
-      { label: 'Spring Gala Target', value: '84% Booked', sub: '₹58,500 ticket revenue', color: 'emerald', icon: Ticket },
-      { label: 'Treasury Balance', value: '₹101,300', sub: 'Healthy semester surplus', color: 'purple', icon: IndianRupee },
-      { label: 'Fundraiser Status', value: 'On Track', sub: 'Charity bake sale May 2', color: 'amber', icon: Trophy },
+      { label: 'Total Membership', value: '248 Members', subtitle: '194 dues paid • 54 renewals pending', color: '#1e3a8a', bg: '#eff6ff', icon: Users },
+      { label: 'Spring Gala Target', value: '84% Booked', subtitle: '₹58,500 ticket sales • 385 turnout', color: '#15803d', bg: '#dcfce7', icon: Ticket },
+      { label: 'Treasury Surplus', value: '₹101,300', subtitle: 'Audited semester financial surplus', color: '#15803d', bg: '#dcfce7', icon: Landmark },
+      { label: 'Bake Sale Fundraiser', value: '₹28,500 Raised', subtitle: '81.4% toward ₹35,000 charity goal', color: '#b45309', bg: '#fef3c7', icon: Trophy },
     ],
     actions: [
-      { title: 'Executive Overview', desc: 'Unified view across all 4 club modules', icon: PieChart, color: 'blue', targetStream: 'all' },
-      { title: 'Official Broadcast', desc: 'Post announcements replacing WhatsApp chats', icon: Sparkles, color: 'purple', targetStream: 'finance_announcements' },
-      { title: 'Membership Governance', desc: 'Track renewals, dues & new joiners', icon: Users, color: 'emerald', targetStream: 'memberships' },
-      { title: 'Semester Financials', desc: 'Review closing ledger & approved expenses', icon: IndianRupee, color: 'amber', targetStream: 'finance_announcements' },
+      { label: 'Broadcast Official Announcement', description: 'Post once to reach all members, replacing chaotic WhatsApp groups', color: '#1e3a8a', bg: '#eff6ff', icon: Megaphone, path: '/president/announcements' },
+      { label: 'Assign Responsibilities & Squads', description: 'Allocate tasks to event organizers and volunteer bake sale squads', color: '#15803d', bg: '#dcfce7', icon: CheckSquare, path: '/volunteer/tasks' },
+      { label: 'Review Financial Summaries', description: 'Inspect closing balances, approved expenses, and audit books', color: '#b45309', bg: '#fef3c7', icon: Landmark, path: '/president/finance' },
+      { label: 'Manage Club Profile & Website', description: 'Update public club description, banner, and membership dues terms', color: '#7c3aed', bg: '#f3e8ff', icon: Sparkles, path: '/president/members' },
+    ],
+  },
+
+  // =========================================================================
+  // 5. VOLUNTEER (Fallback view)
+  // =========================================================================
+  VOLUNTEER: {
+    title: 'Volunteer Operations Desk',
+    subtitle: 'Complete assigned fundraiser tasks, check shift duties, and submit out-of-pocket supply reimbursements.',
+    actionLabel: 'Open Volunteer Portal',
+    actionPath: '/volunteer/dashboard',
+    stats: [
+      { label: 'Assigned Duties', value: '3 Active Tasks', subtitle: 'Baking & quad table shifts', color: '#1e3a8a', bg: '#eff6ff', icon: CheckSquare },
+      { label: 'Next Event Shift', value: 'May 2 (Quad)', subtitle: 'Plaza Booth Table Duty', color: '#15803d', bg: '#dcfce7', icon: Calendar },
+      { label: 'Expense Claims', value: '1 Pending', subtitle: '₹450 receipt under review', color: '#b45309', bg: '#fef3c7', icon: Receipt },
+      { label: 'Volunteer Service', value: '14.5 Hours', subtitle: 'Logged for current semester', color: '#7c3aed', bg: '#f3e8ff', icon: Trophy },
+    ],
+    actions: [
+      { label: 'Bake Sale Task Board', description: 'Update progress: To do, In progress, or Done', color: '#1e3a8a', bg: '#eff6ff', icon: CheckSquare, path: '/volunteer/tasks' },
+      { label: 'Door Ticket Scanner', description: 'Admit guests at venue entrance with event permissions', color: '#15803d', bg: '#dcfce7', icon: QrCode, path: '/volunteer/scanner' },
+      { label: 'Submit Reimbursement Claim', description: 'Upload receipts for baking ingredients & supplies', color: '#b45309', bg: '#fef3c7', icon: Receipt, path: '/volunteer/expenses' },
+      { label: 'Shift Roster & Briefing', description: 'View station location, timing, and duty instructions', color: '#7c3aed', bg: '#f3e8ff', icon: Calendar, path: '/volunteer/events' },
     ],
   },
 };
 
 export const RoleDashboardPage: React.FC<RoleDashboardProps> = ({ role }) => {
-  const { user, collegeName } = useAuthStore();
-  const [activeStream, setActiveStream] = useState<WorkstreamId>('all');
+  const navigate = useNavigate();
   const config = ROLE_CONFIGS[role] || ROLE_CONFIGS.STUDENT;
 
-  const colorStyles = {
-    blue: 'bg-blue-50 text-blue-600 border-blue-100/60',
-    emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100/60',
-    amber: 'bg-amber-50 text-amber-600 border-amber-100/60',
-    purple: 'bg-purple-50 text-purple-600 border-purple-100/60',
-    cyan: 'bg-cyan-50 text-cyan-600 border-cyan-100/60',
-    rose: 'bg-rose-50 text-rose-500 border-rose-100/60',
-  };
-
   return (
-    <div className="space-y-8 animate-in fade-in duration-200">
-      {/* 4-Developer Workstream Team Banner */}
-      <TeamWorkstreamBanner
-        activeStream={activeStream}
-        onSelectStream={(s) => setActiveStream(s)}
-      />
-
-      {/* Main Content Area: Renders either the specific Workstream Module or the Role Synthesized Dashboard */}
-      {activeStream === 'events' ? (
-        <EventsTicketingModule />
-      ) : activeStream === 'memberships' ? (
-        <MembershipModule />
-      ) : activeStream === 'merch_tasks' ? (
-        <MerchandiseTaskModule />
-      ) : activeStream === 'finance_announcements' ? (
-        <div className="space-y-8">
-          <FinanceLedgerModule />
-          <AnnouncementBoardModule />
-        </div>
-      ) : (
-        /* SYNTHESIZED DASHBOARD FOR ACTIVE ROLE */
-        <div className="space-y-8">
-          {/* Page Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
-                  Role Workspace: {ROLE_DISPLAY_NAMES[role] || role}
-                </span>
-                <span className="text-xs text-slate-500 font-medium">Skyline Student Association</span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mt-1">
-                {config.title}
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Welcome back{user?.name ? `, ${user.name}` : ''}! Running events, members, and money in one place.
-              </p>
-            </div>
-
-            {/* Right Header Badges */}
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2 text-xs text-slate-600 bg-white border border-slate-200 px-3.5 py-2 rounded-xl shadow-xs">
-                <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
-                <span className="font-medium truncate max-w-[200px] sm:max-w-none">{collegeName}</span>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                  A++
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  if (role === 'EVENT_ORGANIZER') setActiveStream('events');
-                  else if (role === 'TREASURER') setActiveStream('finance_announcements');
-                  else if (role === 'VOLUNTEER') setActiveStream('merch_tasks');
-                  else setActiveStream('memberships');
-                }}
-                className="flex items-center gap-2 bg-[#1e3a8a] hover:bg-[#172554] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-xs transition-colors"
-              >
-                <Plus className="h-4 w-4" />
-                <span>{config.actionLabel}</span>
-              </button>
-            </div>
+    <div style={{ fontFamily: 'var(--font-family-body)', display: 'flex', flexDirection: 'column', gap: '28px' }}>
+      {/* ── 1. Page Header ────────────────────────────────────────── */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: '16px',
+        }}
+      >
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                padding: '3px 10px',
+                borderRadius: '6px',
+                backgroundColor: '#eff6ff',
+                color: '#1e3a8a',
+                border: '1px solid #bfdbfe',
+              }}
+            >
+              Skyline Student Association
+            </span>
+            <span style={{ fontSize: '12px', color: '#94a3b8' }}>•</span>
+            <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 500 }}>
+              {role.replace('_', ' ')} Role Workspace
+            </span>
           </div>
 
-          {/* 4 Stat Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-            {config.stats.map((stat, idx) => {
-              const Icon = stat.icon;
-              return (
+          <h1
+            style={{
+              fontSize: '26px',
+              fontWeight: 700,
+              margin: '0 0 6px 0',
+              color: 'var(--foreground, #1e293b)',
+              letterSpacing: '-0.3px',
+            }}
+            className="text-slate-900 dark:text-slate-100"
+          >
+            {config.title}
+          </h1>
+          <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }} className="text-slate-500 dark:text-slate-400">
+            {config.subtitle}
+          </p>
+        </div>
+
+        <button
+          onClick={() => navigate(config.actionPath)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            background: '#1e3a8a',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+          }}
+        >
+          <Plus style={{ width: '16px', height: '16px' }} />
+          <span>{config.actionLabel}</span>
+        </button>
+      </div>
+
+      {/* ── 2. Stat Cards (4-column) ──────────────────────────────── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: '16px',
+        }}
+      >
+        {config.stats.map((stat, i) => {
+          const Icon = stat.icon;
+          return (
+            <div
+              key={i}
+              style={{
+                background: 'var(--card-bg, #ffffff)',
+                borderRadius: '12px',
+                padding: '20px',
+                border: '1px solid var(--border-color, #e2e8f0)',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '14px',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+              }}
+              className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+            >
+              <div
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '10px',
+                  background: stat.bg,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Icon style={{ width: '22px', height: '22px', color: stat.color }} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 500, marginBottom: '4px' }}>
+                  {stat.label}
+                </div>
                 <div
-                  key={idx}
-                  className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center gap-4"
+                  style={{
+                    fontSize: '24px',
+                    fontWeight: 700,
+                    color: 'var(--foreground, #1e293b)',
+                    marginBottom: '2px',
+                    letterSpacing: '-0.5px',
+                  }}
+                  className="text-slate-900 dark:text-slate-100"
                 >
+                  {stat.value}
+                </div>
+                <div style={{ fontSize: '12px', color: '#94a3b8' }}>{stat.subtitle}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── 3. Quick Action Cards (4-column) ──────────────────────── */}
+      <div>
+        <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 16px 0', color: 'var(--foreground, #1e293b)' }}>
+          Assigned Role Workspaces & Actions
+        </h2>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: '16px',
+          }}
+        >
+          {config.actions.map((act, i) => {
+            const Icon = act.icon;
+            return (
+              <div
+                key={i}
+                onClick={() => navigate(act.path)}
+                style={{
+                  background: 'var(--card-bg, #ffffff)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  border: '1px solid var(--border-color, #e2e8f0)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                }}
+                className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:shadow-md"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = act.color;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border-color, #e2e8f0)';
+                }}
+              >
+                <div>
                   <div
-                    className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 border ${colorStyles[stat.color]}`}
+                    style={{
+                      width: '38px',
+                      height: '38px',
+                      borderRadius: '8px',
+                      background: act.bg,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: '14px',
+                    }}
                   >
-                    <Icon className="h-6 w-6" />
+                    <Icon style={{ width: '20px', height: '20px', color: act.color }} />
                   </div>
-                  <div>
-                    <p className="text-xs font-medium text-slate-500">{stat.label}</p>
-                    <p className="text-xl font-bold text-slate-900 mt-0.5">{stat.value}</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">{stat.sub}</p>
+                  <div
+                    style={{
+                      fontSize: '15px',
+                      fontWeight: 700,
+                      color: 'var(--foreground, #1e293b)',
+                      marginBottom: '6px',
+                    }}
+                    className="text-slate-900 dark:text-slate-100"
+                  >
+                    {act.label}
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.5 }}>
+                    {act.description}
                   </div>
                 </div>
-              );
-            })}
+
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    marginTop: '16px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: act.color,
+                  }}
+                >
+                  <span>Open Workspace</span>
+                  <ArrowRight style={{ width: '13px', height: '13px' }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── 4. Main Role Content Modules ──────────────────────────── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
+          gap: '24px',
+        }}
+      >
+        {/* Left Column (2fr): Primary Role Ledger / Action Center */}
+        <div
+          style={{
+            background: 'var(--card-bg, #ffffff)',
+            borderRadius: '12px',
+            border: '1px solid var(--border-color, #e2e8f0)',
+            padding: '24px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+          }}
+          className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--foreground, #1e293b)' }}>
+              {role === 'TREASURER'
+                ? 'Semester Income & Expense Breakdown'
+                : role === 'PRESIDENT'
+                ? 'Club Leadership & Program Health'
+                : role === 'EVENT_ORGANIZER'
+                ? 'Live Event Capacity & Ticket Sales'
+                : 'My Club Status & Pass Privileges'}
+            </h3>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#15803d',
+                background: '#dcfce7',
+                padding: '3px 8px',
+                borderRadius: '4px',
+              }}
+            >
+              VERIFIED ACTIVE
+            </span>
           </div>
 
-          {/* Quick Actions to jump to streams */}
-          <div className="space-y-3">
-            <h2 className="text-sm font-bold text-slate-800">Operational Feature Modules</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {config.actions.map((act, idx) => {
-                const Icon = act.icon;
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => act.targetStream && setActiveStream(act.targetStream)}
-                    className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:border-indigo-400 transition-all flex items-center gap-3.5 cursor-pointer group"
-                  >
-                    <div
-                      className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border ${colorStyles[act.color]}`}
-                    >
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
-                        {act.title}
-                      </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">{act.desc}</p>
-                    </div>
-                  </div>
-                );
-              })}
+          {role === 'TREASURER' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#64748b' }}>Student Membership Dues (194 Paid)</span>
+                <strong style={{ color: '#15803d' }}>+ ₹48,500</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#64748b' }}>Spring Gala Ticket Collections (420 Sold)</span>
+                <strong style={{ color: '#15803d' }}>+ ₹58,500</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#64748b' }}>Charity Bake Sale Inflow</span>
+                <strong style={{ color: '#15803d' }}>+ ₹28,500</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#64748b' }}>Official Hoodies Merchandise Income</span>
+                <strong style={{ color: '#15803d' }}>+ ₹19,800</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#64748b' }}>Venue & Stage Booking Outflows</span>
+                <strong style={{ color: '#dc2626' }}>- ₹65,000</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#64748b' }}>Approved Volunteer Reimbursements (Disbursed)</span>
+                <strong style={{ color: '#dc2626' }}>- ₹12,000</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 0', fontWeight: 700, fontSize: '15px' }}>
+                <span>Audited Closing Semester Balance</span>
+                <span style={{ color: '#15803d' }}>₹101,300</span>
+              </div>
             </div>
-          </div>
+          ) : role === 'EVENT_ORGANIZER' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ padding: '14px', borderRadius: '8px', background: 'var(--muted, #f8fafc)', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <strong>Skyline Annual Spring Gala 2026</strong>
+                  <span style={{ color: '#1e3a8a', fontWeight: 600 }}>420 / 500 Seats (84%)</span>
+                </div>
+                <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: '84%', background: '#3b82f6' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
+                  <span>Member Tier: ₹150 • General: ₹250</span>
+                  <span>Turnout: 385 Scanned (91.6%)</span>
+                </div>
+              </div>
 
-          {/* Role-Specific Showcase Section */}
-          {role === 'STUDENT' && (
-            <div className="space-y-8">
-              <EventsTicketingModule />
-              <MembershipModule />
+              <div style={{ padding: '14px', borderRadius: '8px', background: 'var(--muted, #f8fafc)', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <strong>Inter-College Hackathon 2026</strong>
+                  <span style={{ color: '#15803d', fontWeight: 600 }}>160 / 160 Seats (100% Sold Out)</span>
+                </div>
+                <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: '100%', background: '#10b981' }} />
+                </div>
+              </div>
             </div>
-          )}
-
-          {role === 'MEMBER' && (
-            <div className="space-y-8">
-              <MembershipModule />
-              <MerchandiseTaskModule />
+          ) : role === 'PRESIDENT' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ padding: '12px', borderRadius: '8px', background: '#eff6ff', border: '1px solid #bfdbfe', fontSize: '13px' }}>
+                <strong style={{ color: '#1e3a8a' }}>Official Announcement Pipeline:</strong> Replaces uncoordinated WhatsApp messages with authoritative broadcasts. All 248 members receive notifications instantly.
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#64748b' }}>Total Paid Dues Compliance</span>
+                <strong style={{ color: '#15803d' }}>78.2% (194/248)</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#64748b' }}>Active Volunteer Squad Tasks</span>
+                <strong style={{ color: '#1e3a8a' }}>8 Tasks in Progress</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0' }}>
+                <span style={{ color: '#64748b' }}>Treasury Solvency Status</span>
+                <strong style={{ color: '#15803d' }}>Audited Surplus (+₹101,300)</strong>
+              </div>
             </div>
-          )}
-
-          {role === 'VOLUNTEER' && (
-            <div className="space-y-8">
-              <MerchandiseTaskModule />
-              <EventsTicketingModule />
-            </div>
-          )}
-
-          {role === 'EVENT_ORGANIZER' && (
-            <div className="space-y-8">
-              <EventsTicketingModule />
-              <MerchandiseTaskModule />
-            </div>
-          )}
-
-          {role === 'TREASURER' && (
-            <div className="space-y-8">
-              <FinanceLedgerModule />
-              <MembershipModule />
-            </div>
-          )}
-
-          {role === 'PRESIDENT' && (
-            <div className="space-y-8">
-              <FinanceLedgerModule />
-              <AnnouncementBoardModule />
-              <EventsTicketingModule />
-              <MembershipModule />
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ padding: '14px', borderRadius: '8px', background: '#ecfdf5', border: '1px solid #a7f3d0' }}>
+                <div style={{ fontWeight: 700, color: '#065f46', marginBottom: '2px' }}>
+                  Verified Skyline Club Membership
+                </div>
+                <div style={{ fontSize: '12px', color: '#047857' }}>
+                  Cardholder: {role} User • Pass ID: SSA-2026-0042 • Dues Current
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#64748b' }}>Spring Gala VIP Table Pass</span>
+                <strong style={{ color: '#1e3a8a' }}>QR Pass Ready</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0' }}>
+                <span style={{ color: '#64748b' }}>Merchandise Order: Navy Hoodie</span>
+                <strong style={{ color: '#15803d' }}>Reserved (Size L)</strong>
+              </div>
             </div>
           )}
         </div>
-      )}
+
+        {/* Right Column (1fr): Operational Actions & Quick Links */}
+        <div
+          style={{
+            background: 'var(--card-bg, #ffffff)',
+            borderRadius: '12px',
+            border: '1px solid var(--border-color, #e2e8f0)',
+            padding: '24px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            gap: '16px',
+          }}
+          className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+        >
+          <div>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 12px 0', color: 'var(--foreground, #1e293b)' }}>
+              {role === 'TREASURER'
+                ? 'Pending Reimbursements Queue'
+                : role === 'EVENT_ORGANIZER'
+                ? 'Door Check-in Desk'
+                : role === 'PRESIDENT'
+                ? 'Appointed Officers'
+                : 'Member Discounts & Benefits'}
+            </h3>
+
+            {role === 'TREASURER' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+                <div style={{ padding: '12px', borderRadius: '8px', background: '#fef3c7', border: '1px solid #fde68a' }}>
+                  <div style={{ fontWeight: 700, color: '#92400e' }}>Bake Sale Heavy-duty Trays</div>
+                  <div style={{ color: '#78350f', fontSize: '12px', marginTop: '2px' }}>
+                    Claimant: RITHISH S • Amount: ₹450 • Receipt attached
+                  </div>
+                  <button
+                    onClick={() => navigate('/treasurer/reimbursements')}
+                    style={{
+                      marginTop: '8px',
+                      padding: '4px 10px',
+                      background: '#b45309',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Audit Receipt & Approve
+                  </button>
+                </div>
+              </div>
+            ) : role === 'EVENT_ORGANIZER' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <p style={{ fontSize: '13px', color: '#64748b', margin: 0, lineHeight: 1.5 }}>
+                  Door marshals are stationed at Main Auditorium East Gate. Scan QR tickets in real time to prevent duplicate entrance.
+                </p>
+                <button
+                  onClick={() => navigate('/volunteer/scanner')}
+                  style={{
+                    padding: '10px',
+                    background: '#1e3a8a',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <QrCode style={{ width: '16px', height: '16px' }} />
+                  <span>Launch Door Ticket Scanner</span>
+                </button>
+              </div>
+            ) : role === 'PRESIDENT' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                  <span>Treasurer</span>
+                  <strong>Deepak A</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                  <span>Event Organizer</span>
+                  <strong>Priya Sharma</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
+                  <span>Volunteer Squad Lead</span>
+                  <strong>Rithish S</strong>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+                <div style={{ padding: '10px', borderRadius: '6px', background: '#eff6ff', color: '#1e3a8a' }}>
+                  ✓ 60% discount on all Spring Gala tickets
+                </div>
+                <div style={{ padding: '10px', borderRadius: '6px', background: '#eff6ff', color: '#1e3a8a' }}>
+                  ✓ 20% discount on official hoodies & merch
+                </div>
+                <div style={{ padding: '10px', borderRadius: '6px', background: '#eff6ff', color: '#1e3a8a' }}>
+                  ✓ Voting eligibility in annual officer elections
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '14px', fontSize: '12px', color: '#94a3b8' }}>
+            CampusMitra Student Organization System • Role-Based Access Control
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

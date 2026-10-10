@@ -1,4 +1,7 @@
 import { authRepository } from './auth.repository.js';
+import { userRepository } from '../users/user.repository.js';
+import { prisma } from '../../config/database.js';
+import { seedDatabase } from '../../database/seed.js';
 import { env } from '../../config/env.js';
 import {
   hashToken,
@@ -120,16 +123,45 @@ export const authService = {
       }
       // Note: Existing roles are strictly preserved and never overwritten
     } else {
-      // Create new user with default STUDENT role
-      user = await authRepository.createOAuthUserWithAccount({
-        provider: 'google',
-        providerAccountId: sub,
-        email: safeEmail,
-        emailVerified: isEmailVerified,
-        name: name || 'Student User',
-        avatarUrl: picture || null,
-        defaultRole: 'STUDENT',
-      });
+      // Check if user already exists by verified email (e.g. pre-seeded account)
+      const existingUserByEmail = safeEmail
+        ? await userRepository.findByEmail(safeEmail)
+        : null;
+
+      if (existingUserByEmail) {
+        await authRepository.createOAuthAccountForExistingUser({
+          userId: existingUserByEmail.id,
+          provider: 'google',
+          providerAccountId: sub,
+          email: safeEmail,
+          emailVerified: isEmailVerified,
+        });
+        user = await userRepository.findById(existingUserByEmail.id);
+      } else {
+        // Create new user with default role (VOLUNTEER for rithishs.cs24@bitsathy.ac.in, otherwise STUDENT)
+        const defaultRole = (safeEmail && safeEmail.toLowerCase() === 'rithishs.cs24@bitsathy.ac.in')
+          ? 'VOLUNTEER'
+          : 'STUDENT';
+
+        user = await authRepository.createOAuthUserWithAccount({
+          provider: 'google',
+          providerAccountId: sub,
+          email: safeEmail,
+          emailVerified: isEmailVerified,
+          name: name || 'Student User',
+          avatarUrl: picture || null,
+          defaultRole,
+        });
+      }
+    }
+
+    // Ensure VOLUNTEER role for rithishs.cs24@bitsathy.ac.in
+    if (safeEmail && safeEmail.toLowerCase() === 'rithishs.cs24@bitsathy.ac.in') {
+      const hasVolunteer = (user.roles || []).some((r) => r.role === 'VOLUNTEER');
+      if (!hasVolunteer) {
+        await userRepository.assignRole(user.id, 'VOLUNTEER');
+        user = await userRepository.findById(user.id);
+      }
     }
 
     // 4. Extract assigned roles
@@ -251,5 +283,86 @@ export const authService = {
     }
 
     return { success: true, message: 'Logged out successfully' };
+  },
+
+  /**
+   * Quick role login for pre-seeded demo accounts.
+   * Enables 1-click role exploration in development and evaluation.
+   */
+  async demoLogin(targetRole) {
+    const roleUpper = (targetRole || 'STUDENT').toUpperCase();
+
+    // Find demo user associated with this role
+    let user = await prisma.user.findFirst({
+      where: {
+        roles: {
+          some: {
+            role: roleUpper,
+          },
+        },
+      },
+      include: {
+        roles: true,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    // If no demo user found, automatically seed database
+    if (!user) {
+      await seedDatabase();
+      user = await prisma.user.findFirst({
+        where: {
+          roles: {
+            some: {
+              role: roleUpper,
+            },
+          },
+        },
+        include: {
+          roles: true,
+        },
+      });
+    }
+
+    if (!user) {
+      throw new AppError(`Demo account for role ${roleUpper} could not be found.`, 404);
+    }
+
+    // Extract assigned roles
+    const roleNames = user.roles.map((r) => r.role);
+
+    // Issue short-lived JWT access token
+    const accessToken = signAccessToken({
+      sub: user.id,
+      email: user.email,
+      name: user.name,
+      roles: roleNames,
+    });
+
+    // Generate and store hashed refresh token
+    const rawRefreshToken = generateRawRefreshToken();
+    const tokenHash = hashToken(rawRefreshToken);
+    const expiresAt = new Date(Date.now() + env.REFRESH_TOKEN_EXPIRES_DAYS * 24 * 60 * 60 * 1000);
+
+    await authRepository.createRefreshToken({
+      userId: user.id,
+      tokenHash,
+      expiresAt,
+    });
+
+    return {
+      accessToken,
+      refreshToken: rawRefreshToken,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+        status: user.status,
+        roles: roleNames,
+      },
+    };
   },
 };

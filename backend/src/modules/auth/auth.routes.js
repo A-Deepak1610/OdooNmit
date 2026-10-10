@@ -12,6 +12,9 @@ router.get('/google/callback', authController.googleCallback);
 router.post('/refresh', authController.refreshToken);
 router.post('/logout', authController.logout);
 
+// Quick 1-click role login for seeded demo accounts
+router.post('/demo-login', authController.demoLogin);
+
 // Authenticated user session info
 router.get('/me', authenticate, authController.getMe);
 
