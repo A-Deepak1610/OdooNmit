@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  Ticket,
   Vote,
-  Sparkles,
   Search,
   Plus,
   CheckCircle2,
@@ -13,7 +11,6 @@ import {
   Trophy,
   Loader2,
   X,
-  ChevronRight,
   Users,
 } from 'lucide-react';
 import {
@@ -24,6 +21,7 @@ import {
   ElectionItem,
 } from '../../../services/admin.service';
 import { AdminDbAssistantPage } from '../AdminDbAssistantPage';
+import { AdminQuickOverview } from './AdminQuickOverview';
 
 export const AdminDashboardPage: React.FC = () => {
   const location = useLocation();
@@ -330,156 +328,14 @@ export const AdminDashboardPage: React.FC = () => {
 
       {/* ── 1. QUICK OVERVIEW ────────────────────────────────────────── */}
       {activeTab === 'overview' && overviewData && (
-        <div className="space-y-6">
-          {/* 4 Focused Metric Cards Matching Sidebar Modules */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* 1. Clubs KPI */}
-            <div
-              onClick={() => navigate('/admin/clubs')}
-              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
-            >
-              <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Club Management</span>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-slate-100 text-slate-700">12</span>
-              </div>
-              <div className="text-3xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
-                {overviewData.kpis.totalClubs}
-              </div>
-              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-emerald-600">
-                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
-                <span>{overviewData.kpis.activeClubs} Active</span>
-                <span className="text-slate-400">•</span>
-                <span className="text-slate-500">{overviewData.kpis.inactiveClubs} Inactive</span>
-              </div>
-            </div>
-
-            {/* 2. Tickets KPI */}
-            <div
-              onClick={() => navigate('/admin/tickets')}
-              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
-            >
-              <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Ticket Support</span>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-800">4 Open</span>
-              </div>
-              <div className="text-3xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
-                {overviewData.kpis.totalTickets}
-              </div>
-              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-amber-600">
-                <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />
-                <span>{overviewData.kpis.openTickets} Open Queries</span>
-                <span className="text-slate-400">•</span>
-                <span className="text-indigo-600">{overviewData.kpis.inProgressTickets} In Progress</span>
-              </div>
-            </div>
-
-            {/* 3. Elections KPI */}
-            <div
-              onClick={() => navigate('/admin/elections')}
-              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
-            >
-              <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Annual Elections</span>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-slate-100 text-slate-700">3</span>
-              </div>
-              <div className="text-3xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
-                {overviewData.kpis.totalElections}
-              </div>
-              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-blue-600">
-                <span className="inline-block w-2 h-2 rounded-full bg-blue-500" />
-                <span>{overviewData.kpis.activeElections} Active Elections</span>
-              </div>
-            </div>
-
-            {/* 4. DB Query Assistant KPI */}
-            <div
-              onClick={() => navigate('/admin/assistant')}
-              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
-            >
-              <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">DB Assistant</span>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-purple-100 text-purple-800">NLP</span>
-              </div>
-              <div className="text-2xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
-                Natural Query
-              </div>
-              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-purple-600">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Ask DB in plain English</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Two Column: Recent Tickets & Notifications */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {/* Recent Queries */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Ticket className="w-4 h-4 text-indigo-600" />
-                  <h3 className="text-sm font-bold text-slate-900">Recent Support Queries</h3>
-                </div>
-                <button onClick={() => navigate('/admin/tickets')} className="text-xs text-indigo-600 font-bold hover:underline cursor-pointer">
-                  View All →
-                </button>
-              </div>
-
-              <div className="space-y-2.5">
-                {overviewData.recentTickets.map((t: any) => (
-                  <div
-                    key={t.id}
-                    onClick={() => {
-                      navigate('/admin/tickets');
-                      handleOpenTicket(t);
-                    }}
-                    className="p-3 rounded-xl border border-slate-100 hover:border-slate-300 hover:bg-slate-50/60 transition-all cursor-pointer flex items-center justify-between gap-3"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700">{t.ticketNumber}</span>
-                        <span
-                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-                            t.status === 'OPEN' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
-                          }`}
-                        >
-                          {t.status}
-                        </span>
-                      </div>
-                      <div className="text-xs font-bold text-slate-900 truncate">{t.subject}</div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">By {t.createdBy?.fullName || 'User'}</div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Broadcast Feed */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-4 h-4 text-indigo-600" />
-                <h3 className="text-sm font-bold text-slate-900">Platform Activity Broadcasts</h3>
-              </div>
-
-              <div className="space-y-2.5">
-                {overviewData.recentNotifications.map((n: any) => (
-                  <div key={n.id} className="p-3 rounded-xl bg-slate-50/80 border border-slate-100 flex items-start gap-3">
-                    <div className="p-1.5 rounded-lg bg-indigo-100 text-indigo-700 flex-shrink-0 mt-0.5">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-bold text-slate-900">{n.title}</div>
-                      <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">{n.message}</p>
-                      <span className="text-[10px] text-slate-400 mt-1 block">
-                        {new Date(n.createdAt).toLocaleDateString()} at {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        <AdminQuickOverview
+          overviewData={overviewData}
+          clubs={clubs}
+          tickets={tickets}
+          elections={elections}
+          onOpenTicket={handleOpenTicket}
+          onNavigateTab={(path) => navigate(path)}
+        />
       )}
 
       {/* ── 2. CLUB MANAGEMENT ───────────────────────────────────────── */}
