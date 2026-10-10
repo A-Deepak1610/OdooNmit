@@ -1,19 +1,12 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  Building2,
   Search,
   Moon,
   Sun,
   Bell,
-  Shield,
 } from 'lucide-react';
-import { useAuthStore } from '../../stores/auth.store';
-import { ROLE_DEFAULT_PATHS, ROLE_DISPLAY_NAMES, UserRole } from '../../config/roles';
 
 export const AppHeader: React.FC = () => {
-  const navigate = useNavigate();
-  const { role, roles, switchRole, collegeName } = useAuthStore();
   const [isDark, setIsDark] = React.useState<boolean>(() => {
     return document.documentElement.getAttribute('data-theme') === 'dark';
   });
@@ -23,17 +16,6 @@ export const AppHeader: React.FC = () => {
     document.documentElement.setAttribute('data-theme', nextTheme);
     localStorage.setItem('campus_theme', nextTheme);
     setIsDark(!isDark);
-  };
-
-  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const targetRole = e.target.value as UserRole;
-    if (targetRole && roles.includes(targetRole)) {
-      switchRole(targetRole);
-      const defaultPath = ROLE_DEFAULT_PATHS[targetRole];
-      if (defaultPath) {
-        navigate(defaultPath);
-      }
-    }
   };
 
   return (
@@ -52,68 +34,8 @@ export const AppHeader: React.FC = () => {
         zIndex: 30,
       }}
     >
-      {/* 1. Navbar Left — Institution Switcher */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div
-          style={{
-            fontSize: '14px',
-            fontWeight: 500,
-            padding: '6px 10px',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-md)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            backgroundColor: 'var(--background)',
-            color: 'var(--foreground)',
-          }}
-        >
-          <Building2 style={{ width: '16px', height: '16px', color: 'var(--muted-foreground)' }} />
-          <span>{collegeName || 'Skyline Institute of Technology'}</span>
-        </div>
-
-        {/* Role Workspace Switcher (Multi-role accounts) */}
-        {roles.length > 1 && (
-          <div
-            style={{
-              fontSize: '12px',
-              fontWeight: 500,
-              padding: '4px 8px',
-              border: '1px solid #bfdbfe',
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: '#eff6ff',
-              color: '#1e3a8a',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <Shield style={{ width: '14px', height: '14px', color: '#2563eb' }} />
-            <select
-              value={role || ''}
-              onChange={handleRoleChange}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#1e3a8a',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                outline: 'none',
-              }}
-            >
-              {roles.map((r) => (
-                <option key={r} value={r}>
-                  {ROLE_DISPLAY_NAMES[r] || r} Workspace
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-      </div>
-
-      {/* 2. Navbar Center — Search Bar (320px width) */}
-      <div style={{ position: 'relative', width: '320px' }}>
+      {/* 1. Search Bar */}
+      <div style={{ position: 'relative', width: '340px' }}>
         <Search
           style={{
             position: 'absolute',
@@ -145,7 +67,7 @@ export const AppHeader: React.FC = () => {
         />
       </div>
 
-      {/* 3. Navbar Right — Actions (Theme toggle + Bell with red dot) */}
+      {/* 2. Navbar Right — Actions (Theme toggle + Bell with red dot) */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         {/* Theme Toggle */}
         <button

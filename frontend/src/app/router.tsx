@@ -39,6 +39,7 @@ import { AdminIncomingEventsPage } from '../pages/admin/AdminIncomingEventsPage'
 import { AdminRolesPage } from '../pages/admin/AdminRolesPage';
 import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage';
 import { AdminAuditLogPage } from '../pages/admin/AdminAuditLogPage';
+import { AdminClubsPage } from '../pages/admin/AdminClubsPage';
 
 /**
  * Root Landing Page:
@@ -387,6 +388,10 @@ export const router = createBrowserRouter([
           {
             path: 'dashboard',
             element: <AdminDashboardPage />,
+          },
+          {
+            path: 'clubs',
+            element: <AdminClubsPage />,
           },
           {
             path: 'events',
