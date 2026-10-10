@@ -46,89 +46,176 @@ export const AnnouncementBoardModule: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Module Title Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* ── 1. MODULE HEADER ───────────────────────────────── */}
+      <div
+        style={{
+          background: 'white',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          padding: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '16px',
+        }}
+      >
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-orange-700 bg-[#fff4ed] px-2.5 py-0.5 rounded-full border border-orange-200">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 600,
+                color: '#1e3a8a',
+                background: '#eff6ff',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+              }}
+            >
               Dev 4 Workstream
             </span>
-            <span className="text-xs text-slate-400 font-medium">Problem Statement Scene:</span>
-            <span className="text-xs font-semibold text-slate-700">"Announcing the next meeting & notices"</span>
+            <span style={{ fontSize: '12px', color: '#64748b' }}>
+              Problem Scene: "Announcing the next meeting & notices"
+            </span>
           </div>
-          <h2 className="text-xl font-bold text-slate-900 mt-1">
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#1e293b', margin: '0 0 4px 0' }}>
             Centralized Campus Announcement Board
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
             Post once to reach all members with timestamped logs, replacing fragmented and lost WhatsApp group messages.
           </p>
         </div>
 
         <button
           onClick={() => setShowCreate(!showCreate)}
-          className="flex items-center gap-2 bg-[#ea580c] hover:bg-[#c2410c] text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-xs transition-colors self-start sm:self-center"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            background: '#1e3a8a',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
         >
-          <Megaphone className="h-4 w-4" />
+          <Megaphone size={16} />
           <span>Broadcast Notice</span>
         </button>
       </div>
 
       {postNotice && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs text-emerald-800 animate-in fade-in">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+        <div
+          style={{
+            padding: '14px 18px',
+            borderRadius: '8px',
+            background: '#dcfce7',
+            border: '1px solid #bbf7d0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '13px',
+            color: '#15803d',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CheckCircle2 size={16} color="#15803d" />
             <span>{postNotice}</span>
           </div>
           <button
             onClick={() => setPostNotice(null)}
-            className="font-bold underline hover:text-emerald-900"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#15803d',
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontSize: '12px',
+            }}
           >
             Dismiss
           </button>
         </div>
       )}
 
-      {/* Broadcast Composer */}
+      {/* ── 2. BROADCAST COMPOSER FORM ─────────────────────── */}
       {showCreate && (
         <form
           onSubmit={handlePostNotice}
-          className="bg-white rounded-2xl border border-orange-200 p-6 shadow-sm space-y-4 animate-in slide-in-from-top-4 text-xs"
+          style={{
+            background: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+          }}
         >
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              borderBottom: '1px solid #e2e8f0',
+              paddingBottom: '12px',
+            }}
+          >
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Create Official Broadcast</h3>
-              <p className="text-slate-500">
+              <h3 style={{ fontSize: '15px', fontWeight: 600, color: '#1e293b', margin: '0 0 2px 0' }}>
+                Create Official Broadcast
+              </h3>
+              <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>
                 Notice will be displayed across student dashboards and sent to verified member emails.
               </p>
             </div>
             <button
               type="button"
               onClick={() => setShowCreate(false)}
-              className="text-slate-400 hover:text-slate-600 font-bold"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#64748b',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: 500,
+              }}
             >
               Cancel
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '14px',
+            }}
+          >
             <div>
-              <label className="font-semibold text-slate-700 block mb-1">Announcement Title</label>
+              <label style={noticeLabel}>Announcement Title</label>
               <input
                 type="text"
                 required
                 placeholder="e.g. Venue Change for Spring Gala"
                 value={newNotice.title}
                 onChange={(e) => setNewNotice({ ...newNotice, title: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                style={noticeInput}
               />
             </div>
             <div>
-              <label className="font-semibold text-slate-700 block mb-1">Notice Category</label>
+              <label style={noticeLabel}>Notice Category</label>
               <select
                 value={newNotice.category}
                 onChange={(e) => setNewNotice({ ...newNotice, category: e.target.value as any })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                style={noticeSelect}
               >
                 <option value="EVENT">Event Update</option>
                 <option value="MEETING">General Body Meeting</option>
@@ -137,11 +224,11 @@ export const AnnouncementBoardModule: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="font-semibold text-slate-700 block mb-1">Priority</label>
+              <label style={noticeLabel}>Priority Level</label>
               <select
                 value={newNotice.priority}
                 onChange={(e) => setNewNotice({ ...newNotice, priority: e.target.value as any })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                style={noticeSelect}
               >
                 <option value="NORMAL">Standard Notice</option>
                 <option value="HIGH">High Priority</option>
@@ -151,75 +238,126 @@ export const AnnouncementBoardModule: React.FC = () => {
           </div>
 
           <div>
-            <label className="font-semibold text-slate-700 block mb-1">Notice Content</label>
+            <label style={noticeLabel}>Notice Content</label>
             <textarea
               rows={3}
               required
-              placeholder="Type your message details here..."
+              placeholder="Type your official announcement details here..."
               value={newNotice.content}
               onChange={(e) => setNewNotice({ ...newNotice, content: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '6px',
+                border: '1px solid #e2e8f0',
+                background: '#f8fafc',
+                fontSize: '13px',
+                color: '#1e293b',
+                outline: 'none',
+                fontFamily: 'inherit',
+              }}
             />
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
             <button
               type="submit"
-              className="bg-[#ea580c] hover:bg-[#c2410c] text-white font-semibold py-2 px-4 rounded-xl transition-colors shadow-xs flex items-center gap-2"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 18px',
+                background: '#1e3a8a',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
             >
-              <Send className="h-3.5 w-3.5" />
+              <Send size={14} />
               <span>Broadcast Now</span>
             </button>
           </div>
         </form>
       )}
 
-      {/* Announcements List */}
-      <div className="space-y-4">
+      {/* ── 3. ANNOUNCEMENTS LIST ──────────────────────────── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {announcements.map((ann) => {
           const isUrgent = ann.priority === 'URGENT';
           const isHigh = ann.priority === 'HIGH';
 
+          const borderCol = isUrgent ? '#fecaca' : isHigh ? '#fed7aa' : '#e2e8f0';
+          const bgCol = isUrgent ? '#fff5f5' : isHigh ? '#fffbf5' : 'white';
+
           return (
             <div
               key={ann.id}
-              className={`p-5 rounded-2xl border transition-all ${
-                isUrgent
-                  ? 'bg-rose-50/50 border-rose-200'
-                  : isHigh
-                  ? 'bg-amber-50/40 border-amber-200'
-                  : 'bg-white border-slate-200 shadow-xs'
-              }`}
+              style={{
+                background: bgCol,
+                borderRadius: '12px',
+                border: `1px solid ${borderCol}`,
+                padding: '20px',
+                transition: 'all 0.2s',
+              }}
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2">
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '10px',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
-                      isUrgent
-                        ? 'bg-rose-100 text-rose-700 border-rose-300'
-                        : isHigh
-                        ? 'bg-amber-100 text-amber-800 border-amber-300'
-                        : 'bg-slate-100 text-slate-700 border-slate-200'
-                    }`}
+                    style={{
+                      fontSize: '10px',
+                      fontWeight: 600,
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      background: isUrgent ? '#fef2f2' : isHigh ? '#fef3c7' : '#eff6ff',
+                      color: isUrgent ? '#dc2626' : isHigh ? '#b45309' : '#1e3a8a',
+                      border: isUrgent ? '1px solid #fecaca' : isHigh ? '1px solid #fde68a' : '1px solid #dbeafe',
+                    }}
                   >
                     {ann.category}
                   </span>
-                  <span className="text-xs font-semibold text-slate-500">
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
                     Posted by {ann.author}
                   </span>
                 </div>
-                <span className="text-[11px] text-slate-400 font-medium">{ann.date}</span>
+                <span style={{ fontSize: '12px', color: '#94a3b8' }}>{ann.date}</span>
               </div>
 
-              <h4 className="text-sm font-bold text-slate-900">{ann.title}</h4>
-              <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">{ann.content}</p>
+              <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#1e293b', margin: '0 0 6px 0' }}>
+                {ann.title}
+              </h4>
+              <p style={{ fontSize: '13px', color: '#475569', margin: 0, lineHeight: 1.5 }}>
+                {ann.content}
+              </p>
 
-              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                <div className="flex items-center gap-2">
-                  <Users className="h-3.5 w-3.5" />
+              <div
+                style={{
+                  marginTop: '14px',
+                  paddingTop: '12px',
+                  borderTop: '1px solid #f1f5f9',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '12px',
+                  color: '#94a3b8',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Users size={14} />
                   <span>Audience: Skyline Association & Campus Students</span>
                 </div>
-                <span className="font-semibold text-orange-600 hover:text-orange-800 cursor-pointer">
+                <span style={{ fontWeight: 600, color: '#1e3a8a', cursor: 'pointer' }}>
                   View Full Thread →
                 </span>
               </div>
@@ -230,3 +368,40 @@ export const AnnouncementBoardModule: React.FC = () => {
     </div>
   );
 };
+
+/* ─── MODULE-SCOPE STYLES ───────────────────────────────── */
+const noticeLabel: React.CSSProperties = {
+  display: 'block',
+  marginBottom: '6px',
+  fontSize: '12px',
+  fontWeight: 600,
+  color: '#64748b',
+  textTransform: 'uppercase',
+  letterSpacing: '0.4px',
+};
+
+const noticeInput: React.CSSProperties = {
+  width: '100%',
+  height: '38px',
+  padding: '0 12px',
+  borderRadius: '6px',
+  border: '1px solid #e2e8f0',
+  background: '#f8fafc',
+  fontSize: '13px',
+  color: '#1e293b',
+  outline: 'none',
+};
+
+const noticeSelect: React.CSSProperties = {
+  width: '100%',
+  height: '38px',
+  padding: '0 12px',
+  borderRadius: '6px',
+  border: '1px solid #e2e8f0',
+  background: '#f8fafc',
+  fontSize: '13px',
+  color: '#1e293b',
+  outline: 'none',
+  cursor: 'pointer',
+};
+

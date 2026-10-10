@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Calendar,
   Ticket,
@@ -7,15 +7,13 @@ import {
   Clock,
   QrCode,
   Search,
-} from "lucide-react";
-import { mockEvents, mockDoorTickets } from "../../../data/mockClubData";
+} from 'lucide-react';
+import { mockEvents, mockDoorTickets } from '../../../data/mockClubData';
 
 export const EventsTicketingModule: React.FC = () => {
   const [tickets, setTickets] = useState(mockDoorTickets);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "checkin" | "analytics"
-  >("overview");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'overview' | 'checkin' | 'analytics'>('overview');
   const [bookingSuccess, setBookingSuccess] = useState<string | null>(null);
 
   const springGala = mockEvents[0];
@@ -27,430 +25,362 @@ export const EventsTicketingModule: React.FC = () => {
           ? {
               ...t,
               checkedIn: true,
-              time: new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             }
-          : t,
-      ),
+          : t
+      )
     );
   };
 
   const filteredTickets = tickets.filter(
     (t) =>
       t.attendee.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.id.toLowerCase().includes(searchQuery.toLowerCase()),
+      t.id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="space-y-6">
-      {/* Module Title & Tab Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', fontFamily: 'var(--font-family-body)' }}>
+      {/* Module Title Header Card */}
+      <div
+        style={{
+          background: 'white',
+          border: '1px solid #e2e8f0',
+          borderRadius: '12px',
+          padding: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+        }}
+      >
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span
+              style={{
+                color: '#1e3a8a',
+                background: '#eff6ff',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                fontWeight: 600,
+                fontSize: '11px',
+                textTransform: 'uppercase',
+              }}
+            >
               Dev 1 Workstream
             </span>
-            <span className="text-xs text-slate-400 font-medium">
-              Problem Statement Scene:
-            </span>
-            <span className="text-xs font-semibold text-slate-700">
-              "Selling tickets for the spring gala"
-            </span>
+            <span style={{ fontSize: '12px', color: '#64748b' }}>Problem Statement Scene:</span>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#1e293b' }}>"Selling tickets for the spring gala"</span>
           </div>
-          <h2 className="text-xl font-bold text-slate-900 mt-1">
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#1e293b', margin: '4px 0 2px 0' }}>
             Events & Online Ticketing Platform
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Differential tier pricing (members vs non-members), live seat
-            capacity, and instant door QR check-in without paper sheets.
+          <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+            Differential tier pricing (members vs non-members), live seat capacity, and instant door QR check-in.
           </p>
         </div>
 
-        <div className="flex items-center bg-slate-100 p-1 rounded-xl self-start sm:self-center">
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              activeTab === "overview"
-                ? "bg-white text-slate-900 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            Gala Overview & Tiers
-          </button>
-          <button
-            onClick={() => setActiveTab("checkin")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              activeTab === "checkin"
-                ? "bg-white text-slate-900 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            Door Check-in Desk
-          </button>
-          <button
-            onClick={() => setActiveTab("analytics")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              activeTab === "analytics"
-                ? "bg-white text-slate-900 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            Post-Event Analytics
-          </button>
+        {/* Tab Switcher */}
+        <div style={{ display: 'flex', gap: '6px', background: 'var(--muted)', padding: '4px', borderRadius: '8px' }}>
+          {(['overview', 'checkin', 'analytics'] as const).map((tab) => {
+            const isActive = activeTab === tab;
+            const labels = { overview: 'Gala Tiers', checkin: 'Door Check-in', analytics: 'Turnout Analytics' };
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: isActive ? 'var(--primary)' : 'transparent',
+                  color: isActive ? 'white' : 'var(--muted-foreground)',
+                  fontSize: '13px',
+                  fontWeight: isActive ? 600 : 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {labels[tab]}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {bookingSuccess && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs text-emerald-800 animate-in fade-in">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+        <div
+          style={{
+            background: '#ecfdf5',
+            border: '1px solid #a7f3d0',
+            color: '#065f46',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            fontSize: '13px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CheckCircle2 style={{ width: '16px', height: '16px', color: '#10b981' }} />
             <span>{bookingSuccess}</span>
           </div>
           <button
             onClick={() => setBookingSuccess(null)}
-            className="font-bold underline hover:text-emerald-900"
+            style={{ background: 'none', border: 'none', color: '#065f46', fontWeight: 700, cursor: 'pointer' }}
           >
             Dismiss
           </button>
         </div>
       )}
 
-      {/* TAB 1: GALA OVERVIEW & TIER PRICING */}
-      {activeTab === "overview" && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* TAB 1: GALA OVERVIEW & TIERS */}
+      {activeTab === 'overview' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
           {/* Main Gala Card */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
-                <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                  FEATURED ANNUAL EVENT
+                <span style={{ color: '#b45309', background: '#fef3c7', padding: '2px 8px', borderRadius: '4px', fontWeight: 600, fontSize: '11px' }}>
+                  FLAGSHIP ANNUAL EVENT
                 </span>
-                <h3 className="text-2xl font-bold text-slate-900 mt-2">
+                <h3 style={{ fontSize: '22px', fontWeight: 700, color: '#1e293b', margin: '8px 0 4px 0' }}>
                   {springGala.title}
                 </h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  The Skyline Student Association's flagship year-end gala
-                  celebrating campus achievements, awards & musical
-                  performances.
+                <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+                  Main campus gala with music, dinner, and student achievements.
                 </p>
               </div>
-              <div className="text-right sm:border-l sm:pl-4 border-slate-100 shrink-0">
-                <span className="text-[11px] text-slate-400 block">
-                  Total Revenue
-                </span>
-                <span className="text-xl font-bold text-slate-900">
-                  ₹{springGala.revenue.toLocaleString()}
-                </span>
+              <div style={{ textAlign: 'right' }}>
+                <span style={{ fontSize: '11px', color: '#94a3b8', display: 'block' }}>Total Ticket Revenue</span>
+                <span style={{ fontSize: '20px', fontWeight: 700, color: '#1e293b' }}>₹{springGala.revenue.toLocaleString()}</span>
               </div>
             </div>
 
             {/* Event Meta Badges */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100 text-xs">
-              <div className="flex items-center gap-2 text-slate-700">
-                <Calendar className="h-4 w-4 text-indigo-600 shrink-0" />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', background: 'var(--muted)', padding: '12px', borderRadius: '8px', fontSize: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e293b' }}>
+                <Calendar style={{ width: '16px', height: '16px', color: '#1e3a8a' }} />
                 <span>{springGala.date}</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-700">
-                <Clock className="h-4 w-4 text-indigo-600 shrink-0" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e293b' }}>
+                <Clock style={{ width: '16px', height: '16px', color: '#1e3a8a' }} />
                 <span>{springGala.time}</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-700 col-span-2 sm:col-span-1">
-                <Users className="h-4 w-4 text-indigo-600 shrink-0" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e293b' }}>
+                <Users style={{ width: '16px', height: '16px', color: '#1e3a8a' }} />
                 <span>{springGala.location}</span>
               </div>
             </div>
 
-            {/* Seat Capacity Bar */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-semibold">
-                <span className="text-slate-700">Seat Capacity Limit</span>
-                <span className="text-indigo-600">
-                  {springGala.soldCount} / {springGala.capacity} Seats Claimed
-                  (84% Full)
-                </span>
+            {/* Capacity Progress Bar */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                <span style={{ color: '#64748b' }}>Seat Capacity Quota</span>
+                <span style={{ color: '#1e3a8a', fontWeight: 600 }}>{springGala.soldCount} / {springGala.capacity} Seats Claimed (84%)</span>
               </div>
-              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"
-                  style={{
-                    width: `${(springGala.soldCount / springGala.capacity) * 100}%`,
-                  }}
-                />
+              <div style={{ height: '6px', background: 'var(--secondary)', borderRadius: '3px', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${(springGala.soldCount / springGala.capacity) * 100}%`, background: 'var(--primary)', borderRadius: '3px' }} />
               </div>
-              <p className="text-[11px] text-slate-400">
-                Only 80 tickets remaining before box office registration closes
-                automatically.
-              </p>
+              <span style={{ fontSize: '11px', color: '#94a3b8' }}>Only 80 tickets remaining before registration closes.</span>
             </div>
 
-            {/* Ticket Tier Pricing Comparison */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            {/* Tiers List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <h4 style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.4px', margin: 0 }}>
                 Differential Ticket Tiers (Member Discount Engine)
               </h4>
-              <div className="space-y-2.5">
-                {springGala.tiers.map((tier, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3.5 rounded-xl border border-slate-200 hover:border-indigo-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-900">
-                          {tier.name}
-                        </span>
-                        {tier.available === 0 ? (
-                          <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
-                            Sold Out
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                            {tier.available} left of {tier.total}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        Includes catered dinner, entry pass & gala voting
-                        rights.
-                      </p>
+              {springGala.tiers.map((tier, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid #e2e8f0',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    background: 'white',
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>{tier.name}</span>
+                      <span style={{ fontSize: '11px', color: '#15803d', background: '#dcfce7', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                        {tier.available} left of {tier.total}
+                      </span>
                     </div>
-
-                    <div className="flex items-center gap-4 shrink-0">
-                      <div className="text-right">
-                        <div className="flex items-center gap-1.5 justify-end">
-                          <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1 rounded">
-                            Member Price
-                          </span>
-                          <span className="text-sm font-bold text-emerald-700">
-                            ₹{tier.memberPrice}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1.5 justify-end text-[11px] text-slate-400 mt-0.5">
-                          <span>Non-Member:</span>
-                          <span className="line-through">
-                            ₹{tier.nonMemberPrice}
-                          </span>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() =>
-                          setBookingSuccess(
-                            `Success! Ticket booked for ${tier.name} at member rate ₹${tier.memberPrice}. Check-in QR pass generated.`,
-                          )
-                        }
-                        disabled={tier.available === 0}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                          tier.available === 0
-                            ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                            : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs"
-                        }`}
-                      >
-                        Book Ticket
-                      </button>
-                    </div>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>Includes catered dinner, pass & gala voting rights</span>
                   </div>
-                ))}
-              </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#15803d' }}>
+                        Member: ₹{tier.memberPrice}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#94a3b8', textDecoration: 'line-through' }}>
+                        Non-Member: ₹{tier.nonMemberPrice}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setBookingSuccess(`Booked ${tier.name} at member rate ₹${tier.memberPrice}!`)}
+                      style={{
+                        background: '#1e3a8a',
+                        color: 'white',
+                        border: 'none',
+                        padding: '8px 14px',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Book Pass
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Side Card: Digital Ticket Preview */}
-          <div className="bg-gradient-to-b from-indigo-900 to-slate-900 text-white rounded-2xl p-6 shadow-md flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-indigo-700/50 pb-3">
-                <div className="flex items-center gap-2">
-                  <Ticket className="h-5 w-5 text-indigo-300" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-indigo-200">
-                    Skyline Digital Pass
-                  </span>
-                </div>
-                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-900/50 border border-emerald-500/40 px-2 py-0.5 rounded-full">
-                  VERIFIED MEMBER
+          <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: '#1e3a8a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Ticket style={{ width: '16px', height: '16px' }} />
+                  Digital QR Pass
+                </span>
+                <span style={{ color: '#15803d', background: '#dcfce7', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                  Active
                 </span>
               </div>
 
               <div>
-                <p className="text-xs text-indigo-300">Event</p>
-                <h4 className="text-base font-bold text-white">
-                  Spring Gala 2026
-                </h4>
-                <p className="text-xs text-indigo-200 mt-1">
-                  Main Campus Grand Auditorium
-                </p>
+                <span style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Attendee</span>
+                <div style={{ fontSize: '15px', fontWeight: 600, color: '#1e293b' }}>Deepak Kumar</div>
+                <div style={{ fontSize: '12px', color: '#15803d', fontWeight: 500 }}>Club Member Pass (₹100)</div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-indigo-700/50">
-                <div>
-                  <span className="text-[10px] text-indigo-300 block">
-                    Attendee
-                  </span>
-                  <span className="font-semibold">Deepak Kumar</span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-indigo-300 block">
-                    Pass Type
-                  </span>
-                  <span className="font-semibold text-emerald-300">
-                    Club Member Pass
-                  </span>
-                </div>
-              </div>
-
-              {/* QR Code Graphic Box */}
-              <div className="bg-white rounded-xl p-4 text-center my-3 text-slate-900 shadow-inner">
-                <QrCode className="h-32 w-32 mx-auto text-slate-900" />
-                <p className="text-[11px] font-mono font-bold tracking-widest text-slate-600 mt-2">
+              {/* QR Box */}
+              <div style={{ padding: '16px', background: 'var(--muted)', borderRadius: '8px', border: '1px solid var(--border)', textAlign: 'center' }}>
+                <QrCode style={{ width: '110px', height: '110px', margin: '0 auto', color: '#1e293b' }} />
+                <div style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: '#64748b', marginTop: '8px' }}>
                   SSA-GALA-2026-9812
-                </p>
-                <p className="text-[10px] text-slate-400">
-                  Scan at entrance for instantaneous door validation
-                </p>
+                </div>
+                <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>
+                  Scan at entrance for door verification
+                </div>
               </div>
             </div>
 
-            <div className="text-center pt-2">
-              <span className="text-[11px] text-indigo-300">
-                Non-transferable • Skyline Student Association
-              </span>
+            <div style={{ textAlign: 'center', fontSize: '11px', color: '#94a3b8', paddingTop: '10px' }}>
+              Skyline Student Association • Academic Term 2025-26
             </div>
           </div>
         </div>
       )}
 
-      {/* TAB 2: DOOR CHECK-IN DESK */}
-      {activeTab === "checkin" && (
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* TAB 2: DOOR CHECK-IN */}
+      {activeTab === 'checkin' && (
+        <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div>
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <QrCode className="h-5 w-5 text-indigo-600" />
+              <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
                 Entrance Check-in Desk (Zero Paper Lists)
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Door volunteers can search attendee name or scan pass QR code to
-                admit guests in seconds.
+              <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0 0' }}>
+                Verify attendee name or pass ID to admit guests in seconds.
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="h-4 w-4 text-slate-400 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  placeholder="Search name or Ticket ID..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 w-64"
-                />
-              </div>
+            <div style={{ position: 'relative', width: '260px' }}>
+              <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', width: '14px', height: '14px', color: '#94a3b8' }} />
+              <input
+                type="text"
+                placeholder="Search attendee or Ticket ID..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ width: '100%', height: '36px', paddingLeft: '32px', paddingRight: '12px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '12px', outline: 'none' }}
+              />
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-slate-100">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-                <tr>
-                  <th className="py-3 px-4">Ticket ID</th>
-                  <th className="py-3 px-4">Attendee Name</th>
-                  <th className="py-3 px-4">Tier Type</th>
-                  <th className="py-3 px-4">Member Status</th>
-                  <th className="py-3 px-4">Check-in Status</th>
-                  <th className="py-3 px-4 text-right">Door Action</th>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textAlign: 'left' }}>
+                <th style={{ padding: '10px 12px', fontWeight: 600 }}>Ticket ID</th>
+                <th style={{ padding: '10px 12px', fontWeight: 600 }}>Attendee</th>
+                <th style={{ padding: '10px 12px', fontWeight: 600 }}>Tier</th>
+                <th style={{ padding: '10px 12px', fontWeight: 600 }}>Membership</th>
+                <th style={{ padding: '10px 12px', fontWeight: 600 }}>Status</th>
+                <th style={{ padding: '10px 12px', fontWeight: 600, textAlign: 'right' }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredTickets.map((t) => (
+                <tr key={t.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '12px', fontFamily: 'monospace', color: '#64748b' }}>{t.id}</td>
+                  <td style={{ padding: '12px', fontWeight: 600, color: '#1e293b' }}>{t.attendee}</td>
+                  <td style={{ padding: '12px', color: '#64748b' }}>{t.tier}</td>
+                  <td style={{ padding: '12px' }}>
+                    <span style={{ color: t.isMember ? '#15803d' : '#475569', background: t.isMember ? '#dcfce7' : '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                      {t.isMember ? 'Active Member' : 'Non-Member'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '12px' }}>
+                    {t.checkedIn ? (
+                      <span style={{ color: '#15803d', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}>
+                        <CheckCircle2 style={{ width: '14px', height: '14px' }} />
+                        Admitted ({t.time})
+                      </span>
+                    ) : (
+                      <span style={{ color: '#b45309', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}>
+                        <Clock style={{ width: '14px', height: '14px' }} />
+                        Not Arrived
+                      </span>
+                    )}
+                  </td>
+                  <td style={{ padding: '12px', textAlign: 'right' }}>
+                    {t.checkedIn ? (
+                      <span style={{ color: '#94a3b8', fontSize: '12px' }}>Verified</span>
+                    ) : (
+                      <button
+                        onClick={() => handleCheckIn(t.id)}
+                        style={{ background: '#1e3a8a', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        Check In
+                      </button>
+                    )}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredTickets.map((t) => (
-                  <tr
-                    key={t.id}
-                    className="hover:bg-slate-50/60 transition-colors"
-                  >
-                    <td className="py-3.5 px-4 font-mono font-medium text-slate-700">
-                      {t.id}
-                    </td>
-                    <td className="py-3.5 px-4 font-bold text-slate-900">
-                      {t.attendee}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-600">{t.tier}</td>
-                    <td className="py-3.5 px-4">
-                      {t.isMember ? (
-                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                          Active Member
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-                          Non-Member
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      {t.checkedIn ? (
-                        <div className="flex items-center gap-1.5 text-emerald-600 font-medium">
-                          <CheckCircle2 className="h-4 w-4" />
-                          <span>Admitted at {t.time}</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1.5 text-amber-600 font-medium">
-                          <Clock className="h-4 w-4" />
-                          <span>Not Arrived</span>
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      {t.checkedIn ? (
-                        <span className="text-slate-400 font-semibold text-[11px]">
-                          Verified
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => handleCheckIn(t.id)}
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg text-xs font-semibold shadow-xs transition-colors"
-                        >
-                          Scan / Check In
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
-      {/* TAB 3: POST-EVENT ANALYTICS */}
-      {activeTab === "analytics" && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span className="text-xs font-medium text-slate-500">
-              Actual Turnout
-            </span>
-            <p className="text-2xl font-bold text-slate-900 mt-1">
-              385 / 420 (91.6%)
-            </p>
-            <p className="text-[11px] text-emerald-600 mt-1">
-              +14% higher attendance vs last semester
-            </p>
+      {/* TAB 3: ANALYTICS */}
+      {activeTab === 'analytics' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+          <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px' }}>
+            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>Turnout Rate</span>
+            <div style={{ fontSize: '24px', fontWeight: 700, color: '#1e293b', margin: '4px 0' }}>385 / 420 (91.6%)</div>
+            <span style={{ fontSize: '12px', color: '#15803d', fontWeight: 500 }}>+14% turnout vs last semester</span>
           </div>
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span className="text-xs font-medium text-slate-500">
-              Total Ticket Revenue
-            </span>
-            <p className="text-2xl font-bold text-slate-900 mt-1">₹58,500</p>
-            <p className="text-[11px] text-slate-500 mt-1">
-              Avg ₹139.2 per registered attendee
-            </p>
+
+          <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px' }}>
+            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>Total Ticket Revenue</span>
+            <div style={{ fontSize: '24px', fontWeight: 700, color: '#1e293b', margin: '4px 0' }}>₹58,500</div>
+            <span style={{ fontSize: '12px', color: '#64748b' }}>Avg ₹139.2 per registered attendee</span>
           </div>
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span className="text-xs font-medium text-slate-500">
-              Estimated Net Profit
-            </span>
-            <p className="text-2xl font-bold text-indigo-600 mt-1">₹26,500</p>
-            <p className="text-[11px] text-indigo-500 mt-1">
-              After deducting venue & sound expenses
-            </p>
+
+          <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px' }}>
+            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>Estimated Net Balance</span>
+            <div style={{ fontSize: '24px', fontWeight: 700, color: '#15803d', margin: '4px 0' }}>₹26,500</div>
+            <span style={{ fontSize: '12px', color: '#64748b' }}>After auditorium & catering costs</span>
           </div>
         </div>
       )}

@@ -74,131 +74,214 @@ export const MerchandiseTaskModule: React.FC = () => {
   const progressPercent = Math.round((completedCount / tasks.length) * 100);
 
   return (
-    <div className="space-y-6">
-      {/* Module Title Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      {/* ── 1. MODULE HEADER ───────────────────────────────── */}
+      <div
+        style={{
+          background: "white",
+          borderRadius: "12px",
+          border: "1px solid #e2e8f0",
+          padding: "20px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "16px",
+        }}
+      >
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+            <span
+              style={{
+                fontSize: "11px",
+                fontWeight: 600,
+                color: "#b45309",
+                background: "#fef3c7",
+                padding: "2px 8px",
+                borderRadius: "4px",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+              }}
+            >
               Dev 3 Workstream
             </span>
-            <span className="text-xs text-slate-400 font-medium">
-              Problem Statement Scenes:
-            </span>
-            <span className="text-xs font-semibold text-slate-700">
-              "Ordering club hoodies" & "Planning a fundraiser"
+            <span style={{ fontSize: "12px", color: "#64748b" }}>
+              Problem Scenes: "Ordering club hoodies" & "Planning a fundraiser"
             </span>
           </div>
-          <h2 className="text-xl font-bold text-slate-900 mt-1">
+          <h2 style={{ fontSize: "20px", fontWeight: 700, color: "#1e293b", margin: "0 0 4px 0" }}>
             Merchandise Inventory & Fundraiser Operations
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Online apparel sizing & real-time stock control, plus collaborative
-            volunteer task tracking replacing chaotic group chats.
+          <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
+            Apparel sizing & real-time stock control, plus collaborative volunteer task tracking replacing chaotic group chats.
           </p>
         </div>
       </div>
 
       {orderAlert && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs text-emerald-800 animate-in fade-in">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+        <div
+          style={{
+            padding: "14px 18px",
+            borderRadius: "8px",
+            background: "#dcfce7",
+            border: "1px solid #bbf7d0",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontSize: "13px",
+            color: "#15803d",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <CheckCircle2 size={16} color="#15803d" />
             <span>{orderAlert}</span>
           </div>
           <button
             onClick={() => setOrderAlert(null)}
-            className="font-bold underline hover:text-emerald-900"
+            style={{
+              background: "none",
+              border: "none",
+              color: "#15803d",
+              fontWeight: 600,
+              cursor: "pointer",
+              fontSize: "12px",
+            }}
           >
             Dismiss
           </button>
         </div>
       )}
 
-      {/* SECTION 1: MERCHANDISE STORE WITH SIZE STOCK */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <ShoppingBag className="h-5 w-5 text-amber-600" />
-              Club Apparel & Merchandise (Live Size Stock Tracker)
-            </h3>
-            <p className="text-xs text-slate-500">
-              Members can order 24/7 with zero paper forms or missing payments.
-            </p>
-          </div>
+      {/* ── 2. APPAREL & MERCHANDISE SECTION ───────────────── */}
+      <div>
+        <div style={{ marginBottom: "14px" }}>
+          <h3
+            style={{
+              fontSize: "15px",
+              fontWeight: 600,
+              color: "#1e293b",
+              margin: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <ShoppingBag size={18} color="#1e3a8a" />
+            Club Apparel & Merchandise (Live Size Stock Tracker)
+          </h3>
+          <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 0" }}>
+            Direct online orders 24/7 with instant size tracking and zero paper order forms.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))", gap: "16px" }}>
           {mockMerchandise.map((item) => {
             const currentSize = selectedSize[item.id] || item.variants[0].size;
-            const currentVariant = item.variants.find(
-              (v) => v.size === currentSize,
-            );
+            const currentVariant = item.variants.find((v) => v.size === currentSize);
             const isLowStock = currentVariant && currentVariant.stock <= 5;
 
             return (
               <div
                 key={item.id}
-                className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs flex flex-col sm:flex-row gap-5"
+                style={{
+                  background: "white",
+                  borderRadius: "12px",
+                  border: "1px solid #e2e8f0",
+                  padding: "20px",
+                  display: "flex",
+                  gap: "18px",
+                  alignItems: "center",
+                }}
               >
-                <div className="w-full sm:w-36 h-36 rounded-xl overflow-hidden bg-slate-100 shrink-0 relative">
+                <div
+                  style={{
+                    width: "130px",
+                    height: "130px",
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                    background: "#f1f5f9",
+                    flexShrink: 0,
+                    position: "relative",
+                  }}
+                >
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-full h-full object-cover"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   />
                   {isLowStock && (
-                    <span className="absolute top-2 left-2 text-[10px] font-bold text-rose-700 bg-rose-50/90 px-1.5 py-0.5 rounded border border-rose-200">
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: "6px",
+                        left: "6px",
+                        fontSize: "10px",
+                        fontWeight: 600,
+                        background: "#fef2f2",
+                        color: "#dc2626",
+                        border: "1px solid #fecaca",
+                        padding: "2px 6px",
+                        borderRadius: "4px",
+                      }}
+                    >
                       Only {currentVariant.stock} left!
                     </span>
                   )}
                 </div>
 
-                <div className="flex-1 flex flex-col justify-between space-y-3">
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "10px" }}>
                   <div>
-                    <h4 className="text-sm font-bold text-slate-900">
+                    <h4 style={{ fontSize: "15px", fontWeight: 600, color: "#1e293b", margin: "0 0 4px 0" }}>
                       {item.name}
                     </h4>
-                    <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-base font-bold text-emerald-600">
+                    <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
+                      <span style={{ fontSize: "16px", fontWeight: 700, color: "#15803d" }}>
                         ₹{item.memberPrice}
                       </span>
-                      <span className="text-xs text-slate-400 line-through">
+                      <span style={{ fontSize: "12px", color: "#94a3b8", textDecoration: "line-through" }}>
                         ₹{item.basePrice}
                       </span>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                      <span
+                        style={{
+                          background: "#dcfce7",
+                          color: "#15803d",
+                          fontSize: "11px",
+                          fontWeight: 600,
+                          padding: "2px 6px",
+                          borderRadius: "4px",
+                        }}
+                      >
                         Member 20% Off
                       </span>
                     </div>
                   </div>
 
-                  {/* Size Selector with remaining stock indicators */}
+                  {/* Size Selector */}
                   <div>
-                    <span className="text-[11px] font-semibold text-slate-600 block mb-1.5">
-                      Select Size & Check Available Stock:
+                    <span style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", display: "block", marginBottom: "6px" }}>
+                      Select Size & Stock:
                     </span>
-                    <div className="flex items-center gap-2">
+                    <div style={{ display: "flex", gap: "6px" }}>
                       {item.variants.map((v) => {
                         const isSelected = currentSize === v.size;
                         return (
                           <button
                             key={v.size}
-                            onClick={() =>
-                              setSelectedSize({
-                                ...selectedSize,
-                                [item.id]: v.size,
-                              })
-                            }
-                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
-                              isSelected
-                                ? "bg-amber-600 text-white border-amber-600 shadow-xs"
-                                : "bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300"
-                            }`}
+                            onClick={() => setSelectedSize({ ...selectedSize, [item.id]: v.size })}
+                            style={{
+                              padding: "4px 10px",
+                              borderRadius: "6px",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              border: isSelected ? "1px solid #1e3a8a" : "1px solid #e2e8f0",
+                              background: isSelected ? "#1e3a8a" : "#f8fafc",
+                              color: isSelected ? "white" : "#475569",
+                              transition: "all 0.2s",
+                            }}
                           >
                             <span>{v.size}</span>
-                            <span className="text-[10px] opacity-75 ml-1 font-normal">
-                              ({v.stock})
-                            </span>
+                            <span style={{ fontSize: "10px", opacity: 0.8, marginLeft: "4px" }}>({v.stock})</span>
                           </button>
                         );
                       })}
@@ -206,15 +289,25 @@ export const MerchandiseTaskModule: React.FC = () => {
                   </div>
 
                   <button
-                    onClick={() =>
-                      handleOrder(item.name, currentSize, item.memberPrice)
-                    }
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2 px-3 rounded-xl transition-colors shadow-xs flex items-center justify-center gap-1.5"
+                    onClick={() => handleOrder(item.name, currentSize, item.memberPrice)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      padding: "8px 14px",
+                      background: "#1e3a8a",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "6px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
                   >
-                    <Truck className="h-3.5 w-3.5" />
-                    <span>
-                      Order Online (Size {currentSize} • ₹{item.memberPrice})
-                    </span>
+                    <Truck size={14} />
+                    Order Online (Size {currentSize} • ₹{item.memberPrice})
                   </button>
                 </div>
               </div>
@@ -223,74 +316,128 @@ export const MerchandiseTaskModule: React.FC = () => {
         </div>
       </div>
 
-      {/* SECTION 2: FUNDRAISER VOLUNTEER TASK BOARD */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+      {/* ── 3. FUNDRAISER VOLUNTEER TASK BOARD ──────────────── */}
+      <div
+        style={{
+          background: "white",
+          borderRadius: "12px",
+          border: "1px solid #e2e8f0",
+          padding: "20px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderBottom: "1px solid #e2e8f0",
+            paddingBottom: "14px",
+            marginBottom: "16px",
+            flexWrap: "wrap",
+            gap: "12px",
+          }}
+        >
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <CheckSquare className="h-5 w-5 text-indigo-600" />
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#1e293b", margin: 0, display: "flex", alignItems: "center", gap: "6px" }}>
+                <CheckSquare size={18} color="#1e3a8a" />
                 Spring Bake Sale Volunteer Task Board
               </h3>
-              <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+              <span
+                style={{
+                  background: "#eff6ff",
+                  color: "#1e3a8a",
+                  padding: "2px 8px",
+                  borderRadius: "4px",
+                  fontSize: "11px",
+                  fontWeight: 600,
+                }}
+              >
                 Fundraiser Ops
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Everyone sees who is baking, buying supplies, and staffing tables
-              without losing track in WhatsApp chats.
+            <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 0" }}>
+              Track baking, supply purchasing, and table shift duties with live volunteer assignment transparency.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="text-right hidden sm:block">
-              <span className="text-xs font-bold text-slate-800">
-                {completedCount} of {tasks.length} Done ({progressPercent}%)
-              </span>
-              <div className="w-28 h-2 bg-slate-100 rounded-full overflow-hidden mt-1">
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: "12px", fontWeight: 600, color: "#1e293b" }}>
+                {completedCount} of {tasks.length} Completed ({progressPercent}%)
+              </div>
+              <div
+                style={{
+                  width: "120px",
+                  height: "6px",
+                  background: "#f1f5f9",
+                  borderRadius: "3px",
+                  overflow: "hidden",
+                  marginTop: "4px",
+                }}
+              >
                 <div
-                  className="h-full bg-indigo-600 rounded-full"
-                  style={{ width: `${progressPercent}%` }}
+                  style={{
+                    height: "100%",
+                    width: `${progressPercent}%`,
+                    background: "#16a34a",
+                    borderRadius: "3px",
+                    transition: "width 0.3s ease",
+                  }}
                 />
               </div>
             </div>
 
             <button
               onClick={() => setShowTaskModal(true)}
-              className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "8px 14px",
+                background: "#1e3a8a",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                fontSize: "12px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
             >
-              <Plus className="h-3.5 w-3.5" />
-              <span>Add Task</span>
+              <Plus size={14} />
+              Add Task
             </button>
           </div>
         </div>
 
-        {/* Modal for adding task */}
+        {/* Modal / Form for adding task */}
         {showTaskModal && (
           <form
             onSubmit={handleAddTask}
-            className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 text-xs"
+            style={{
+              padding: "16px",
+              borderRadius: "8px",
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
+              marginBottom: "16px",
+            }}
           >
-            <div className="font-bold text-slate-800">
+            <div style={{ fontSize: "13px", fontWeight: 600, color: "#1e293b", marginBottom: "10px" }}>
               New Volunteer Task Assignment
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "10px", marginBottom: "12px" }}>
               <input
                 type="text"
                 placeholder="Task description (e.g. Bake brownies)"
                 value={newTask.title}
-                onChange={(e) =>
-                  setNewTask({ ...newTask, title: e.target.value })
-                }
-                className="px-3 py-2 rounded-lg border border-slate-200 bg-white"
+                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                style={taskInputStyle}
                 required
               />
               <select
                 value={newTask.category}
-                onChange={(e) =>
-                  setNewTask({ ...newTask, category: e.target.value as any })
-                }
-                className="px-3 py-2 rounded-lg border border-slate-200 bg-white"
+                onChange={(e) => setNewTask({ ...newTask, category: e.target.value as any })}
+                style={taskSelectStyle}
               >
                 <option value="Baking">Baking Duty</option>
                 <option value="Supplies">Supplies & Ingredients</option>
@@ -301,24 +448,40 @@ export const MerchandiseTaskModule: React.FC = () => {
                 type="text"
                 placeholder="Assignee student name"
                 value={newTask.assignee}
-                onChange={(e) =>
-                  setNewTask({ ...newTask, assignee: e.target.value })
-                }
-                className="px-3 py-2 rounded-lg border border-slate-200 bg-white"
+                onChange={(e) => setNewTask({ ...newTask, assignee: e.target.value })}
+                style={taskInputStyle}
                 required
               />
             </div>
-            <div className="flex justify-end gap-2">
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
               <button
                 type="button"
                 onClick={() => setShowTaskModal(false)}
-                className="px-3 py-1 rounded-lg text-slate-600 hover:text-slate-800"
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid #e2e8f0",
+                  background: "white",
+                  color: "#64748b",
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                }}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-3 py-1 rounded-lg bg-indigo-600 text-white font-semibold"
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: "6px",
+                  background: "#1e3a8a",
+                  color: "white",
+                  border: "none",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
               >
                 Assign Task
               </button>
@@ -326,69 +489,100 @@ export const MerchandiseTaskModule: React.FC = () => {
           </form>
         )}
 
-        {/* Task Cards List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        {/* Task Cards Grid (3-col) */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
           {tasks.map((task) => {
             const isDone = task.status === "DONE";
-            const categoryColors: Record<string, string> = {
-              Baking: "bg-amber-50 text-amber-700 border-amber-200",
-              Supplies: "bg-blue-50 text-blue-700 border-blue-200",
-              "Table Shift":
-                "bg-emerald-50 text-emerald-700 border-emerald-200",
-              Promotion: "bg-purple-50 text-purple-700 border-purple-200",
+            const categoryBadgeStyle: Record<string, { bg: string; color: string }> = {
+              Baking: { bg: "#fef3c7", color: "#b45309" },
+              Supplies: { bg: "#eff6ff", color: "#1e3a8a" },
+              "Table Shift": { bg: "#dcfce7", color: "#15803d" },
+              Promotion: { bg: "#f3e8ff", color: "#7c3aed" },
             };
+            const badge = categoryBadgeStyle[task.category] || { bg: "#f1f5f9", color: "#475569" };
 
             return (
               <div
                 key={task.id}
-                className={`p-4 rounded-xl border transition-all flex flex-col justify-between space-y-3 ${
-                  isDone
-                    ? "bg-slate-50/70 border-slate-200 text-slate-500"
-                    : "bg-white border-slate-200 shadow-xs hover:border-indigo-300"
-                }`}
+                style={{
+                  padding: "16px",
+                  borderRadius: "10px",
+                  border: "1px solid #e2e8f0",
+                  background: isDone ? "#f8fafc" : "white",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  gap: "12px",
+                  transition: "all 0.2s",
+                }}
               >
                 <div>
-                  <div className="flex items-center justify-between gap-2 mb-2">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                     <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
-                        categoryColors[task.category] ||
-                        "bg-slate-100 text-slate-700"
-                      }`}
+                      style={{
+                        fontSize: "10px",
+                        fontWeight: 600,
+                        padding: "2px 6px",
+                        borderRadius: "4px",
+                        background: badge.bg,
+                        color: badge.color,
+                      }}
                     >
                       {task.category}
                     </span>
-                    <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
+                    <span style={{ fontSize: "11px", color: "#94a3b8", display: "flex", alignItems: "center", gap: "4px" }}>
+                      <Clock size={12} />
                       {task.dueDate}
                     </span>
                   </div>
 
-                  <p
-                    className={`text-xs font-bold ${isDone ? "line-through text-slate-400" : "text-slate-900"}`}
+                  <div
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      color: isDone ? "#94a3b8" : "#1e293b",
+                      textDecoration: isDone ? "line-through" : "none",
+                    }}
                   >
                     {task.title}
-                  </p>
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-[10px]">
-                      {task.assignee.substring(0, 2)}
-                    </div>
-                    <span className="font-medium text-slate-700">
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    borderTop: "1px solid #f1f5f9",
+                    paddingTop: "10px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <img
+                      src={`https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(task.assignee)}&backgroundColor=b6e3f4`}
+                      alt={task.assignee}
+                      style={{ width: "24px", height: "24px", borderRadius: "50%" }}
+                    />
+                    <span style={{ fontSize: "12px", fontWeight: 500, color: "#475569" }}>
                       {task.assignee}
                     </span>
                   </div>
 
                   <button
                     onClick={() => handleToggleTask(task.id)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors ${
-                      isDone
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : "bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-700"
-                    }`}
+                    style={{
+                      padding: "4px 8px",
+                      borderRadius: "4px",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      border: isDone ? "1px solid #bbf7d0" : "1px solid #e2e8f0",
+                      background: isDone ? "#dcfce7" : "#f8fafc",
+                      color: isDone ? "#15803d" : "#475569",
+                      transition: "all 0.2s",
+                    }}
                   >
-                    {isDone ? "Completed" : "Mark Done"}
+                    {isDone ? "Done ✓" : "Mark Done"}
                   </button>
                 </div>
               </div>
@@ -399,3 +593,26 @@ export const MerchandiseTaskModule: React.FC = () => {
     </div>
   );
 };
+
+/* ─── MODULE-SCOPE STYLES ───────────────────────────────── */
+const taskInputStyle: React.CSSProperties = {
+  height: "36px",
+  padding: "0 10px",
+  border: "1px solid #e2e8f0",
+  borderRadius: "6px",
+  background: "white",
+  fontSize: "12px",
+  outline: "none",
+};
+
+const taskSelectStyle: React.CSSProperties = {
+  height: "36px",
+  padding: "0 10px",
+  border: "1px solid #e2e8f0",
+  borderRadius: "6px",
+  background: "white",
+  fontSize: "12px",
+  outline: "none",
+  cursor: "pointer",
+};
+
