@@ -5,7 +5,7 @@ import { AppHeader } from '../components/shared/AppHeader';
 import { useUiStore } from '../stores/ui.store';
 
 /**
- * MainLayout shell component matching CampusMitra Master UI Architecture:
+ * MainLayout shell component matching CampusFlow Master UI Architecture:
  * - Unified responsive layout for ALL roles (Student, Member, Volunteer, Organizer, Treasurer, President, Admin)
  * - Desktop: Sticky Collapsible Sidebar + Flex-1 Content Column
  * - Mobile: Sliding Drawer Sidebar with Backdrop Overlay + Hamburger Toggle in Header

@@ -2,7 +2,7 @@ import { LucideIcon } from 'lucide-react';
 import { UserRole } from '../config/roles';
 
 /**
- * Standard User entity interface matching CampusMitra backend identity schema.
+ * Standard User entity interface matching CampusFlow backend identity schema.
  */
 export interface User {
   id: string;

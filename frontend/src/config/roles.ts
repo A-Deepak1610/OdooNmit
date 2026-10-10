@@ -1,5 +1,5 @@
 /**
- * CampusMitra Unified Role System
+ * CampusFlow Unified Role System
  * Supported role types for students, club members, officers, and administrators.
  */
 

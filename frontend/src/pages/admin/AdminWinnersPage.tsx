@@ -29,7 +29,7 @@ const INITIAL_WINNERS: WinnerEntry[] = [
     category: 'Full-Stack & Web3 Track',
     teamName: 'Team ByteForce',
     members: ['THIRUMURUGAN K', 'DEEPAK A', 'HEMANTH S V', 'RITHISH S'],
-    projectTitle: 'CampusMitra & CampusFlow Sovereign Club ERP',
+    projectTitle: 'CampusFlow & CampusFlow Sovereign Club ERP',
     prizeAmount: 50000,
     score: '98.5 / 100',
     date: 'Oct 2026',

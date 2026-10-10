@@ -127,7 +127,7 @@ export const VolunteerSidebar: React.FC<VolunteerSidebarProps> = ({ onCloseMobil
                 lineHeight: 1.1,
               }}
             >
-              CampusMitra
+              CampusFlow
             </div>
             <div
               style={{

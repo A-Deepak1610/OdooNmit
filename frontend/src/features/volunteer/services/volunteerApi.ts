@@ -13,7 +13,7 @@ import {
  * =============================================================================
  * VOLUNTEER API CONTRACT & CLIENT SERVICE
  * =============================================================================
- * Connects the Volunteer Portal to CampusMitra REST APIs.
+ * Connects the Volunteer Portal to CampusFlow REST APIs.
  *
  * Current Backend Status:
  * - Profile & Auth endpoints are implemented (/api/v1/users/me, /api/v1/auth/me)

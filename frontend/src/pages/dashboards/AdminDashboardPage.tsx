@@ -121,6 +121,45 @@ const INITIAL_AUDITS: AuditEntry[] = [
   },
 ];
 
+interface ActivityMonth {
+  month: string;
+  events: number;
+  attendees: number;
+  revenue: number;
+  isProjection?: boolean;
+}
+
+const MONTHLY_STATS: ActivityMonth[] = [
+  { month: 'Jun', events: 3, attendees: 420, revenue: 38000 },
+  { month: 'Jul', events: 5, attendees: 680, revenue: 64000 },
+  { month: 'Aug', events: 8, attendees: 1150, revenue: 112000 },
+  { month: 'Sep', events: 12, attendees: 1820, revenue: 185000 },
+  { month: 'Oct', events: 15, attendees: 2450, revenue: 265000 },
+  { month: 'Nov', events: 18, attendees: 3100, revenue: 340000, isProjection: true },
+];
+
+interface DomainStat {
+  label: string;
+  count: number;
+  percentage: number;
+  color: string;
+  bg: string;
+}
+
+const DOMAIN_DISTRIBUTION: DomainStat[] = [
+  { label: 'Technical & Coding', count: 5, percentage: 42, color: '#1e3a8a', bg: '#eff6ff' },
+  { label: 'Cultural & Performing', count: 3, percentage: 25, color: '#db2777', bg: '#fdf2f8' },
+  { label: 'Entrepreneurship & E-Cell', count: 2, percentage: 17, color: '#d97706', bg: '#fffbeb' },
+  { label: 'Sports & Social Welfare', count: 2, percentage: 16, color: '#059669', bg: '#ecfdf5' },
+];
+
+const TOP_CLUBS_CAPACITY = [
+  { name: 'Skyline Student Association', slug: 'skyline-sa', enrolled: 248, capacity: 300, duesRate: '94% Paid', color: '#1e3a8a' },
+  { name: 'Campus Robotics & AI Society', slug: 'robotics-ai', enrolled: 184, capacity: 250, duesRate: '88% Paid', color: '#2563eb' },
+  { name: 'IEEE Student Chapter', slug: 'ieee-student', enrolled: 310, capacity: 350, duesRate: '98% Paid', color: '#0284c7' },
+  { name: 'Literary & Debating Union', slug: 'literary-union', enrolled: 142, capacity: 200, duesRate: '82% Paid', color: '#7c3aed' },
+];
+
 export const AdminDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [organizations, setOrganizations] = useState<OrganizationItem[]>(INITIAL_ORGANIZATIONS);
@@ -128,6 +167,11 @@ export const AdminDashboardPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showOrgModal, setShowOrgModal] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
+
+  // Chart Interactive States
+  const [chartMetric, setChartMetric] = useState<'attendees' | 'events'>('attendees');
+  const [hoveredBarIndex, setHoveredBarIndex] = useState<number | null>(null);
+  const [hoveredDomain, setHoveredDomain] = useState<string | null>(null);
 
   // New Org Form State
   const [newOrgName, setNewOrgName] = useState('');
@@ -534,9 +578,19 @@ export const AdminDashboardPage: React.FC = () => {
                         className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 border-slate-100 dark:border-slate-800"
                       >
                         <td style={{ padding: '16px 20px' }}>
-                          <div style={{ fontWeight: 600, color: 'var(--foreground, #1e293b)' }} className="text-slate-900 dark:text-slate-100">
+                          <Link
+                            to={`/admin/clubs?club=${org.slug}`}
+                            style={{
+                              fontWeight: 600,
+                              color: '#1e3a8a',
+                              textDecoration: 'none',
+                              display: 'inline-block',
+                            }}
+                            className="hover:underline"
+                            title="Click to view full club profile, dues and events"
+                          >
                             {org.name}
-                          </div>
+                          </Link>
                           <div style={{ fontSize: '12px', color: '#64748b' }}>
                             tenant slug: <code style={{ fontFamily: 'monospace', color: '#1e3a8a' }}>/{org.slug}</code>
                           </div>
@@ -578,6 +632,24 @@ export const AdminDashboardPage: React.FC = () => {
 
                         <td style={{ padding: '16px 20px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+                            <Link
+                              to={`/admin/clubs?club=${org.slug}`}
+                              style={{
+                                padding: '6px 12px',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                border: '1px solid #bfdbfe',
+                                background: '#eff6ff',
+                                color: '#1e3a8a',
+                                textDecoration: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              View Details
+                            </Link>
                             <button
                               onClick={() => handleToggleOrgStatus(org.id)}
                               style={{

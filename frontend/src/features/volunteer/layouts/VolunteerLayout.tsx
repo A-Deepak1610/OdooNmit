@@ -5,7 +5,7 @@ import { VolunteerHeader } from '../components/VolunteerHeader';
 
 /**
  * VolunteerLayout:
- * Follows CampusMitra Master UI Shell Architecture:
+ * Follows CampusFlow Master UI Shell Architecture:
  * - Flex row: 260px Fixed Sidebar + Flex 1 Content Column
  * - Content Column: Navbar (h: 60px) + <main> (flex 1, overflowY: auto)
  * - Container: max-width 1400px, padding: 24px 32px

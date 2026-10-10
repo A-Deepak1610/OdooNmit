@@ -452,10 +452,10 @@ export const RoleDashboardPage: React.FC<RoleDashboardProps> = ({ role }) => {
               {role === 'TREASURER'
                 ? 'Semester Income & Expense Breakdown'
                 : role === 'PRESIDENT'
-                ? 'Club Leadership & Program Health'
-                : role === 'EVENT_ORGANIZER'
-                ? 'Live Event Capacity & Ticket Sales'
-                : 'My Club Status & Pass Privileges'}
+                  ? 'Club Leadership & Program Health'
+                  : role === 'EVENT_ORGANIZER'
+                    ? 'Live Event Capacity & Ticket Sales'
+                    : 'My Club Status & Pass Privileges'}
             </h3>
             <span
               style={{
@@ -588,10 +588,10 @@ export const RoleDashboardPage: React.FC<RoleDashboardProps> = ({ role }) => {
               {role === 'TREASURER'
                 ? 'Pending Reimbursements Queue'
                 : role === 'EVENT_ORGANIZER'
-                ? 'Door Check-in Desk'
-                : role === 'PRESIDENT'
-                ? 'Appointed Officers'
-                : 'Member Discounts & Benefits'}
+                  ? 'Door Check-in Desk'
+                  : role === 'PRESIDENT'
+                    ? 'Appointed Officers'
+                    : 'Member Discounts & Benefits'}
             </h3>
 
             {role === 'TREASURER' ? (
@@ -676,7 +676,7 @@ export const RoleDashboardPage: React.FC<RoleDashboardProps> = ({ role }) => {
           </div>
 
           <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '14px', fontSize: '12px', color: '#94a3b8' }}>
-            CampusMitra Student Organization System • Role-Based Access Control
+            CampusFlow Student Organization System • Role-Based Access Control
           </div>
         </div>
       </div>

@@ -20,7 +20,7 @@ model HealthCheckLog {
 }
 
 // -----------------------------------------------------------------------------
-// CampusMitra: User & Authentication Core
+// CampusFlow: User & Authentication Core
 // -----------------------------------------------------------------------------
 
 enum AccountStatus {
