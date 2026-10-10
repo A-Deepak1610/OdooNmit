@@ -111,20 +111,21 @@ const ROLE_CONFIGS: Record<string, RoleConfig> = {
   // =========================================================================
   EVENT_ORGANIZER: {
     title: 'Event Organizer Console',
-    subtitle: 'Manage events, configure member/non-member pricing, monitor ticket quotas, scan tickets, and track live turnout revenue.',
-    actionLabel: 'Create New Event',
+    subtitle: 'Manage events, configure member/non-member pricing, monitor ticket quotas, track demographic analytics, and manage event-day live check-in.',
+    actionLabel: 'Organize New Event',
     actionPath: '/organizer/events',
     stats: [
-      { label: 'Spring Gala Quota', value: '420 / 500 Seats', subtitle: '84% booked online', color: '#1e3a8a', bg: '#eff6ff', icon: Ticket },
-      { label: 'Ticket Revenue', value: '₹58,500', subtitle: 'Direct collections into club books', color: '#15803d', bg: '#dcfce7', icon: Landmark },
-      { label: 'Entrance Turnout', value: '385 Scanned', subtitle: '91.6% turnout rate verified at door', color: '#b45309', bg: '#fef3c7', icon: QrCode },
-      { label: 'Ticket Pricing', value: '₹150 / ₹250', subtitle: 'Member discount pricing applied', color: '#7c3aed', bg: '#f3e8ff', icon: DollarSign },
+      { label: 'Total Tickets Sold', value: '647 Passes', subtitle: 'Across 10 collegiate events', color: '#1e3a8a', bg: '#eff6ff', icon: Ticket },
+      { label: 'Total Revenue Collected', value: '₹2,172', subtitle: 'Direct collections into club books', color: '#15803d', bg: '#dcfce7', icon: Landmark },
+      { label: 'Event Day Turnout', value: '67% Verified', subtitle: 'Live checked-in attendance rate', color: '#b45309', bg: '#fef3c7', icon: UserCheck },
+      { label: 'Volunteer Delegations', value: '30 Tasks Active', subtitle: 'Assigned to volunteer squad', color: '#7c3aed', bg: '#f3e8ff', icon: CheckSquare },
     ],
     actions: [
-      { label: 'Create & Setup Event', description: 'Set date, venue, capacity, and member/non-member ticket prices', color: '#1e3a8a', bg: '#eff6ff', icon: Calendar, path: '/organizer/events' },
-      { label: 'Door Check-in Scanner', description: 'Scan QR tickets in seconds and prevent duplicate admission', color: '#15803d', bg: '#dcfce7', icon: QrCode, path: '/volunteer/scanner' },
-      { label: 'Attendance & Revenue Reports', description: 'Track live attendance count and total ticket revenue', color: '#b45309', bg: '#fef3c7', icon: PieChart, path: '/organizer/attendees' },
-      { label: 'Publish Event Announcement', description: 'Broadcast event schedule updates directly to registered guests', color: '#7c3aed', bg: '#f3e8ff', icon: Megaphone, path: '/student/announcements' },
+      { label: 'Events & Ticket Details', description: 'Monitor capacity, differential quotas, and pricing rules', color: '#1e3a8a', bg: '#eff6ff', icon: Ticket, path: '/organizer/events' },
+      { label: 'Demographic & Mapbox Analytics', description: 'Interactive Mapbox satellite participant distribution & charts', color: '#7c3aed', bg: '#f3e8ff', icon: PieChart, path: '/organizer/analytics' },
+      { label: 'Revenue & Fee Collections', description: 'Audit ticket proceeds, member savings, and payment hashes', color: '#15803d', bg: '#dcfce7', icon: DollarSign, path: '/organizer/revenue' },
+      { label: 'Volunteer Squad Delegations', description: 'Assign tasks with priority and deadlines to volunteers', color: '#0d9488', bg: '#ccfbf1', icon: Users, path: '/organizer/volunteers' },
+      { label: 'Event Day Live Check-in Desk', description: 'Real-time turnout counter, velocity charts, and instant check-in toggle', color: '#b45309', bg: '#fef3c7', icon: UserCheck, path: '/organizer/checkin' },
     ],
   },
 

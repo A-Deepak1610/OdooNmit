@@ -118,6 +118,11 @@ model User {
   // Event booking and Razorpay
   bookings Booking[]
   payments Payment[]
+  // Added for event booking and Razorpay
+  bookings       Booking[]
+  payments       Payment[]
+  inchargeEvents Event[]                 @relation("EventIncharge")
+  assignedTasks  EventTask[]             @relation("AssignedTasks")
 
   @@map("users")
 }
@@ -158,6 +163,11 @@ model Organization {
   merchProducts          MerchProduct[]
   studentMerchOrders     StudentMerchOrder[]
 
+  // Added for event & merchandise management
+  events             Event[]
+  merchProducts      MerchProduct[]
+  studentMerchOrders StudentMerchOrder[]
+
   @@map("organizations")
 }
 
@@ -170,6 +180,8 @@ model UserRole {
   assignedAt     DateTime      @default(now())
   duesPaid       Boolean?      @default(false)
   validUntil     DateTime?
+  validUntil     DateTime?
+  duesPaid       Boolean       @default(true)
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
@@ -341,13 +353,49 @@ model Event {
   prizes         String?      @db.Text
   analyticsData  String?      @db.LongText
   inchargeId     String?
+  remainingSeats Int         @default(50)
+  memberPrice    Int         // INR paise
+  nonMemberPrice Int         // INR paise
+  category       String      @default("Hackathon")
+  domain         String      @default("AI/ML")
+  mode           String      @default("offline")
+  teamsCount     Int         @default(0)
+  prizes         String?     @db.Text
+  analyticsData  String?     @db.LongText
+  inchargeId     String?
+  status         EventStatus @default(DRAFT)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  incharge     User?        @relation("EventIncharge", fields: [inchargeId], references: [id], onDelete: SetNull)
   bookings     Booking[]
+  tasks        EventTask[]
 
   @@index([organizationId])
+  @@index([inchargeId])
   @@index([status, startAt])
   @@map("events")
+}
+
+model EventTask {
+  id           String    @id
+  eventId      String
+  title        String
+  description  String?   @db.Text
+  assignedToId String?
+  priority     String    @default("MEDIUM")
+  status       String    @default("PENDING")
+  deadline     DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now())
+
+  event      Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  assignedTo User? @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+  @@index([assignedToId])
+  @@map("event_tasks")
 }
 
 model Booking {
@@ -362,6 +410,8 @@ model Booking {
   status               EventBookingStatus @default(RESERVED)
   reservationExpiresAt DateTime?
   confirmedAt          DateTime?
+  checkedInAt          DateTime?
+  otpCode              String?            @db.VarChar(10)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   checkedInAt          DateTime?
@@ -679,6 +729,7 @@ model MerchProduct {
   memberPrice       Int?
   sku               String
   status            String   @default("ACTIVE") // ACTIVE, DRAFT, ARCHIVED
+  status            String   @default("ACTIVE")
   lowStockThreshold Int      @default(10)
   variants          Json
   stockHistory      Json?
@@ -688,6 +739,7 @@ model MerchProduct {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
+  @@index([category])
   @@map("merch_products")
 }
 
@@ -695,6 +747,7 @@ model StudentMerchOrder {
   id                 String   @id
   organizationId     String
   orderNumber        String   @unique
+  orderNumber        String
   orderDate          String
   studentName        String
   studentId          String
@@ -724,7 +777,9 @@ model StudentMerchOrder {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
+  @@index([studentEmail])
   @@index([paymentStatus])
   @@index([fulfillmentStatus])
   @@map("student_merch_orders")
 }
+

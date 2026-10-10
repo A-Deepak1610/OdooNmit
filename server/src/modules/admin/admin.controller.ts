@@ -31,6 +31,16 @@ export class AdminController {
     }
   }
 
+  async updateClub(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const data = await adminService.updateClub(id, req.body);
+      return sendSuccess(res, data, 'Club updated successfully');
+    } catch (err: any) {
+      return sendError(res, err.message, 400);
+    }
+  }
+
   async updateClubStatus(req: Request, res: Response) {
     try {
       const { id } = req.params;

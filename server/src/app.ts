@@ -8,6 +8,8 @@ import { adminRouter } from './modules/admin/admin.routes.js';
 import { studentRouter } from './modules/student/student.routes.js';
 import { presidentRouter } from './modules/president/president.routes.js';
 import { treasurerRouter } from './modules/treasurer/treasurer.routes.js';
+import { eventRouter } from './modules/event/event.routes.js';
+import { merchandiseRouter } from './modules/merchandise/merchandise.routes.js';
 import { errorHandler } from './common/middlewares/error.middleware.js';
 
 export const app = express();
@@ -36,6 +38,8 @@ app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/student', studentRouter);
 app.use('/api/v1/president', presidentRouter);
 app.use('/api/v1/treasurer', treasurerRouter);
+app.use('/api/v1/events', eventRouter);
+app.use('/api/v1/merchandise', merchandiseRouter);
 
 app.use('*', (req, res) => {
   res.status(404).json({

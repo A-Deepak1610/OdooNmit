@@ -21,8 +21,13 @@ export interface ClubItem {
   category: string;
   logoUrl: string | null;
   coverUrl: string | null;
+  websiteUrl?: string | null;
+  instagramUrl?: string | null;
+  linkedinUrl?: string | null;
+  membershipFee: number;
   isActive: boolean;
   createdAt: string;
+  updatedAt?: string;
   memberCount: number;
   ticketCount: number;
   electionCount: number;
@@ -152,14 +157,45 @@ export const adminService = {
     return res.data.data;
   },
 
+  updateClub: async (
+    clubId: string,
+    data: {
+      name?: string;
+      category?: string;
+      description?: string;
+      logoUrl?: string;
+      coverUrl?: string;
+      membershipFee?: number;
+      websiteUrl?: string;
+      instagramUrl?: string;
+      linkedinUrl?: string;
+      isActive?: boolean;
+    }
+  ) => {
+    const res = await apiClient.patch(`/admin/clubs/${clubId}`, data);
+    return res.data.data as ClubItem;
+  },
+
   updateClubStatus: async (clubId: string, isActive: boolean) => {
     const res = await apiClient.patch(`/admin/clubs/${clubId}/status`, { isActive });
     return res.data.data;
   },
 
-  assignPresident: async (clubId: string, userId: string) => {
+  assignPresident: async (clubId: string, userId: string | null) => {
     const res = await apiClient.post(`/admin/clubs/${clubId}/president`, { userId });
     return res.data.data;
+  },
+
+  getAllUsers: async () => {
+    const res = await apiClient.get('/users/all');
+    return res.data.data as Array<{
+      id: string;
+      username: string;
+      fullName: string;
+      email: string;
+      avatarUrl?: string | null;
+      roles?: Array<{ role: string; organizationId?: string | null }>;
+    }>;
   },
 
   // 3. Support Tickets

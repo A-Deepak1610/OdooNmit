@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  Ticket,
   Vote,
-  Sparkles,
-  Search,
   Plus,
   CheckCircle2,
   AlertCircle,
@@ -13,7 +10,6 @@ import {
   Trophy,
   Loader2,
   X,
-  ChevronRight,
   Users,
 } from 'lucide-react';
 import {
@@ -24,6 +20,8 @@ import {
   ElectionItem,
 } from '../../../services/admin.service';
 import { AdminDbAssistantPage } from '../AdminDbAssistantPage';
+import { AdminQuickOverview } from './AdminQuickOverview';
+import { AdminClubsView } from './AdminClubsView';
 
 export const AdminDashboardPage: React.FC = () => {
   const location = useLocation();
@@ -49,17 +47,8 @@ export const AdminDashboardPage: React.FC = () => {
   // Overview Data
   const [overviewData, setOverviewData] = useState<any>(null);
 
-  // Clubs Data & Modals
+  // Clubs Data
   const [clubs, setClubs] = useState<ClubItem[]>([]);
-  const [clubSearch, setClubSearch] = useState('');
-  const [clubFilter, setClubFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [showCreateClubModal, setShowCreateClubModal] = useState(false);
-  const [newClubForm, setNewClubForm] = useState({ name: '', category: 'Technology', description: '', logoUrl: '' });
-  const [assignPresidentModal, setAssignPresidentModal] = useState<{ open: boolean; club: ClubItem | null; userId: string }>({
-    open: false,
-    club: null,
-    userId: '',
-  });
 
   // Tickets Data & Drawer
   const [tickets, setTickets] = useState<SupportTicketItem[]>([]);
@@ -112,56 +101,6 @@ export const AdminDashboardPage: React.FC = () => {
   }, []);
 
   // ── Club Management Handlers ──────────────────────────────────────────────
-  const handleToggleClubStatus = async (club: ClubItem) => {
-    setActionLoading(true);
-    try {
-      await adminService.updateClubStatus(club.id, !club.isActive);
-      showToast(`Club "${club.name}" status updated to ${!club.isActive ? 'Active' : 'Inactive'}.`);
-      const updated = await adminService.getClubs();
-      setClubs(updated);
-    } catch (err: any) {
-      showToast(err.message || 'Failed to update club status', 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleCreateClubSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newClubForm.name.trim()) return;
-
-    setActionLoading(true);
-    try {
-      await adminService.createClub(newClubForm);
-      showToast(`Club "${newClubForm.name}" created successfully!`);
-      setShowCreateClubModal(false);
-      setNewClubForm({ name: '', category: 'Technology', description: '', logoUrl: '' });
-      const updated = await adminService.getClubs();
-      setClubs(updated);
-    } catch (err: any) {
-      showToast(err.message || 'Failed to create club', 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleAssignPresident = async () => {
-    if (!assignPresidentModal.club || !assignPresidentModal.userId.trim()) return;
-
-    setActionLoading(true);
-    try {
-      await adminService.assignPresident(assignPresidentModal.club.id, assignPresidentModal.userId);
-      showToast(`Appointed President for ${assignPresidentModal.club.name}!`);
-      setAssignPresidentModal({ open: false, club: null, userId: '' });
-      const updated = await adminService.getClubs();
-      setClubs(updated);
-    } catch (err: any) {
-      showToast(err.message || 'Failed to assign leadership', 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   // ── Support Tickets Handlers ──────────────────────────────────────────────
   const handleOpenTicket = async (ticket: SupportTicketItem) => {
     try {
@@ -262,12 +201,7 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
-  // Filtered lists
-  const filteredClubs = clubs.filter((c) => {
-    const matchesSearch = c.name.toLowerCase().includes(clubSearch.toLowerCase()) || c.category.toLowerCase().includes(clubSearch.toLowerCase());
-    const matchesStatus = clubFilter === 'all' || (clubFilter === 'active' && c.isActive) || (clubFilter === 'inactive' && !c.isActive);
-    return matchesSearch && matchesStatus;
-  });
+
 
   const filteredTickets = tickets.filter((t) => {
     return ticketStatusFilter === 'ALL' || t.status === ticketStatusFilter;
@@ -330,256 +264,25 @@ export const AdminDashboardPage: React.FC = () => {
 
       {/* ── 1. QUICK OVERVIEW ────────────────────────────────────────── */}
       {activeTab === 'overview' && overviewData && (
-        <div className="space-y-6">
-          {/* 4 Focused Metric Cards Matching Sidebar Modules */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* 1. Clubs KPI */}
-            <div
-              onClick={() => navigate('/admin/clubs')}
-              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
-            >
-              <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Club Management</span>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-slate-100 text-slate-700">12</span>
-              </div>
-              <div className="text-3xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
-                {overviewData.kpis.totalClubs}
-              </div>
-              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-emerald-600">
-                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
-                <span>{overviewData.kpis.activeClubs} Active</span>
-                <span className="text-slate-400">•</span>
-                <span className="text-slate-500">{overviewData.kpis.inactiveClubs} Inactive</span>
-              </div>
-            </div>
-
-            {/* 2. Tickets KPI */}
-            <div
-              onClick={() => navigate('/admin/tickets')}
-              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
-            >
-              <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Ticket Support</span>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-800">4 Open</span>
-              </div>
-              <div className="text-3xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
-                {overviewData.kpis.totalTickets}
-              </div>
-              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-amber-600">
-                <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />
-                <span>{overviewData.kpis.openTickets} Open Queries</span>
-                <span className="text-slate-400">•</span>
-                <span className="text-indigo-600">{overviewData.kpis.inProgressTickets} In Progress</span>
-              </div>
-            </div>
-
-            {/* 3. Elections KPI */}
-            <div
-              onClick={() => navigate('/admin/elections')}
-              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
-            >
-              <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Annual Elections</span>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-slate-100 text-slate-700">3</span>
-              </div>
-              <div className="text-3xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
-                {overviewData.kpis.totalElections}
-              </div>
-              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-blue-600">
-                <span className="inline-block w-2 h-2 rounded-full bg-blue-500" />
-                <span>{overviewData.kpis.activeElections} Active Elections</span>
-              </div>
-            </div>
-
-            {/* 4. DB Query Assistant KPI */}
-            <div
-              onClick={() => navigate('/admin/assistant')}
-              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
-            >
-              <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">DB Assistant</span>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-purple-100 text-purple-800">NLP</span>
-              </div>
-              <div className="text-2xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
-                Natural Query
-              </div>
-              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-purple-600">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Ask DB in plain English</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Two Column: Recent Tickets & Notifications */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {/* Recent Queries */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Ticket className="w-4 h-4 text-indigo-600" />
-                  <h3 className="text-sm font-bold text-slate-900">Recent Support Queries</h3>
-                </div>
-                <button onClick={() => navigate('/admin/tickets')} className="text-xs text-indigo-600 font-bold hover:underline cursor-pointer">
-                  View All →
-                </button>
-              </div>
-
-              <div className="space-y-2.5">
-                {overviewData.recentTickets.map((t: any) => (
-                  <div
-                    key={t.id}
-                    onClick={() => {
-                      navigate('/admin/tickets');
-                      handleOpenTicket(t);
-                    }}
-                    className="p-3 rounded-xl border border-slate-100 hover:border-slate-300 hover:bg-slate-50/60 transition-all cursor-pointer flex items-center justify-between gap-3"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700">{t.ticketNumber}</span>
-                        <span
-                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-                            t.status === 'OPEN' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
-                          }`}
-                        >
-                          {t.status}
-                        </span>
-                      </div>
-                      <div className="text-xs font-bold text-slate-900 truncate">{t.subject}</div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">By {t.createdBy?.fullName || 'User'}</div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Broadcast Feed */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-4 h-4 text-indigo-600" />
-                <h3 className="text-sm font-bold text-slate-900">Platform Activity Broadcasts</h3>
-              </div>
-
-              <div className="space-y-2.5">
-                {overviewData.recentNotifications.map((n: any) => (
-                  <div key={n.id} className="p-3 rounded-xl bg-slate-50/80 border border-slate-100 flex items-start gap-3">
-                    <div className="p-1.5 rounded-lg bg-indigo-100 text-indigo-700 flex-shrink-0 mt-0.5">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-bold text-slate-900">{n.title}</div>
-                      <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">{n.message}</p>
-                      <span className="text-[10px] text-slate-400 mt-1 block">
-                        {new Date(n.createdAt).toLocaleDateString()} at {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        <AdminQuickOverview
+          overviewData={overviewData}
+          clubs={clubs}
+          tickets={tickets}
+          elections={elections}
+          onOpenTicket={handleOpenTicket}
+          onNavigateTab={(path) => navigate(path)}
+        />
       )}
 
       {/* ── 2. CLUB MANAGEMENT ───────────────────────────────────────── */}
       {activeTab === 'clubs' && (
-        <div className="space-y-4">
-          {/* Action Bar */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 flex-1 max-w-md">
-              <Search className="w-4 h-4 text-slate-400 ml-1" />
-              <input
-                type="text"
-                placeholder="Search clubs by title or category..."
-                value={clubSearch}
-                onChange={(e) => setClubSearch(e.target.value)}
-                className="w-full text-xs font-medium text-slate-800 placeholder:text-slate-400 outline-none"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-bold">
-                {(['all', 'active', 'inactive'] as const).map((filter) => (
-                  <button
-                    key={filter}
-                    onClick={() => setClubFilter(filter)}
-                    className={`px-3 py-1 rounded-lg capitalize transition-all cursor-pointer ${
-                      clubFilter === filter ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
-                    }`}
-                  >
-                    {filter}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => setShowCreateClubModal(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Create Club</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Clubs Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredClubs.map((club) => (
-              <div
-                key={club.id}
-                className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={club.logoUrl || 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=100&h=100&fit=crop'}
-                        alt={club.name}
-                        className="w-10 h-10 rounded-xl object-cover border border-slate-200"
-                      />
-                      <div>
-                        <h4 className="text-sm font-bold text-slate-900 leading-tight">{club.name}</h4>
-                        <span className="text-[11px] font-semibold text-slate-500">{club.category}</span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => handleToggleClubStatus(club)}
-                      disabled={actionLoading}
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all cursor-pointer ${
-                        club.isActive
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                          : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
-                      }`}
-                      title="Click to toggle status"
-                    >
-                      {club.isActive ? 'Active' : 'Inactive'}
-                    </button>
-                  </div>
-
-                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed mb-4">{club.description || 'No description provided.'}</p>
-                </div>
-
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">President</span>
-                    <span className="font-bold text-slate-800 truncate max-w-[140px] block">
-                      {club.president ? club.president.fullName : 'Vacant Position'}
-                    </span>
-                  </div>
-
-                  <button
-                    onClick={() => setAssignPresidentModal({ open: true, club, userId: club.president?.id || '' })}
-                    className="px-2.5 py-1 rounded-lg border border-slate-200 hover:bg-slate-50 text-[11px] font-bold text-indigo-600 cursor-pointer"
-                  >
-                    Assign President
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <AdminClubsView
+          clubs={clubs}
+          isLoading={isLoading}
+          onRefresh={fetchAllData}
+          onClubsUpdated={(updated) => setClubs(updated)}
+          showToast={showToast}
+        />
       )}
 
       {/* ── 3. TICKET SUPPORT ────────────────────────────────────────── */}
@@ -919,130 +622,7 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* 2. Create Club Modal */}
-      {showCreateClubModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-900">Charter New Club</h3>
-              <button onClick={() => setShowCreateClubModal(false)} className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            <form onSubmit={handleCreateClubSubmit} className="space-y-4 text-xs font-bold text-slate-700">
-              <div>
-                <label className="block mb-1">Club Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Artificial Intelligence Research Society"
-                  value={newClubForm.name}
-                  onChange={(e) => setNewClubForm({ ...newClubForm, name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1">Category</label>
-                <select
-                  value={newClubForm.category}
-                  onChange={(e) => setNewClubForm({ ...newClubForm, category: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="Technology">Technology & AI</option>
-                  <option value="Arts & Media">Arts & Media</option>
-                  <option value="Engineering">Engineering & Hardware</option>
-                  <option value="Computer Science">Computer Science</option>
-                  <option value="Finance & Business">Finance & Business</option>
-                  <option value="Sustainability">Sustainability</option>
-                  <option value="Culture">Culture & Music</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block mb-1">Description</label>
-                <textarea
-                  rows={2}
-                  placeholder="Brief summary of club objectives..."
-                  value={newClubForm.description}
-                  onChange={(e) => setNewClubForm({ ...newClubForm, description: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateClubModal(false)}
-                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={actionLoading}
-                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold cursor-pointer disabled:opacity-50"
-                >
-                  Charter Club
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* 3. Assign President Modal */}
-      {assignPresidentModal.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-900">Assign President</h3>
-              <button
-                onClick={() => setAssignPresidentModal({ open: false, club: null, userId: '' })}
-                className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-600">
-              Appoint a student leader as President of <span className="font-bold">{assignPresidentModal.club?.name}</span>.
-            </p>
-
-            <div className="space-y-3 text-xs font-bold text-slate-700">
-              <div>
-                <label className="block mb-1">Student User ID</label>
-                <input
-                  type="text"
-                  placeholder="Paste student UUID"
-                  value={assignPresidentModal.userId}
-                  onChange={(e) => setAssignPresidentModal({ ...assignPresidentModal, userId: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setAssignPresidentModal({ open: false, club: null, userId: '' })}
-                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleAssignPresident}
-                  disabled={actionLoading}
-                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold cursor-pointer disabled:opacity-50"
-                >
-                  Confirm Appointment
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 4. Announce Election Modal */}
       {showCreateElectionModal && (

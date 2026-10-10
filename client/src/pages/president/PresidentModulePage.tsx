@@ -22,6 +22,8 @@ import {
   UserCheck,
   UserX,
   RefreshCw,
+  AlertTriangle,
+  Send,
 } from 'lucide-react';
 import {
   presidentService,
@@ -29,6 +31,7 @@ import {
   PresidentAnnouncement,
   PresidentMember,
   PresidentApplication,
+  ClubDuesOverview,
 } from '../../services/president.service';
 
 export const PresidentModulePage: React.FC = () => {
@@ -88,6 +91,9 @@ export const PresidentModulePage: React.FC = () => {
   const [appFilter, setAppFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING');
   const [memberSearch, setMemberSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
+  const [duesFilter, setDuesFilter] = useState<'ALL' | 'EXPIRING_SOON' | 'OVERDUE' | 'ACTIVE'>('ALL');
+  const [duesOverview, setDuesOverview] = useState<ClubDuesOverview | null>(null);
+  const [sendingReminders, setSendingReminders] = useState(false);
 
   // Application Detail Modal
   const [selectedApp, setSelectedApp] = useState<PresidentApplication | null>(null);
@@ -101,17 +107,19 @@ export const PresidentModulePage: React.FC = () => {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [overviewRes, announcementsRes, membersRes, appsRes] = await Promise.all([
+      const [overviewRes, announcementsRes, membersRes, appsRes, duesRes] = await Promise.all([
         presidentService.getOverview(),
         presidentService.getAnnouncements(),
         presidentService.getMembers(),
         presidentService.getApplications(),
+        presidentService.getDuesOverview(),
       ]);
 
       setProfile(overviewRes.club);
       setAnnouncements(announcementsRes);
       setMembers(membersRes);
       setApplications(appsRes);
+      setDuesOverview(duesRes);
 
       setFeeInput(overviewRes.club.membershipFeeINR || '500');
       setProfileForm({
@@ -128,6 +136,21 @@ export const PresidentModulePage: React.FC = () => {
       showToast(err.message || 'Failed to load club executive data', 'error');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSendReminders = async () => {
+    try {
+      setSendingReminders(true);
+      const res = await presidentService.sendDuesReminders();
+      showToast(res.message);
+      // Reload dues overview
+      const updated = await presidentService.getDuesOverview();
+      setDuesOverview(updated);
+    } catch (err: any) {
+      showToast(err.message || 'Failed to dispatch reminders', 'error');
+    } finally {
+      setSendingReminders(false);
     }
   };
 
@@ -311,7 +334,12 @@ export const PresidentModulePage: React.FC = () => {
       m.user.email.toLowerCase().includes(memberSearch.toLowerCase()) ||
       m.user.username.toLowerCase().includes(memberSearch.toLowerCase());
     const matchesRole = roleFilter === 'ALL' || m.role === roleFilter;
-    return matchesSearch && matchesRole;
+    const matchesDues =
+      duesFilter === 'ALL' ||
+      (duesFilter === 'EXPIRING_SOON' && m.duesStatus === 'EXPIRING_SOON') ||
+      (duesFilter === 'OVERDUE' && m.duesStatus === 'OVERDUE') ||
+      (duesFilter === 'ACTIVE' && (m.duesStatus === 'ACTIVE' || m.duesStatus === 'UPCOMING'));
+    return matchesSearch && matchesRole && matchesDues;
   });
 
   const pendingAppsCount = applications.filter((a) => a.status === 'PENDING').length;
@@ -417,6 +445,57 @@ export const PresidentModulePage: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Dues & Renewal Urgent Alert Banner for Club Admin */}
+          {duesOverview?.hasAlert && (
+            <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-rose-500/10 border border-amber-300 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-start gap-3.5">
+                <div className="p-2.5 rounded-xl bg-amber-500 text-white shrink-0 shadow-xs">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
+                      Membership Dues Alert
+                    </span>
+                    <span className="text-xs font-semibold text-amber-700">
+                      {duesOverview.expiringSoonCount + duesOverview.overdueCount} Members Require Action
+                    </span>
+                  </div>
+                  <h4 className="text-sm font-extrabold text-slate-900">
+                    {duesOverview.alert?.title || 'Annual Membership Dues Expiring Soon'}
+                  </h4>
+                  <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
+                    {duesOverview.alert?.message || `${duesOverview.expiringSoonCount} member(s) have annual dues expiring within 15 days, and ${duesOverview.overdueCount} are overdue. Total uncollected dues: ₹${duesOverview.pendingAmountINR.toLocaleString('en-IN')}.`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={handleSendReminders}
+                  disabled={sendingReminders}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {sendingReminders ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                  <span>{sendingReminders ? 'Dispatching...' : 'Dispatch Renewal Reminders'}</span>
+                </button>
+                <button
+                  onClick={() => {
+                    navigate('/president/membership');
+                    setDuesFilter('EXPIRING_SOON');
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-amber-300 bg-white hover:bg-amber-50 text-amber-900 text-xs font-bold shadow-xs transition-all cursor-pointer"
+                >
+                  <span>Filter Roster</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* 4 Focused Metric Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -965,6 +1044,78 @@ export const PresidentModulePage: React.FC = () => {
       {/* ── 4. MEMBERSHIP & FEES MANAGEMENT ─────────────────────────────── */}
       {activeTab === 'membership' && (
         <div className="space-y-6">
+          {/* Dues & Renewal Status Engine Overview Banner */}
+          {duesOverview && (
+            <div
+              className={`rounded-2xl border p-5 shadow-xs transition-all ${
+                duesOverview.hasAlert
+                  ? 'bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-rose-500/10 border-amber-300'
+                  : 'bg-white border-slate-200/80'
+              }`}
+            >
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start gap-3.5">
+                  <div
+                    className={`p-2.5 rounded-xl shrink-0 text-white shadow-xs ${
+                      duesOverview.hasAlert ? 'bg-amber-500' : 'bg-emerald-600'
+                    }`}
+                  >
+                    {duesOverview.hasAlert ? (
+                      <AlertTriangle className="w-5 h-5" />
+                    ) : (
+                      <ShieldCheck className="w-5 h-5" />
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-[11px] font-black uppercase px-2 py-0.5 rounded ${
+                          duesOverview.hasAlert
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-emerald-100 text-emerald-800'
+                        }`}
+                      >
+                        {duesOverview.hasAlert
+                          ? 'Action Required: Dues Expiring'
+                          : 'All Members In Good Standing'}
+                      </span>
+                      <span className="text-xs font-semibold text-slate-500">
+                        {duesOverview.totalMembers} Registered Club Members
+                      </span>
+                    </div>
+                    <h3 className="text-base font-extrabold text-slate-900">
+                      {duesOverview.alert?.title || 'Membership Dues & Renewal Engine'}
+                    </h3>
+                    <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
+                      {duesOverview.expiringSoonCount} member(s) expiring within 15 days • {duesOverview.overdueCount} overdue • {duesOverview.activeCount} active & paid. Pending dues collection: <span className="font-bold text-slate-900">₹{duesOverview.pendingAmountINR.toLocaleString('en-IN')}</span>.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={handleSendReminders}
+                    disabled={sendingReminders}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {sendingReminders ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                    <span>{sendingReminders ? 'Sending...' : 'Dispatch Renewal Reminders'}</span>
+                  </button>
+                  <button
+                    onClick={() => setDuesFilter(duesOverview.hasAlert ? 'EXPIRING_SOON' : 'ALL')}
+                    className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-xs transition-all cursor-pointer"
+                  >
+                    <span>View Flagged ({duesOverview.expiringSoonCount + duesOverview.overdueCount})</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Fix Membership Fee Widget */}
           <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -1174,6 +1325,17 @@ export const PresidentModulePage: React.FC = () => {
                   <option value="VOLUNTEER">Volunteer</option>
                   <option value="MEMBER">Member</option>
                 </select>
+
+                <select
+                  value={duesFilter}
+                  onChange={(e) => setDuesFilter(e.target.value as any)}
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-xs focus:outline-none focus:border-indigo-500 font-semibold"
+                >
+                  <option value="ALL">All Dues ({members.length})</option>
+                  <option value="EXPIRING_SOON">Expiring Soon ({duesOverview?.expiringSoonCount ?? 0})</option>
+                  <option value="OVERDUE">Overdue ({duesOverview?.overdueCount ?? 0})</option>
+                  <option value="ACTIVE">Paid / Good Standing ({duesOverview?.activeCount ?? 0})</option>
+                </select>
               </div>
             </div>
 
@@ -1185,6 +1347,7 @@ export const PresidentModulePage: React.FC = () => {
                     <th className="py-2.5 px-3">Member</th>
                     <th className="py-2.5 px-3">Email</th>
                     <th className="py-2.5 px-3">Current Role</th>
+                    <th className="py-2.5 px-3">Dues & Renewal Status</th>
                     <th className="py-2.5 px-3">Joined Date</th>
                     <th className="py-2.5 px-3 text-right">Actions</th>
                   </tr>
@@ -1225,6 +1388,36 @@ export const PresidentModulePage: React.FC = () => {
                         >
                           {m.role}
                         </span>
+                      </td>
+                      <td className="py-3 px-3">
+                        {m.duesStatus === 'OVERDUE' ? (
+                          <div className="flex flex-col">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200 w-fit">
+                              <AlertTriangle className="w-3 h-3 text-rose-600" /> Overdue ({Math.abs(m.daysRemaining ?? 0)}d)
+                            </span>
+                            <span className="text-[10px] text-rose-500 font-medium mt-0.5">
+                              Expired {m.validUntil ? new Date(m.validUntil).toLocaleDateString() : 'N/A'}
+                            </span>
+                          </div>
+                        ) : m.duesStatus === 'EXPIRING_SOON' ? (
+                          <div className="flex flex-col">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200 w-fit">
+                              <Clock className="w-3 h-3 text-amber-600" /> Due in {m.daysRemaining}d
+                            </span>
+                            <span className="text-[10px] text-amber-600 font-medium mt-0.5">
+                              Expires {m.validUntil ? new Date(m.validUntil).toLocaleDateString() : 'N/A'}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 w-fit">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Paid • Active
+                            </span>
+                            <span className="text-[10px] text-slate-400 mt-0.5">
+                              Valid thru {m.validUntil ? new Date(m.validUntil).toLocaleDateString() : 'Active'}
+                            </span>
+                          </div>
+                        )}
                       </td>
                       <td className="py-3 px-3 text-xs text-slate-400">
                         {new Date(m.assignedAt).toLocaleDateString()}

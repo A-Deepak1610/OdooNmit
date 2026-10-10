@@ -67,6 +67,22 @@ export const navigationConfig: NavigationItem[] = [
     allowedRoles: [ROLES.STUDENT],
     badge: 'Notice',
   },
+  {
+    id: 'student-events',
+    label: 'Events & Ticket Passes',
+    path: '/student/events',
+    icon: Calendar,
+    allowedRoles: [ROLES.STUDENT],
+    badge: 'Events',
+  },
+  {
+    id: 'student-merchandise',
+    label: 'Campus Merchandise & Store',
+    path: '/student/merchandise',
+    icon: ShoppingBag,
+    allowedRoles: [ROLES.STUDENT],
+    badge: 'Store',
+  },
 
   // Member Hub
   {
@@ -78,8 +94,16 @@ export const navigationConfig: NavigationItem[] = [
     group: 'MAIN',
   },
   {
+    id: 'member-events',
+    label: 'Events & Ticket Passes',
+    path: '/member/events',
+    icon: Calendar,
+    allowedRoles: [ROLES.MEMBER],
+    group: 'MEMBER HUB',
+  },
+  {
     id: 'member-tickets',
-    label: 'My Tickets & QR Passes',
+    label: 'My Booked Passes & QR',
     path: '/member/tickets',
     icon: Ticket,
     allowedRoles: [ROLES.MEMBER],
@@ -174,8 +198,8 @@ export const navigationConfig: NavigationItem[] = [
 
   // ===========================================================================
   // 4. EVENT ORGANIZER NAVIGATION
-  // Create events, set member/non-member prices, monitor capacity,
-  // scan tickets & prevent duplicates, verify membership, view revenue.
+  // Tickets & quotas, Mapbox analytics, revenue & fee collections,
+  // volunteer squad management, and event-day live check-in analysis.
   // ===========================================================================
   {
     id: 'organizer-dashboard',
@@ -187,35 +211,44 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'organizer-events',
-    label: 'Events & Ticket Quotas',
+    label: 'Events & Ticket Details',
     path: '/organizer/events',
-    icon: Calendar,
+    icon: Ticket,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
     group: 'EVENT OPERATIONS',
   },
   {
-    id: 'organizer-scanner',
-    label: 'Door Ticket Scanner',
-    path: '/volunteer/scanner',
-    icon: QrCode,
+    id: 'organizer-analytics',
+    label: 'Demographic & Mapbox Analytics',
+    path: '/organizer/analytics',
+    icon: PieChart,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
     group: 'EVENT OPERATIONS',
   },
   {
-    id: 'organizer-attendees',
-    label: 'Attendance & Revenue',
-    path: '/organizer/attendees',
+    id: 'organizer-revenue',
+    label: 'Fee Collection & Revenue',
+    path: '/organizer/revenue',
+    icon: DollarSign,
+    allowedRoles: [ROLES.EVENT_ORGANIZER],
+    group: 'EVENT OPERATIONS',
+  },
+  {
+    id: 'organizer-volunteers',
+    label: 'Volunteer Squad Delegation',
+    path: '/organizer/volunteers',
     icon: Users,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
     group: 'EVENT OPERATIONS',
   },
   {
-    id: 'organizer-tasks',
-    label: 'Logistics Tasks',
-    path: '/organizer/tasks',
-    icon: CheckSquare,
+    id: 'organizer-checkin',
+    label: 'Event Day Live Check-in',
+    path: '/organizer/checkin',
+    icon: UserCheck,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
     group: 'EVENT OPERATIONS',
+    badge: 'Live',
   },
 
   // ===========================================================================
@@ -334,6 +367,14 @@ export const navigationConfig: NavigationItem[] = [
     path: '/president/events',
     icon: Calendar,
     allowedRoles: [ROLES.PRESIDENT],
+  },
+  {
+    id: 'president-merchandise',
+    label: 'Merchandise & Analytics',
+    path: '/president/merchandise',
+    icon: ShoppingBag,
+    allowedRoles: [ROLES.PRESIDENT],
+    badge: 'Store',
   },
 
   // ===========================================================================

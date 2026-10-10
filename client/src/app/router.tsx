@@ -30,6 +30,8 @@ import { PresidentModulePage } from '../pages/president/PresidentModulePage';
 import { PresidentEventsFundraisersPage } from '../pages/president/PresidentEventsFundraisersPage';
 import { OrganizerEventsPage } from '../pages/organizer/OrganizerEventsPage';
 import { TreasurerModulePage } from '../pages/treasurer/TreasurerModulePage';
+import { EventsModulePage } from '../pages/events/EventsModulePage';
+import { OrganizerSuitePage } from '../pages/organizer/OrganizerSuitePage';
 
 /**
  * Root Landing Page:
@@ -197,6 +199,18 @@ export const router = createBrowserRouter([
             path: 'apply-membership',
             element: <StudentModulePage />,
           },
+          {
+            path: 'events',
+            element: <EventsTicketingModule />,
+          },
+          {
+            path: 'tickets',
+            element: <EventsTicketingModule />,
+          },
+          {
+            path: 'merchandise',
+            element: <MerchandiseTaskModule />,
+          },
         ],
       },
 
@@ -305,19 +319,35 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: <OrganizerEventsPage initialTab="ticketing" />,
+            element: <OrganizerSuitePage initialTab="events" />,
+          },
+          {
+            path: 'analytics',
+            element: <OrganizerSuitePage initialTab="analytics" />,
+          },
+          {
+            path: 'revenue',
+            element: <OrganizerSuitePage initialTab="revenue" />,
+          },
+          {
+            path: 'volunteers',
+            element: <OrganizerSuitePage initialTab="volunteers" />,
+          },
+          {
+            path: 'checkin',
+            element: <OrganizerSuitePage initialTab="checkin" />,
           },
           {
             path: 'attendees',
-            element: <OrganizerEventsPage initialTab="analytics" />,
+            element: <Navigate to="/organizer/checkin" replace />,
           },
           {
             path: 'scanner',
-            element: <VolunteerScanner />,
+            element: <Navigate to="/organizer/checkin" replace />,
           },
           {
             path: 'tasks',
-            element: <MerchandiseTaskModule />,
+            element: <Navigate to="/organizer/volunteers" replace />,
           },
         ],
       },
@@ -417,11 +447,15 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: <PresidentEventsFundraisersPage />,
+            element: <EventsModulePage roleVariant="PRESIDENT" />,
           },
           {
             path: 'fundraisers',
-            element: <PresidentEventsFundraisersPage />,
+            element: <EventsModulePage roleVariant="PRESIDENT" />,
+          },
+          {
+            path: 'merchandise',
+            element: <MerchandiseTaskModule />,
           },
         ],
       },

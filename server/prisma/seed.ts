@@ -156,7 +156,7 @@ async function main() {
       slug: 'aerospace-rocketry',
       description: 'Model rocketry, computational fluid dynamics, high-altitude weather balloons, and satellite telemetry.',
       category: 'Engineering',
-      logoUrl: 'https://images.unsplash.com/photo-1517976487502-520e5cfa8561?w=200&h=200&fit=crop&crop=faces',
+      logoUrl: 'https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?w=200&h=200&fit=crop',
       coverUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=400&fit=crop',
       isActive: false, // Inactive example to test status management
     },

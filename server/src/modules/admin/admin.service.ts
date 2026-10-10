@@ -102,6 +102,7 @@ export class AdminService {
         { name: { contains: query.search } },
         { slug: { contains: query.search } },
         { description: { contains: query.search } },
+        { category: { contains: query.search } },
       ];
     }
 
@@ -142,8 +143,13 @@ export class AdminService {
         category: c.category || 'General',
         logoUrl: c.logoUrl,
         coverUrl: c.coverUrl,
+        websiteUrl: c.websiteUrl,
+        instagramUrl: c.instagramUrl,
+        linkedinUrl: c.linkedinUrl,
+        membershipFee: c.membershipFee,
         isActive: c.isActive,
         createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
         memberCount: c._count.userRoles,
         ticketCount: c._count.supportTickets,
         electionCount: c._count.elections,
@@ -159,6 +165,10 @@ export class AdminService {
     description?: string;
     logoUrl?: string;
     coverUrl?: string;
+    membershipFee?: number;
+    websiteUrl?: string;
+    instagramUrl?: string;
+    linkedinUrl?: string;
   }) {
     const slug =
       data.slug ||
@@ -181,7 +191,45 @@ export class AdminService {
         description: data.description,
         logoUrl: data.logoUrl,
         coverUrl: data.coverUrl,
+        membershipFee: data.membershipFee !== undefined ? Number(data.membershipFee) : 50000,
+        websiteUrl: data.websiteUrl,
+        instagramUrl: data.instagramUrl,
+        linkedinUrl: data.linkedinUrl,
         isActive: true,
+      },
+    });
+  }
+
+  async updateClub(clubId: string, data: {
+    name?: string;
+    category?: string;
+    description?: string;
+    logoUrl?: string;
+    coverUrl?: string;
+    membershipFee?: number;
+    websiteUrl?: string;
+    instagramUrl?: string;
+    linkedinUrl?: string;
+    isActive?: boolean;
+  }) {
+    const existing = await prisma.organization.findUnique({ where: { id: clubId } });
+    if (!existing) {
+      throw new Error('Club not found.');
+    }
+
+    return prisma.organization.update({
+      where: { id: clubId },
+      data: {
+        ...(data.name && { name: data.name }),
+        ...(data.category && { category: data.category }),
+        ...(data.description !== undefined && { description: data.description }),
+        ...(data.logoUrl !== undefined && { logoUrl: data.logoUrl }),
+        ...(data.coverUrl !== undefined && { coverUrl: data.coverUrl }),
+        ...(data.membershipFee !== undefined && { membershipFee: Number(data.membershipFee) }),
+        ...(data.websiteUrl !== undefined && { websiteUrl: data.websiteUrl }),
+        ...(data.instagramUrl !== undefined && { instagramUrl: data.instagramUrl }),
+        ...(data.linkedinUrl !== undefined && { linkedinUrl: data.linkedinUrl }),
+        ...(data.isActive !== undefined && { isActive: Boolean(data.isActive) }),
       },
     });
   }
@@ -193,13 +241,18 @@ export class AdminService {
     });
   }
 
-  async assignClubPresident(clubId: string, userId: string) {
-    const [club, user] = await Promise.all([
-      prisma.organization.findUnique({ where: { id: clubId } }),
-      prisma.user.findUnique({ where: { id: userId } }),
-    ]);
-
+  async assignClubPresident(clubId: string, userId: string | null) {
+    const club = await prisma.organization.findUnique({ where: { id: clubId } });
     if (!club) throw new Error('Club not found.');
+
+    if (!userId) {
+      await prisma.userRole.deleteMany({
+        where: { organizationId: clubId, role: RoleType.PRESIDENT },
+      });
+      return null;
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new Error('User not found.');
 
     // Remove existing president for this club
@@ -232,7 +285,7 @@ export class AdminService {
         organizationId: clubId,
       },
       include: {
-        user: { select: { id: true, fullName: true, username: true, email: true } },
+        user: { select: { id: true, fullName: true, username: true, email: true, avatarUrl: true } },
       },
     });
 
