@@ -16,6 +16,8 @@ import { AnnouncementBoardModule } from '../components/modules/announcements/Ann
 import { useAuthStore } from '../stores/auth.store';
 import { ROLES, getDefaultRole, ROLE_DEFAULT_PATHS } from '../config/roles';
 
+import { LandingPage } from '../pages/LandingPage';
+
 /**
  * Root Landing Page:
  * Redirects authenticated users to their primary role workspace dashboard,
@@ -34,13 +36,52 @@ const RootRedirect: React.FC = () => {
   return <Navigate to={targetPath} replace />;
 };
 
+/**
+ * Quick shortcut redirect for Landing Page links (events, memberships, finance, etc.)
+ */
+const ModuleRedirect: React.FC<{ subpath: string }> = ({ subpath }) => {
+  const { user, role, status } = useAuthStore();
+  if (status === 'unauthenticated' || !user) {
+    return <Navigate to={`/login?redirect=/${subpath}`} replace />;
+  }
+  const activeRole = role || getDefaultRole(user.roles || []);
+  const rolePrefix =
+    activeRole === ROLES.ADMIN
+      ? 'admin'
+      : activeRole === ROLES.PRESIDENT
+      ? 'president'
+      : activeRole === ROLES.TREASURER
+      ? 'treasurer'
+      : activeRole === ROLES.EVENT_ORGANIZER
+      ? 'organizer'
+      : activeRole === ROLES.VOLUNTEER
+      ? 'volunteer'
+      : activeRole === ROLES.MEMBER
+      ? 'member'
+      : 'student';
+
+  return <Navigate to={`/${rolePrefix}/${subpath}`} replace />;
+};
+
 export const router = createBrowserRouter([
   // ---------------------------------------------------------------------------
   // Public & Authentication Routes
   // ---------------------------------------------------------------------------
   {
+    path: '/',
+    element: <LandingPage />,
+  },
+  {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/register',
+    element: <LoginPage />,
+  },
+  {
+    path: '/dashboard',
+    element: <RootRedirect />,
   },
   {
     path: '/auth/callback',
@@ -52,20 +93,51 @@ export const router = createBrowserRouter([
   },
 
   // ---------------------------------------------------------------------------
-  // Authenticated Application Shell Routes
+  // Public-facing shortcuts from Landing Page
   // ---------------------------------------------------------------------------
   {
-    path: '/',
+    path: '/events',
+    element: <ModuleRedirect subpath="events" />,
+  },
+  {
+    path: '/memberships',
+    element: <ModuleRedirect subpath="apply-membership" />,
+  },
+  {
+    path: '/tasks',
+    element: <ModuleRedirect subpath="tasks" />,
+  },
+  {
+    path: '/finance',
+    element: <ModuleRedirect subpath="finance" />,
+  },
+  {
+    path: '/merchandise',
+    element: <ModuleRedirect subpath="merchandise" />,
+  },
+  {
+    path: '/reimbursements',
+    element: <ModuleRedirect subpath="reimbursements" />,
+  },
+  {
+    path: '/fundraisers',
+    element: <ModuleRedirect subpath="tasks" />,
+  },
+  {
+    path: '/announcements',
+    element: <ModuleRedirect subpath="announcements" />,
+  },
+
+  // ---------------------------------------------------------------------------
+  // Authenticated Application Shell Routes (Pathless Layout Route)
+  // ---------------------------------------------------------------------------
+  {
     element: (
       <ProtectedRoute>
         <AppLayout />
       </ProtectedRoute>
     ),
     children: [
-      {
-        index: true,
-        element: <RootRedirect />,
-      },
 
       // -----------------------------------------------------------------------
       // STUDENT ROLE ROUTES

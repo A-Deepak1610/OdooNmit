@@ -1,13 +1,36 @@
 import React, { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { GraduationCap, Lock, User, AlertCircle, Sparkles, ArrowRight } from 'lucide-react';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import {
+  AlertCircle,
+  ArrowRight,
+  X,
+  Shield,
+  UserCheck,
+  DollarSign,
+  Calendar,
+  CheckSquare,
+  Users,
+  Lock,
+  Mail,
+} from 'lucide-react';
+import { LandingPage } from '../LandingPage';
+import { useAuthStore } from '../../stores/auth.store';
+import { authService } from '../../modules/auth/services/auth.service';
+import { Badge } from '../../components/ui/Badge';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
 export const LoginPage: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const oauthError = searchParams.get('error');
+  const roleParam = searchParams.get('role');
+
+  const { setUser } = useAuthStore();
   const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
+  const [loadingRole, setLoadingRole] = useState<string | null>(null);
+  const [emailInput, setEmailInput] = useState<string>('');
+  const [passwordInput, setPasswordInput] = useState<string>('');
 
   const handleGoogleSignIn = () => {
     setIsRedirecting(true);
@@ -15,60 +38,139 @@ export const LoginPage: React.FC = () => {
     window.location.href = `${API_BASE}/auth/google?redirect=true`;
   };
 
+  const handleRoleQuickLaunch = async (email: string, roleName: string) => {
+    setLoadingRole(roleName);
+    try {
+      const data = await authService.login({ email, password: 'Password123!' });
+      setUser(data.user, data.token);
+      navigate('/dashboard');
+    } catch {
+      navigate('/dashboard');
+    } finally {
+      setLoadingRole(null);
+    }
+  };
+
+  const handleManualSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailInput) return;
+    setLoadingRole('custom');
+    try {
+      const data = await authService.login({ email: emailInput, password: passwordInput || 'Password123!' });
+      setUser(data.user, data.token);
+      navigate('/dashboard');
+    } catch {
+      navigate('/dashboard');
+    } finally {
+      setLoadingRole(null);
+    }
+  };
+
+  const closeModal = () => {
+    navigate('/');
+  };
+
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-slate-950 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      {/* Background glowing light orbs */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] bg-blue-600/20 rounded-full blur-[130px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[380px] h-[380px] bg-indigo-500/15 rounded-full blur-[110px] pointer-events-none" />
+    <div className="fixed inset-0 w-screen h-screen overflow-hidden flex items-center justify-center select-none z-50">
+      {/* 1. BLURRED LANDING PAGE BACKGROUND */}
+      <div 
+        aria-hidden="true"
+        className="fixed inset-0 w-full h-full pointer-events-none filter blur-md sm:blur-lg scale-[1.02] opacity-75 select-none z-0 overflow-hidden"
+      >
+        <LandingPage />
+      </div>
 
-      {/* Main Glassmorphic Glowing Card */}
-      <div className="relative w-full max-w-md">
-        {/* Glow border gradient effect */}
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-sky-400 rounded-2xl blur-sm opacity-50 transition duration-1000 group-hover:opacity-100 animate-pulse" />
+      {/* 2. BACKDROP OVERLAY WITH BLUR & DISMISS ON OUTSIDE CLICK */}
+      <div
+        className="fixed inset-0 bg-surface-900/30 backdrop-blur-xs z-10 transition-opacity animate-in fade-in duration-150"
+        onClick={closeModal}
+      />
 
-        <div className="relative bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-2xl p-8 sm:p-10 shadow-2xl">
-          {/* Brand Logo & Header */}
-          <div className="text-center space-y-3">
-            <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-500/30">
-              <GraduationCap className="h-8 w-8" />
-            </div>
+      {/* 3. CENTERED THEMED LOGIN CARD (Fixed, Non-scrollable, Balanced Height & Sharper Radius) */}
+      <div className="relative z-20 w-full max-w-[460px] mx-4 animate-in zoom-in-95 fade-in duration-150">
+        <div className="relative bg-white/95 backdrop-blur-2xl border border-surface-200/90 rounded-2xl p-7 sm:p-9 shadow-2xl shadow-indigo-950/15">
+          {/* Close Modal Button */}
+          <button
+            type="button"
+            onClick={closeModal}
+            className="absolute top-4.5 right-4.5 p-2 rounded-lg text-surface-400 hover:text-surface-700 hover:bg-surface-100 transition-colors cursor-pointer"
+            aria-label="Close login dialog and return to landing page"
+          >
+            <X className="h-4 w-4" />
+          </button>
 
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white flex items-center justify-center gap-2">
-                CampusMitra
-              </h1>
-              <p className="text-xs text-slate-400 mt-1">
-                Unified Campus Ecosystem for Students & Clubs
-              </p>
-            </div>
+          {/* Brand Logo & Header matching Landing Page */}
+          <div className="text-center space-y-2">
+            <Link to="/" className="inline-flex flex-col items-center gap-2 group">
+              <svg
+                className="h-11 w-11 shrink-0 drop-shadow-xs group-hover:scale-105 transition-transform"
+                viewBox="0 0 48 48"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M24 4L42 16L34 44H14L6 16L24 4Z" fill="url(#loginGemGradTall)" />
+                <path
+                  d="M24 4L34 44M24 4L14 44M6 16H42M14 44L24 16L34 44"
+                  stroke="#FFFFFF"
+                  strokeWidth="1.5"
+                  strokeOpacity="0.4"
+                />
+                <path
+                  d="M11 6L12.8 11.2L18 13L12.8 14.8L11 20L9.2 14.8L4 13L9.2 11.2L11 6Z"
+                  fill="#FBBF24"
+                />
+                <defs>
+                  <linearGradient id="loginGemGradTall" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#6366F1" />
+                    <stop offset="0.5" stopColor="#4F46E5" />
+                    <stop offset="1" stopColor="#3730A3" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div className="flex flex-col items-center leading-none">
+                <span className="text-2xl font-black tracking-tight text-surface-900">
+                  CampusFlow
+                </span>
+                <span className="text-[11px] font-semibold text-brand-600 tracking-wider mt-1">
+                  Be the true you. Be found.
+                </span>
+              </div>
+            </Link>
+            <p className="text-xs text-surface-500 pt-0.5">
+              Sign in to your campus workspace & community
+            </p>
           </div>
 
-          {/* OAuth Error Alert Banner */}
-          {oauthError && (
-            <div className="mt-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start gap-2.5">
-              <AlertCircle className="h-4 w-4 shrink-0 text-rose-400 mt-0.5" />
-              <div>
-                <p className="font-semibold">Authentication Notice</p>
-                <p className="text-rose-300/80 mt-0.5">
-                  {oauthError === 'access_denied'
-                    ? 'Google sign-in was cancelled or access was denied.'
-                    : `Authentication failed: ${oauthError}`}
-                </p>
-              </div>
+          {/* Requested Role Notice */}
+          {roleParam && (
+            <div className="mt-3.5 p-2 px-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center justify-between">
+              <span>Accessing role workspace: <strong>{roleParam}</strong></span>
+              <Badge variant="outline" className="text-[10px] py-0.5 px-1.5 bg-white">{roleParam}</Badge>
             </div>
           )}
 
-          {/* Primary Authentication Option: Google Sign-In */}
-          <div className="mt-8 space-y-4">
+          {/* OAuth Error Alert Banner */}
+          {oauthError && (
+            <div className="mt-3.5 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
+              <span>
+                {oauthError === 'access_denied'
+                  ? 'Google sign-in was cancelled.'
+                  : `Authentication failed: ${oauthError}`}
+              </span>
+            </div>
+          )}
+
+          {/* Primary Authentication Option: Google Sign-In (h-10 and rounded-lg) */}
+          <div className="mt-5 space-y-3.5">
             <button
               type="button"
               id="google-signin-btn"
               onClick={handleGoogleSignIn}
               disabled={isRedirecting}
-              className="w-full flex items-center justify-center gap-3.5 px-4 py-3.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-750 hover:border-slate-600 text-white font-medium text-sm transition-all duration-200 shadow-md hover:shadow-blue-500/10 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 cursor-pointer"
+              className="w-full h-10 flex items-center justify-center gap-2.5 px-4 rounded-lg border border-surface-300 bg-white hover:bg-surface-50 hover:border-surface-400 text-surface-800 font-semibold text-xs sm:text-[13px] transition-all shadow-xs cursor-pointer disabled:opacity-60"
             >
-              {/* Google Brand SVG */}
-              <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24">
+              <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -86,79 +188,127 @@ export const LoginPage: React.FC = () => {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                 />
               </svg>
-              <span>{isRedirecting ? 'Connecting to Google...' : 'Continue with Google'}</span>
+              <span>{isRedirecting ? 'Connecting...' : 'Continue with Google'}</span>
             </button>
 
-            <div className="relative my-6">
+            <div className="relative my-3">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-800" />
+                <div className="w-full border-t border-surface-200" />
               </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-slate-900 px-3 text-slate-500 uppercase tracking-wider font-semibold">
-                  Or Credentials
+              <div className="relative flex justify-center text-[10px]">
+                <span className="bg-white/95 px-3 text-surface-400 font-semibold uppercase tracking-wider">
+                  Or Instant Demo Persona
                 </span>
               </div>
             </div>
 
-            {/* Username/Password placeholder form: clearly labeled Coming Soon */}
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+            {/* Quick 1-Click Persona Access Buttons (rounded-lg) */}
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => handleRoleQuickLaunch('president@campusflow.test', 'PRESIDENT')}
+                disabled={loadingRole === 'PRESIDENT'}
+                className="h-9 px-2 rounded-lg border border-surface-200 bg-surface-50 hover:bg-brand-50 hover:border-brand-200 text-surface-800 hover:text-brand-700 flex items-center justify-center gap-1.5 font-medium transition-all cursor-pointer"
+              >
+                <UserCheck className="h-3.5 w-3.5 text-purple-600 shrink-0" />
+                <span className="truncate">President</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleRoleQuickLaunch('treasurer@campusflow.test', 'TREASURER')}
+                disabled={loadingRole === 'TREASURER'}
+                className="h-9 px-2 rounded-lg border border-surface-200 bg-surface-50 hover:bg-brand-50 hover:border-brand-200 text-surface-800 hover:text-brand-700 flex items-center justify-center gap-1.5 font-medium transition-all cursor-pointer"
+              >
+                <DollarSign className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                <span className="truncate">Treasurer</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleRoleQuickLaunch('organizer@campusflow.test', 'EVENT_ORGANIZER')}
+                disabled={loadingRole === 'EVENT_ORGANIZER'}
+                className="h-9 px-2 rounded-lg border border-surface-200 bg-surface-50 hover:bg-brand-50 hover:border-brand-200 text-surface-800 hover:text-brand-700 flex items-center justify-center gap-1.5 font-medium transition-all cursor-pointer"
+              >
+                <Calendar className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                <span className="truncate">Organizer</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleRoleQuickLaunch('volunteer@campusflow.test', 'VOLUNTEER')}
+                disabled={loadingRole === 'VOLUNTEER'}
+                className="h-9 px-2 rounded-lg border border-surface-200 bg-surface-50 hover:bg-brand-50 hover:border-brand-200 text-surface-800 hover:text-brand-700 flex items-center justify-center gap-1.5 font-medium transition-all cursor-pointer"
+              >
+                <CheckSquare className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                <span className="truncate">Volunteer</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleRoleQuickLaunch('member@campusflow.test', 'MEMBER')}
+                disabled={loadingRole === 'MEMBER'}
+                className="h-9 px-2 rounded-lg border border-surface-200 bg-surface-50 hover:bg-brand-50 hover:border-brand-200 text-surface-800 hover:text-brand-700 flex items-center justify-center gap-1.5 font-medium transition-all cursor-pointer"
+              >
+                <Users className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                <span className="truncate">Member</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleRoleQuickLaunch('admin@campusflow.test', 'ADMIN')}
+                disabled={loadingRole === 'ADMIN'}
+                className="h-9 px-2 rounded-lg border border-surface-200 bg-surface-50 hover:bg-brand-50 hover:border-brand-200 text-surface-800 hover:text-brand-700 flex items-center justify-center gap-1.5 font-medium transition-all cursor-pointer"
+              >
+                <Shield className="h-3.5 w-3.5 text-rose-600 shrink-0" />
+                <span className="truncate">Admin</span>
+              </button>
+            </div>
+
+            {/* Email / Password Sign In Form (h-10 and rounded-lg) */}
+            <form onSubmit={handleManualSubmit} className="space-y-3 pt-2">
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-slate-300">Username or Email</label>
-                  <span className="text-[10px] font-semibold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
-                    Coming Soon
-                  </span>
-                </div>
+                <label className="text-xs font-semibold text-surface-700 mb-1.5 block">Email</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-                    <User className="h-4 w-4" />
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-surface-400">
+                    <Mail className="h-4 w-4" />
                   </div>
                   <input
-                    type="text"
-                    disabled
-                    placeholder="student@campus.edu"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-800/40 border border-slate-800 text-slate-500 text-sm cursor-not-allowed placeholder-slate-600 focus:outline-none"
+                    type="email"
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    placeholder="student@campusflow.test"
+                    className="w-full pl-11 pr-3.5 h-10 rounded-lg bg-surface-50 border border-surface-200 text-surface-900 text-sm placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-slate-300">Password</label>
-                  <span className="text-[10px] font-semibold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
-                    Coming Soon
-                  </span>
-                </div>
+                <label className="text-xs font-semibold text-surface-700 mb-1.5 block">Password</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-surface-400">
                     <Lock className="h-4 w-4" />
                   </div>
                   <input
                     type="password"
-                    disabled
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-800/40 border border-slate-800 text-slate-500 text-sm cursor-not-allowed placeholder-slate-600 focus:outline-none"
+                    className="w-full pl-11 pr-3.5 h-10 rounded-lg bg-surface-50 border border-surface-200 text-surface-900 text-sm placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
+              {/* SIGN IN WITH CREDENTIALS BUTTON (rounded-lg) */}
               <button
-                type="button"
-                disabled
-                className="w-full py-2.5 rounded-xl bg-slate-800/50 text-slate-500 font-medium text-xs border border-slate-800/80 cursor-not-allowed flex items-center justify-center gap-1.5"
+                type="submit"
+                disabled={!emailInput || loadingRole === 'custom'}
+                className="w-full h-11.5 sm:h-12 bg-[#4F46E5] hover:bg-[#4338CA] active:bg-[#3730A3] disabled:opacity-50 text-white rounded-lg text-sm font-bold shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all flex items-center justify-center gap-2.5 cursor-pointer mt-2.5 select-none"
               >
-                <span>Password Sign-in (Available in next release)</span>
-                <ArrowRight className="h-3 w-3" />
+                <span className="leading-none">{loadingRole === 'custom' ? 'Signing in...' : 'Sign In with Credentials'}</span>
+                <ArrowRight className="h-4 w-4 shrink-0 self-center" />
               </button>
             </form>
-          </div>
-
-          {/* Footer Information */}
-          <div className="mt-8 pt-6 border-t border-slate-800/80 text-center">
-            <p className="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
-              <Sparkles className="h-3 w-3 text-blue-400" />
-              <span>CampusMitra automatically assigns student membership upon first login.</span>
-            </p>
           </div>
         </div>
       </div>
