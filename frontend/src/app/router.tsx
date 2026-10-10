@@ -14,7 +14,6 @@ import { FinanceLedgerModule } from '../components/modules/finance/FinanceLedger
 import { AnnouncementBoardModule } from '../components/modules/announcements/AnnouncementBoardModule';
 import { ElectionsVotingModule } from '../components/modules/elections/ElectionsVotingModule';
 import {
-  VolunteerLayout,
   VolunteerDashboard,
   VolunteerTasks,
   VolunteerScanner,
@@ -152,59 +151,6 @@ export const router = createBrowserRouter([
     element: <ModuleRedirect subpath="announcements" />,
   },
 
-  // ---------------------------------------------------------------------------
-  // Dedicated Volunteer Role Portal Shell (Separate Layout & Navigation)
-  // ---------------------------------------------------------------------------
-  {
-    path: '/volunteer',
-    element: (
-      <ProtectedRoute allowedRoles={[ROLES.VOLUNTEER]}>
-        <VolunteerLayout />
-      </ProtectedRoute>
-    ),
-    children: [
-      {
-        index: true,
-        element: <Navigate to="/volunteer/dashboard" replace />,
-      },
-      {
-        path: 'dashboard',
-        element: <VolunteerDashboard />,
-      },
-      {
-        path: 'tasks',
-        element: <VolunteerTasks />,
-      },
-      {
-        path: 'scanner',
-        element: <VolunteerScanner />,
-      },
-      {
-        path: 'projects',
-        element: <VolunteerProjects />,
-      },
-      {
-        path: 'events',
-        element: <VolunteerEvents />,
-      },
-      {
-        path: 'expenses',
-        element: <VolunteerExpenses />,
-      },
-      {
-        path: 'announcements',
-        element: <VolunteerAnnouncements />,
-      },
-      {
-        path: 'submit-expense',
-        element: <Navigate to="/volunteer/expenses" replace />,
-      },
-      {
-        path: 'profile',
-        element: <VolunteerProfile />,
-      },
-    ],
-  },
 
   // ---------------------------------------------------------------------------
   // Authenticated Application Shell Routes (Pathless Layout Route)
@@ -298,15 +244,53 @@ export const router = createBrowserRouter([
       },
 
       // -----------------------------------------------------------------------
-      // VOLUNTEER ROLE REDIRECT (Forward to Dedicated Volunteer Portal)
+      // VOLUNTEER ROLE ROUTES
       // -----------------------------------------------------------------------
       {
         path: 'volunteer',
-        element: <Navigate to="/volunteer/dashboard" replace />,
-      },
-      {
-        path: 'volunteer/*',
-        element: <Navigate to="/volunteer/dashboard" replace />,
+        element: <ProtectedRoute allowedRoles={[ROLES.VOLUNTEER]} />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/volunteer/dashboard" replace />,
+          },
+          {
+            path: 'dashboard',
+            element: <VolunteerDashboard />,
+          },
+          {
+            path: 'tasks',
+            element: <VolunteerTasks />,
+          },
+          {
+            path: 'scanner',
+            element: <VolunteerScanner />,
+          },
+          {
+            path: 'projects',
+            element: <VolunteerProjects />,
+          },
+          {
+            path: 'events',
+            element: <VolunteerEvents />,
+          },
+          {
+            path: 'expenses',
+            element: <VolunteerExpenses />,
+          },
+          {
+            path: 'announcements',
+            element: <VolunteerAnnouncements />,
+          },
+          {
+            path: 'submit-expense',
+            element: <Navigate to="/volunteer/expenses" replace />,
+          },
+          {
+            path: 'profile',
+            element: <VolunteerProfile />,
+          },
+        ],
       },
 
       // -----------------------------------------------------------------------
@@ -452,10 +436,6 @@ export const router = createBrowserRouter([
           },
           {
             path: 'organizations',
-            element: <AdminDashboardPage />,
-          },
-          {
-            path: 'roles',
             element: <AdminDashboardPage />,
           },
           {
