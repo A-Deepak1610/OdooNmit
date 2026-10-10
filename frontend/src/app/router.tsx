@@ -7,7 +7,6 @@ import { AuthCallbackPage } from '../pages/auth/AuthCallbackPage';
 import { AccessDeniedPage } from '../pages/AccessDeniedPage';
 import { AdminDashboardPage } from '../pages/dashboards/AdminDashboardPage';
 import { RoleDashboardPage } from '../pages/dashboards/RoleDashboardPage';
-import { PlaceholderPage } from '../components/shared/PlaceholderPage';
 import { EventsTicketingModule } from '../components/modules/events/EventsTicketingModule';
 import { MembershipModule } from '../components/modules/memberships/MembershipModule';
 import { MerchandiseTaskModule } from '../components/modules/merchandise/MerchandiseTaskModule';
@@ -241,6 +240,10 @@ export const router = createBrowserRouter([
             element: <EventsTicketingModule />,
           },
           {
+            path: 'scanner',
+            element: <VolunteerScanner />,
+          },
+          {
             path: 'tasks',
             element: <MerchandiseTaskModule />,
           },
@@ -297,16 +300,6 @@ export const router = createBrowserRouter([
             element: <AnnouncementBoardModule />,
           },
           {
-            path: 'elections',
-            element: (
-              <PlaceholderPage
-                title="Club Elections & Balloting"
-                role={ROLES.PRESIDENT}
-                group="CLUB GOVERNANCE"
-              />
-            ),
-          },
-          {
             path: 'finance',
             element: <FinanceLedgerModule />,
           },
@@ -357,6 +350,14 @@ export const router = createBrowserRouter([
             element: <AdminWinnersPage />,
           },
           {
+            path: 'organizations',
+            element: <AdminDashboardPage />,
+          },
+          {
+            path: 'roles',
+            element: <AdminDashboardPage />,
+          },
+          {
             path: 'users',
             element: <AdminUsersPage />,
           },
@@ -365,12 +366,12 @@ export const router = createBrowserRouter([
             element: <AdminRolesPage />,
           },
           {
-            path: 'settings',
-            element: <AdminSettingsPage />,
-          },
-          {
             path: 'audit-log',
             element: <AdminAuditLogPage />,
+          },
+          {
+            path: 'settings',
+            element: <AdminSettingsPage />,
           },
         ],
       },
