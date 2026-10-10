@@ -15,6 +15,7 @@ import {
   CheckSquare,
   Users,
   AlertCircle,
+  GraduationCap,
 } from 'lucide-react';
 
 interface DemoPersona {
@@ -29,6 +30,24 @@ interface DemoPersona {
 
 // Demo personas configured to match backend seeded accounts (seed.ts)
 const DEMO_PERSONAS: DemoPersona[] = [
+  {
+    role: 'STUDENT',
+    label: 'Student',
+    email: 'student@campusmitra.edu',
+    password: 'Student@123',
+    icon: GraduationCap,
+    iconColor: 'text-sky-500',
+    destination: '/student/dashboard',
+  },
+  {
+    role: 'MEMBER',
+    label: 'Member',
+    email: 'member@campusmitra.edu',
+    password: 'Member@123',
+    icon: Users,
+    iconColor: 'text-indigo-500',
+    destination: '/member/dashboard',
+  },
   {
     role: 'PRESIDENT',
     label: 'President',
@@ -64,15 +83,6 @@ const DEMO_PERSONAS: DemoPersona[] = [
     icon: CheckSquare,
     iconColor: 'text-blue-500',
     destination: '/volunteer/dashboard',
-  },
-  {
-    role: 'MEMBER',
-    label: 'Member',
-    email: 'member@campusmitra.edu',
-    password: 'Member@123',
-    icon: Users,
-    iconColor: 'text-indigo-500',
-    destination: '/member/dashboard',
   },
   {
     role: 'ADMIN',
@@ -124,29 +134,60 @@ export const LoginPage: React.FC = () => {
     }
   }, [searchParams]);
 
-  const resolveDestination = (role?: string) => {
-    if (from && from !== '/dashboard' && from !== '/') return from;
-    switch (role?.toUpperCase()) {
-      case 'ADMIN':
-        return '/admin/dashboard';
-      case 'PRESIDENT':
-        return '/president/dashboard';
-      case 'TREASURER':
-        return '/treasurer/dashboard';
-      case 'EVENT_ORGANIZER':
-      case 'ORGANIZER':
-        return '/organizer/dashboard';
-      case 'VOLUNTEER':
-        return '/volunteer/dashboard';
-      case 'MEMBER':
-        return '/member/dashboard';
-      case 'STUDENT':
-      default:
-        return '/student/dashboard';
+  const resolveDestination = (targetRole?: string, explicitDest?: string) => {
+    if (explicitDest) return explicitDest;
+
+    const roleNormalized = (targetRole || 'STUDENT').toUpperCase();
+
+    const roleMap: Record<string, string> = {
+      ADMIN: '/admin/dashboard',
+      PRESIDENT: '/president/dashboard',
+      TREASURER: '/treasurer/dashboard',
+      EVENT_ORGANIZER: '/organizer/dashboard',
+      ORGANIZER: '/organizer/dashboard',
+      VOLUNTEER: '/volunteer/dashboard',
+      MEMBER: '/member/dashboard',
+      STUDENT: '/student/dashboard',
+    };
+
+    const defaultPath = roleMap[roleNormalized] || '/student/dashboard';
+
+    // Role prefix matching
+    const rolePrefixMap: Record<string, string> = {
+      ADMIN: '/admin',
+      PRESIDENT: '/president',
+      TREASURER: '/treasurer',
+      EVENT_ORGANIZER: '/organizer',
+      ORGANIZER: '/organizer',
+      VOLUNTEER: '/volunteer',
+      MEMBER: '/member',
+      STUDENT: '/student',
+    };
+
+    const allowedPrefix = rolePrefixMap[roleNormalized] || '/student';
+
+    // Check redirect param
+    const redirectParam = searchParams.get('redirect');
+    if (redirectParam && redirectParam.startsWith(allowedPrefix)) {
+      return redirectParam;
     }
+
+    // Only allow `from` if it matches the current user's role prefix
+    if (from && typeof from === 'string' && from !== '/' && from !== '/dashboard' && from !== '/login') {
+      if (from.startsWith(allowedPrefix)) {
+        return from;
+      }
+    }
+
+    return defaultPath;
   };
 
-  const executeLogin = async (targetEmail: string, targetPassword: string, roleHint?: string) => {
+  const executeLogin = async (
+    targetEmail: string,
+    targetPassword: string,
+    roleHint?: string,
+    explicitDestination?: string
+  ) => {
     setLoading(true);
     setErrorMessage(null);
 
@@ -161,8 +202,34 @@ export const LoginPage: React.FC = () => {
         email: finalIdentifier,
         password: targetPassword,
       });
-      setUser(data.user, data.token);
-      navigate(resolveDestination(data.user.role || data.user.activeRole || roleHint), { replace: true });
+
+      const matchedPersona = DEMO_PERSONAS.find(
+        (p) => p.email.toLowerCase() === finalIdentifier.toLowerCase()
+      );
+
+      const effectiveRole = (
+        roleHint ||
+        matchedPersona?.role ||
+        data.user.activeRole ||
+        data.user.role ||
+        (data.user.roles && data.user.roles.length > 0 ? data.user.roles[0] : 'STUDENT')
+      ).toUpperCase();
+
+      setUser(
+        {
+          ...data.user,
+          role: effectiveRole as any,
+          activeRole: effectiveRole as any,
+        },
+        data.token
+      );
+
+      const targetPath =
+        explicitDestination ||
+        matchedPersona?.destination ||
+        resolveDestination(effectiveRole);
+
+      navigate(targetPath, { replace: true });
     } catch (err: any) {
       // If backend network or database connection error, provide demo fallback
       const errorStr = String(err?.message || '');
@@ -176,7 +243,7 @@ export const LoginPage: React.FC = () => {
       if (isConnectionError && roleHint) {
         const mockUser = createMockUser(roleHint, finalIdentifier);
         setUser(mockUser, 'demo-session-token');
-        navigate(resolveDestination(roleHint), { replace: true });
+        navigate(explicitDestination || resolveDestination(roleHint), { replace: true });
         return;
       }
 
@@ -191,23 +258,31 @@ export const LoginPage: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const finalEmail = email || 'student@campusmitra.edu';
+    const finalEmail = (email || 'student@campusmitra.edu').trim();
     const finalPassword = password || 'Student@123';
-    await executeLogin(finalEmail, finalPassword, 'STUDENT');
+
+    const matched = DEMO_PERSONAS.find(
+      (p) => p.email.toLowerCase() === finalEmail.toLowerCase()
+    );
+
+    const roleHint = matched ? matched.role : undefined;
+    const explicitDest = matched ? matched.destination : undefined;
+
+    await executeLogin(finalEmail, finalPassword, roleHint, explicitDest);
   };
 
   const handlePersonaSelect = async (persona: DemoPersona) => {
     setEmail(persona.email);
     setPassword(persona.password);
     setActivePersonaRole(persona.role);
-    await executeLogin(persona.email, persona.password, persona.role);
+    await executeLogin(persona.email, persona.password, persona.role, persona.destination);
   };
 
   const handleGoogleLogin = async () => {
     // Demo instant sign-in with verified student Google workspace
     setEmail('member@campusmitra.edu');
     setPassword('Member@123');
-    await executeLogin('member@campusmitra.edu', 'Member@123', 'MEMBER');
+    await executeLogin('member@campusmitra.edu', 'Member@123', 'MEMBER', '/member/dashboard');
   };
 
   return (
@@ -328,8 +403,8 @@ export const LoginPage: React.FC = () => {
           <div className="grow border-t border-slate-200" />
         </div>
 
-        {/* 6 Demo Persona Cards (3x2 Grid) */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        {/* 7 Demo Persona Cards (Responsive Grid) */}
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4">
           {DEMO_PERSONAS.map((item) => {
             const Icon = item.icon;
             const isSelected = activePersonaRole === item.role;
