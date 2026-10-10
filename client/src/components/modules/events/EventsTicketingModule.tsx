@@ -445,7 +445,7 @@ export const EventsTicketingModule: React.FC = () => {
                       fontWeight: 600,
                     }}
                   >
-                    ₹{evt.revenue.toLocaleString()}
+                    ₹{(evt.revenue || 0).toLocaleString()}
                   </span>
                 </button>
               );
@@ -562,7 +562,7 @@ export const EventsTicketingModule: React.FC = () => {
                     color: "#15803d",
                   }}
                 >
-                  ₹{springGala.revenue.toLocaleString()}
+                  ₹{(springGala.revenue || 0).toLocaleString()}
                 </span>
               </div>
             </div>

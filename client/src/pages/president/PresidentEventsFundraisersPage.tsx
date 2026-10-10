@@ -711,10 +711,10 @@ export const PresidentEventsFundraisersPage: React.FC<PresidentEventsFundraisers
               Total Funds / Revenue
             </div>
             <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--foreground, #0f172a)' }}>
-              ₹{currentEvent.revenue.toLocaleString()}
+              ₹{(currentEvent.revenue || 0).toLocaleString()}
             </div>
             <div style={{ fontSize: '11px', color: '#b45309', fontWeight: 600 }}>
-              {fundraiserProgress}% of ₹{fundraiserGoal.toLocaleString()} Budget Goal
+              {fundraiserProgress}% of ₹{(fundraiserGoal || 0).toLocaleString()} Budget Goal
             </div>
           </div>
         </div>
@@ -1102,8 +1102,8 @@ export const PresidentEventsFundraisersPage: React.FC<PresidentEventsFundraisers
 
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#64748b', marginBottom: '6px' }}>
-                  <span>Collected: ₹{currentEvent.revenue.toLocaleString()}</span>
-                  <span>Goal: ₹{fundraiserGoal.toLocaleString()}</span>
+                  <span>Collected: ₹{(currentEvent.revenue || 0).toLocaleString()}</span>
+                  <span>Goal: ₹{(fundraiserGoal || 0).toLocaleString()}</span>
                 </div>
                 <div style={{ height: '10px', background: '#e2e8f0', borderRadius: '5px', overflow: 'hidden' }} className="dark:bg-slate-800">
                   <div
