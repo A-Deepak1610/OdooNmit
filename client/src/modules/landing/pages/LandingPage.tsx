@@ -25,14 +25,15 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 
-const SEED_CREDENTIALS: Record<string, { email: string; password: string }> = {
-  MEMBER: { email: 'member@campusmitra.edu', password: 'Member@123' },
-  VOLUNTEER: { email: 'volunteer@campusmitra.edu', password: 'Volunteer@123' },
-  EVENT_ORGANIZER: { email: 'organizer@campusmitra.edu', password: 'Organizer@123' },
-  ORGANIZER: { email: 'organizer@campusmitra.edu', password: 'Organizer@123' },
-  TREASURER: { email: 'treasurer@campusmitra.edu', password: 'Treasurer@123' },
-  PRESIDENT: { email: 'president@campusmitra.edu', password: 'President@123' },
-  ADMIN: { email: 'admin@campusmitra.edu', password: 'Admin@123' },
+const SEED_CREDENTIALS: Record<string, { email: string; password: string; destination: string }> = {
+  STUDENT: { email: 'student@campusmitra.edu', password: 'Student@123', destination: '/student/dashboard' },
+  MEMBER: { email: 'member@campusmitra.edu', password: 'Member@123', destination: '/member/dashboard' },
+  VOLUNTEER: { email: 'volunteer@campusmitra.edu', password: 'Volunteer@123', destination: '/volunteer/dashboard' },
+  EVENT_ORGANIZER: { email: 'organizer@campusmitra.edu', password: 'Organizer@123', destination: '/organizer/dashboard' },
+  ORGANIZER: { email: 'organizer@campusmitra.edu', password: 'Organizer@123', destination: '/organizer/dashboard' },
+  TREASURER: { email: 'treasurer@campusmitra.edu', password: 'Treasurer@123', destination: '/treasurer/dashboard' },
+  PRESIDENT: { email: 'president@campusmitra.edu', password: 'President@123', destination: '/president/dashboard' },
+  ADMIN: { email: 'admin@campusmitra.edu', password: 'Admin@123', destination: '/admin/dashboard' },
 };
 
 export const LandingPage: React.FC = () => {
@@ -59,16 +60,25 @@ export const LandingPage: React.FC = () => {
 
   const handleInstantRoleLaunch = async (email: string, roleName: string) => {
     setLoadingRole(roleName);
-    const seed = SEED_CREDENTIALS[roleName];
+    const normalizedRole = roleName.toUpperCase();
+    const seed = SEED_CREDENTIALS[normalizedRole];
     const targetEmail = seed ? seed.email : email;
-    const targetPassword = seed ? seed.password : 'Password123!';
+    const targetPassword = seed ? seed.password : 'Student@123';
+    const targetDestination = seed?.destination || '/dashboard';
 
     try {
       const data = await authService.login({ email: targetEmail, password: targetPassword });
-      setUser(data.user, data.token);
-      navigate('/dashboard');
+      setUser(
+        {
+          ...data.user,
+          role: normalizedRole as any,
+          activeRole: normalizedRole as any,
+        },
+        data.token
+      );
+      navigate(targetDestination);
     } catch {
-      navigate(`/login?role=${roleName}`);
+      navigate(`/login?role=${normalizedRole}`);
     } finally {
       setLoadingRole(null);
     }
