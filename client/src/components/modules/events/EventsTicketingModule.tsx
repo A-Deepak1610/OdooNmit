@@ -105,13 +105,18 @@ export const EventsTicketingModule: React.FC = () => {
   };
 
   // Filtered Events
-  const filteredEvents = events.filter((ev) => {
+  const filteredEvents = (events || []).filter((ev) => {
+    if (!ev) return false;
+    const query = searchQuery.toLowerCase().trim();
+    const title = (ev.title || '').toLowerCase();
+    const venue = (ev.venue || '').toLowerCase();
+    const orgName = (ev.organization?.name || '').toLowerCase();
+    const category = (ev.category || '').toUpperCase();
+
     const matchesSearch =
-      ev.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ev.venue.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (ev.organization?.name && ev.organization.name.toLowerCase().includes(searchQuery.toLowerCase()));
+      !query || title.includes(query) || venue.includes(query) || orgName.includes(query);
     const matchesCategory =
-      selectedCategory === 'ALL' || ev.category.toUpperCase() === selectedCategory.toUpperCase();
+      selectedCategory === 'ALL' || category === selectedCategory.toUpperCase();
     return matchesSearch && matchesCategory;
   });
 
