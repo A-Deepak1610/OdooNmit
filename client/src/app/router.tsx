@@ -27,8 +27,6 @@ import { ROLES, getDefaultRole, ROLE_DEFAULT_PATHS } from '../config/roles';
 
 import { LandingPage } from '../pages/LandingPage';
 import { PresidentModulePage } from '../pages/president/PresidentModulePage';
-import { PresidentEventsFundraisersPage } from '../pages/president/PresidentEventsFundraisersPage';
-import { OrganizerEventsPage } from '../pages/organizer/OrganizerEventsPage';
 import { TreasurerModulePage } from '../pages/treasurer/TreasurerModulePage';
 import { EventsModulePage } from '../pages/events/EventsModulePage';
 import { OrganizerSuitePage } from '../pages/organizer/OrganizerSuitePage';

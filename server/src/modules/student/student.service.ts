@@ -459,7 +459,7 @@ export class StudentService {
         daysRemaining,
         duesAmountINR: feeINR,
         title: '⚠️ Membership Renewal Notice',
-        message: `Your annual membership dues of ₹${feeINR} for ${club.name} are due in ${daysRemaining} day${daysRemaining > 1 ? 's' : ''} (expires on ${new Date(roleRecord.validUntil!).toLocaleDateString()}). Renew now to stay in good standing.`,
+        message: `Your annual membership dues of ₹${feeINR} for ${club.name} are due in ${daysRemaining} day${(daysRemaining ?? 0) > 1 ? 's' : ''} (expires on ${new Date(roleRecord.validUntil!).toLocaleDateString()}). Renew now to stay in good standing.`,
       };
     } else {
       alert = {
