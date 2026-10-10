@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuthStore } from '../../stores/auth.store';
 import { ROLE_DISPLAY_NAMES, UserRole } from '../../config/roles';
 import {
@@ -8,16 +8,21 @@ import {
   IndianRupee,
   Plus,
   Ticket,
-  Compass,
   FileText,
   UserCheck,
   CheckSquare,
   Receipt,
-  Vote,
   PieChart,
   Building2,
   Sparkles,
+  ShoppingBag,
 } from 'lucide-react';
+import { TeamWorkstreamBanner, WorkstreamId } from '../../components/modules/TeamWorkstreamBanner';
+import { EventsTicketingModule } from '../../components/modules/events/EventsTicketingModule';
+import { MembershipModule } from '../../components/modules/memberships/MembershipModule';
+import { MerchandiseTaskModule } from '../../components/modules/merchandise/MerchandiseTaskModule';
+import { FinanceLedgerModule } from '../../components/modules/finance/FinanceLedgerModule';
+import { AnnouncementBoardModule } from '../../components/modules/announcements/AnnouncementBoardModule';
 
 interface RoleDashboardProps {
   role: UserRole;
@@ -36,6 +41,7 @@ interface ActionConfig {
   desc: string;
   icon: React.ElementType;
   color: 'blue' | 'emerald' | 'amber' | 'purple' | 'cyan' | 'rose';
+  targetStream?: WorkstreamId;
 }
 
 const ROLE_CONFIGS: Record<
@@ -49,104 +55,105 @@ const ROLE_CONFIGS: Record<
 > = {
   STUDENT: {
     title: 'Student Dashboard',
-    actionLabel: 'Explore Events',
+    actionLabel: 'Join Skyline Club',
     stats: [
-      { label: 'Registered Events', value: '4', sub: '2 upcoming this week', color: 'blue', icon: Calendar },
-      { label: 'Club Memberships', value: '2', sub: 'Approved campus clubs', color: 'emerald', icon: Users },
-      { label: 'Event Tickets', value: '3', sub: 'Ready for scanning', color: 'amber', icon: Ticket },
-      { label: 'Applications', value: '1', sub: 'Under faculty review', color: 'purple', icon: FileText },
+      { label: 'Spring Gala Pass', value: '₹100 (Member)', sub: '₹250 Non-Member rate', color: 'blue', icon: Ticket },
+      { label: 'Club Membership', value: 'Sign-up Open', sub: '₹250/yr with perks', color: 'emerald', icon: Users },
+      { label: 'Official Merch', value: '4 Sizes', sub: 'Embroidered hoodies in stock', color: 'amber', icon: ShoppingBag },
+      { label: 'Campus Notices', value: '3 Active', sub: 'Auditorium Gala updates', color: 'purple', icon: Sparkles },
     ],
     actions: [
-      { title: 'Explore Events', desc: 'Browse campus hackathons & workshops', icon: Compass, color: 'blue' },
-      { title: 'Apply for Club', desc: 'Join student technical & cultural clubs', icon: UserCheck, color: 'emerald' },
-      { title: 'My Tickets', desc: 'Access your entry QR passes', icon: Ticket, color: 'amber' },
-      { title: 'Campus Announcements', desc: 'Stay updated with college notices', icon: Sparkles, color: 'purple' },
+      { title: 'Spring Gala Tickets', desc: 'Differential member discounts & QR pass', icon: Ticket, color: 'blue', targetStream: 'events' },
+      { title: 'Join Skyline Association', desc: 'Campus table sign-up & digital ID card', icon: UserCheck, color: 'emerald', targetStream: 'memberships' },
+      { title: 'Club Hoodie Store', desc: 'Order apparel online with size tracking', icon: ShoppingBag, color: 'amber', targetStream: 'merch_tasks' },
+      { title: 'Notice Board', desc: 'Official updates replacing WhatsApp groups', icon: Sparkles, color: 'purple', targetStream: 'finance_announcements' },
     ],
   },
   MEMBER: {
-    title: 'Club Member Dashboard',
-    actionLabel: 'View Schedule',
+    title: 'Club Member Workspace',
+    actionLabel: 'View Member ID',
     stats: [
-      { label: 'Club Events', value: '7', sub: '5 active initiatives', color: 'blue', icon: Calendar },
-      { label: 'My Tickets', value: '2', sub: 'VIP member access', color: 'emerald', icon: Ticket },
-      { label: 'Active Teams', value: '3', sub: 'Competitive project teams', color: 'amber', icon: Users },
-      { label: 'Club Points', value: '420', sub: '+50 points this month', color: 'purple', icon: Trophy },
+      { label: 'Membership Status', value: 'Active', sub: 'ID: SSA-2026-0042 (Paid)', color: 'emerald', icon: Users },
+      { label: 'Gala Discount', value: '60% Off', sub: '₹100 member tier claimed', color: 'blue', icon: Ticket },
+      { label: 'Hoodie Discount', value: '20% Off', sub: '₹700 member pricing active', color: 'amber', icon: ShoppingBag },
+      { label: 'Annual Dues', value: 'Valid', sub: 'Expires May 31, 2026', color: 'purple', icon: Trophy },
     ],
     actions: [
-      { title: 'Club Calendar', desc: 'Upcoming workshops & meetings', icon: Calendar, color: 'blue' },
-      { title: 'Exclusive Passes', desc: 'Claim priority member tickets', icon: Ticket, color: 'emerald' },
-      { title: 'Club Merchandise', desc: 'Order official club apparel', icon: Trophy, color: 'amber' },
-      { title: 'Member Forum', desc: 'Collaborate with fellow club members', icon: Users, color: 'purple' },
+      { title: 'Digital Membership ID', desc: 'View QR pass & dues validity', icon: Users, color: 'emerald', targetStream: 'memberships' },
+      { title: 'Spring Gala VIP Pass', desc: 'Book priority seats at member rate', icon: Ticket, color: 'blue', targetStream: 'events' },
+      { title: 'Club Merch Store', desc: 'Reserve hoodie size before stock runs out', icon: ShoppingBag, color: 'amber', targetStream: 'merch_tasks' },
+      { title: 'Member Announcements', desc: 'General body meeting notices', icon: Sparkles, color: 'purple', targetStream: 'finance_announcements' },
     ],
   },
   VOLUNTEER: {
-    title: 'Volunteer Dashboard',
-    actionLabel: 'View Duties',
+    title: 'Volunteer Operations Desk',
+    actionLabel: 'Log Shift Duty',
     stats: [
-      { label: 'Assigned Tasks', value: '6', sub: '2 due today', color: 'blue', icon: CheckSquare },
-      { label: 'Active Duty Events', value: '2', sub: 'Campus coordination', color: 'emerald', icon: Calendar },
-      { label: 'Hours Logged', value: '28h', sub: 'Verified by officers', color: 'amber', icon: Sparkles },
-      { label: 'Expense Claims', value: '₹1,450', sub: '1 claim pending', color: 'purple', icon: Receipt },
+      { label: 'Fundraiser Tasks', value: '5 Tasks', sub: 'Baking & cashier shifts', color: 'blue', icon: CheckSquare },
+      { label: 'Shift Roster', value: 'May 2', sub: '10 AM - 12 PM Quad Table', color: 'emerald', icon: Calendar },
+      { label: 'Expense Claims', value: '₹1,450', sub: 'Ingredients claim submitted', color: 'amber', icon: Receipt },
+      { label: 'Hours Contributed', value: '18h', sub: 'Verified by Skyline officers', color: 'purple', icon: Trophy },
     ],
     actions: [
-      { title: 'My Tasks', desc: 'Track and complete on-ground duties', icon: CheckSquare, color: 'blue' },
-      { title: 'Submit Expense', desc: 'File reimbursements for event items', icon: Receipt, color: 'emerald' },
-      { title: 'Event Roster', desc: 'View shift timings and duty stations', icon: Calendar, color: 'amber' },
-      { title: 'Coordination Chat', desc: 'Connect with team leaders', icon: Users, color: 'purple' },
+      { title: 'Bake Sale Tasks', desc: 'Who is baking, buying & staffing tables', icon: CheckSquare, color: 'blue', targetStream: 'merch_tasks' },
+      { title: 'Submit Expense Claim', desc: 'Upload ingredient receipts for reimbursement', icon: Receipt, color: 'emerald', targetStream: 'finance_announcements' },
+      { title: 'Door QR Check-in', desc: 'Scan guest tickets at Gala entrance', icon: Ticket, color: 'amber', targetStream: 'events' },
+      { title: 'Volunteer Notices', desc: 'Meeting briefings and prep instructions', icon: Sparkles, color: 'purple', targetStream: 'finance_announcements' },
     ],
   },
   EVENT_ORGANIZER: {
-    title: 'Organizer Dashboard',
-    actionLabel: 'Create Event',
+    title: 'Event Organizer Console',
+    actionLabel: 'Manage Spring Gala',
     stats: [
-      { label: 'Managed Events', value: '3', sub: '1 live today', color: 'blue', icon: Calendar },
-      { label: 'Total Registrations', value: '640', sub: '+85 today', color: 'emerald', icon: Users },
-      { label: 'Checked-in Attendees', value: '412', sub: '64% check-in rate', color: 'amber', icon: Ticket },
-      { label: 'Pending Tasks', value: '5', sub: 'Venue setup & logistics', color: 'purple', icon: CheckSquare },
+      { label: 'Gala Capacity', value: '420 / 500', sub: '84% seats sold online', color: 'blue', icon: Ticket },
+      { label: 'Ticket Revenue', value: '₹58,500', sub: 'Direct online collections', color: 'emerald', icon: IndianRupee },
+      { label: 'Turnout Rate', value: '91.6%', sub: '385 checked in at the door', color: 'amber', icon: Users },
+      { label: 'Logistics Tasks', value: '5 Active', sub: 'Fundraiser & gala prep', color: 'purple', icon: CheckSquare },
     ],
     actions: [
-      { title: 'Create Event', desc: 'Set up registration, tracks & schedule', icon: Plus, color: 'blue' },
-      { title: 'Manage Attendees', desc: 'Export participant lists and teams', icon: Users, color: 'emerald' },
-      { title: 'Check-in Desk', desc: 'Scan QR tickets at event entrance', icon: Ticket, color: 'amber' },
-      { title: 'Logistics Tasks', desc: 'Assign work to student volunteers', icon: CheckSquare, color: 'purple' },
+      { title: 'Door Check-in Desk', desc: 'Scan passes in seconds without paper sheets', icon: Ticket, color: 'blue', targetStream: 'events' },
+      { title: 'Ticket Tiers & Quotas', desc: 'Adjust member pricing & seat availability', icon: Calendar, color: 'emerald', targetStream: 'events' },
+      { title: 'Fundraiser Task Board', desc: 'Assign setup & table staffing to volunteers', icon: CheckSquare, color: 'amber', targetStream: 'merch_tasks' },
+      { title: 'Post-Event Turnout', desc: 'Analyze attendance & financial balance', icon: PieChart, color: 'purple', targetStream: 'finance_announcements' },
     ],
   },
   TREASURER: {
-    title: 'Treasurer Dashboard',
-    actionLabel: 'New Transaction',
+    title: 'Treasurer Ledger & Books',
+    actionLabel: 'Close The Books',
     stats: [
-      { label: 'Total Allocated', value: '₹250,000', sub: 'Annual college grant', color: 'blue', icon: IndianRupee },
-      { label: 'Disbursed Funds', value: '₹118,500', sub: 'Across 6 events', color: 'emerald', icon: IndianRupee },
-      { label: 'Pending Claims', value: '4', sub: '₹8,200 awaiting review', color: 'amber', icon: Receipt },
-      { label: 'Available Balance', value: '₹131,500', sub: '52.6% remaining', color: 'purple', icon: PieChart },
+      { label: 'Net Closing Balance', value: '₹101,300', sub: 'Balanced semester ledger', color: 'emerald', icon: IndianRupee },
+      { label: 'Semester Inflow', value: '₹155,300', sub: 'Dues + Gala tickets + Merch', color: 'blue', icon: IndianRupee },
+      { label: 'Semester Outflow', value: '₹99,000', sub: 'Venue, catering & production', color: 'amber', icon: Receipt },
+      { label: 'Pending Claims', value: '1 Claim', sub: '₹850 awaiting receipt review', color: 'purple', icon: FileText },
     ],
     actions: [
-      { title: 'Record Transaction', desc: 'Log verified vendor expenditure', icon: IndianRupee, color: 'blue' },
-      { title: 'Review Claims', desc: 'Approve volunteer & team reimbursements', icon: Receipt, color: 'emerald' },
-      { title: 'Financial Reports', desc: 'Download audited balance statements', icon: PieChart, color: 'amber' },
-      { title: 'Budget Allocation', desc: 'Assign funds to upcoming events', icon: Users, color: 'purple' },
+      { title: 'Closing The Books', desc: 'Complete audited semester income & expense balance', icon: PieChart, color: 'blue', targetStream: 'finance_announcements' },
+      { title: 'Volunteer Reimbursements', desc: 'Audit digital receipts & disburse funds', icon: Receipt, color: 'emerald', targetStream: 'finance_announcements' },
+      { title: 'Membership Dues Ledger', desc: 'Verify 194 paid student membership dues', icon: Users, color: 'amber', targetStream: 'memberships' },
+      { title: 'Gala & Merch Revenue', desc: 'Track ticket and hoodie collections', icon: IndianRupee, color: 'purple', targetStream: 'events' },
     ],
   },
   PRESIDENT: {
-    title: 'President Dashboard',
-    actionLabel: 'Executive Summary',
+    title: 'President Executive Suite',
+    actionLabel: 'Broadcast Notice',
     stats: [
-      { label: 'Club Members', value: '320', sub: 'Across 4 student chapters', color: 'blue', icon: Users },
-      { label: 'Annual Initiatives', value: '14', sub: '9 completed successfully', color: 'emerald', icon: Trophy },
-      { label: 'Active Committees', value: '5', sub: 'All leads reporting', color: 'amber', icon: Users },
-      { label: 'Budget Utilization', value: '74%', sub: 'Healthy balance sheet', color: 'purple', icon: IndianRupee },
+      { label: 'Total Membership', value: '248 Members', sub: 'Skyline Student Association', color: 'blue', icon: Users },
+      { label: 'Spring Gala Target', value: '84% Booked', sub: '₹58,500 ticket revenue', color: 'emerald', icon: Ticket },
+      { label: 'Treasury Balance', value: '₹101,300', sub: 'Healthy semester surplus', color: 'purple', icon: IndianRupee },
+      { label: 'Fundraiser Status', value: 'On Track', sub: 'Charity bake sale May 2', color: 'amber', icon: Trophy },
     ],
     actions: [
-      { title: 'Executive Overview', desc: 'Review club metrics and health', icon: PieChart, color: 'blue' },
-      { title: 'Member Governance', desc: 'Approve officers and leadership leads', icon: Users, color: 'emerald' },
-      { title: 'Club Elections', desc: 'Oversee democratic balloting', icon: Vote, color: 'amber' },
-      { title: 'Presidential Notices', desc: 'Broadcast to entire campus community', icon: Sparkles, color: 'purple' },
+      { title: 'Executive Overview', desc: 'Unified view across all 4 club modules', icon: PieChart, color: 'blue', targetStream: 'all' },
+      { title: 'Official Broadcast', desc: 'Post announcements replacing WhatsApp chats', icon: Sparkles, color: 'purple', targetStream: 'finance_announcements' },
+      { title: 'Membership Governance', desc: 'Track renewals, dues & new joiners', icon: Users, color: 'emerald', targetStream: 'memberships' },
+      { title: 'Semester Financials', desc: 'Review closing ledger & approved expenses', icon: IndianRupee, color: 'amber', targetStream: 'finance_announcements' },
     ],
   },
 };
 
 export const RoleDashboardPage: React.FC<RoleDashboardProps> = ({ role }) => {
   const { user, collegeName } = useAuthStore();
+  const [activeStream, setActiveStream] = useState<WorkstreamId>('all');
   const config = ROLE_CONFIGS[role] || ROLE_CONFIGS.STUDENT;
 
   const colorStyles = {
@@ -160,86 +167,169 @@ export const RoleDashboardPage: React.FC<RoleDashboardProps> = ({ role }) => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
-      {/* Page Header matching UI reference */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-            {config.title}
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Welcome back{user?.name ? `, ${user.name}` : ''}! Here's your {ROLE_DISPLAY_NAMES[role] || role} workspace overview.
-          </p>
-        </div>
+      {/* 4-Developer Workstream Team Banner */}
+      <TeamWorkstreamBanner
+        activeStream={activeStream}
+        onSelectStream={(s) => setActiveStream(s)}
+      />
 
-        {/* Right Header Badges & Actions */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 text-xs text-slate-600 bg-white border border-slate-200 px-3.5 py-2 rounded-lg shadow-xs">
-            <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
-            <span className="font-medium truncate max-w-[200px] sm:max-w-none">{collegeName}</span>
-            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-              A++
-            </span>
+      {/* Main Content Area: Renders either the specific Workstream Module or the Role Synthesized Dashboard */}
+      {activeStream === 'events' ? (
+        <EventsTicketingModule />
+      ) : activeStream === 'memberships' ? (
+        <MembershipModule />
+      ) : activeStream === 'merch_tasks' ? (
+        <MerchandiseTaskModule />
+      ) : activeStream === 'finance_announcements' ? (
+        <div className="space-y-8">
+          <FinanceLedgerModule />
+          <AnnouncementBoardModule />
+        </div>
+      ) : (
+        /* SYNTHESIZED DASHBOARD FOR ACTIVE ROLE */
+        <div className="space-y-8">
+          {/* Page Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                  Role Workspace: {ROLE_DISPLAY_NAMES[role] || role}
+                </span>
+                <span className="text-xs text-slate-500 font-medium">Skyline Student Association</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mt-1">
+                {config.title}
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Welcome back{user?.name ? `, ${user.name}` : ''}! Running events, members, and money in one place.
+              </p>
+            </div>
+
+            {/* Right Header Badges */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2 text-xs text-slate-600 bg-white border border-slate-200 px-3.5 py-2 rounded-xl shadow-xs">
+                <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
+                <span className="font-medium truncate max-w-[200px] sm:max-w-none">{collegeName}</span>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                  A++
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (role === 'EVENT_ORGANIZER') setActiveStream('events');
+                  else if (role === 'TREASURER') setActiveStream('finance_announcements');
+                  else if (role === 'VOLUNTEER') setActiveStream('merch_tasks');
+                  else setActiveStream('memberships');
+                }}
+                className="flex items-center gap-2 bg-[#1e3a8a] hover:bg-[#172554] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-xs transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                <span>{config.actionLabel}</span>
+              </button>
+            </div>
           </div>
 
-          <button
-            type="button"
-            className="flex items-center gap-2 bg-[#1e3a8a] hover:bg-[#172554] text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-xs transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            <span>{config.actionLabel}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 4 Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {config.stats.map((stat, idx) => {
-          const Icon = stat.icon;
-          return (
-            <div
-              key={idx}
-              className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs flex items-center gap-4"
-            >
-              <div
-                className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 border ${colorStyles[stat.color]}`}
-              >
-                <Icon className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-slate-500">{stat.label}</p>
-                <p className="text-2xl font-bold text-slate-900 mt-0.5">{stat.value}</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">{stat.sub}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Quick Actions */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-bold text-slate-800">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {config.actions.map((act, idx) => {
-            const Icon = act.icon;
-            return (
-              <div
-                key={idx}
-                className="bg-white rounded-xl p-4 border border-slate-100 shadow-xs hover:border-slate-300 transition-colors flex items-center gap-3.5 cursor-pointer group"
-              >
+          {/* 4 Stat Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            {config.stats.map((stat, idx) => {
+              const Icon = stat.icon;
+              return (
                 <div
-                  className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border ${colorStyles[act.color]}`}
+                  key={idx}
+                  className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center gap-4"
                 >
-                  <Icon className="h-5 w-5" />
+                  <div
+                    className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 border ${colorStyles[stat.color]}`}
+                  >
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-slate-500">{stat.label}</p>
+                    <p className="text-xl font-bold text-slate-900 mt-0.5">{stat.value}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{stat.sub}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-900">{act.title}</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">{act.desc}</p>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+
+          {/* Quick Actions to jump to streams */}
+          <div className="space-y-3">
+            <h2 className="text-sm font-bold text-slate-800">Operational Feature Modules</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {config.actions.map((act, idx) => {
+                const Icon = act.icon;
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => act.targetStream && setActiveStream(act.targetStream)}
+                    className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:border-indigo-400 transition-all flex items-center gap-3.5 cursor-pointer group"
+                  >
+                    <div
+                      className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border ${colorStyles[act.color]}`}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                        {act.title}
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">{act.desc}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Role-Specific Showcase Section */}
+          {role === 'STUDENT' && (
+            <div className="space-y-8">
+              <EventsTicketingModule />
+              <MembershipModule />
+            </div>
+          )}
+
+          {role === 'MEMBER' && (
+            <div className="space-y-8">
+              <MembershipModule />
+              <MerchandiseTaskModule />
+            </div>
+          )}
+
+          {role === 'VOLUNTEER' && (
+            <div className="space-y-8">
+              <MerchandiseTaskModule />
+              <EventsTicketingModule />
+            </div>
+          )}
+
+          {role === 'EVENT_ORGANIZER' && (
+            <div className="space-y-8">
+              <EventsTicketingModule />
+              <MerchandiseTaskModule />
+            </div>
+          )}
+
+          {role === 'TREASURER' && (
+            <div className="space-y-8">
+              <FinanceLedgerModule />
+              <MembershipModule />
+            </div>
+          )}
+
+          {role === 'PRESIDENT' && (
+            <div className="space-y-8">
+              <FinanceLedgerModule />
+              <AnnouncementBoardModule />
+              <EventsTicketingModule />
+              <MembershipModule />
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 };

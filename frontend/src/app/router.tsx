@@ -8,6 +8,11 @@ import { AccessDeniedPage } from '../pages/AccessDeniedPage';
 import { AdminDashboardPage } from '../pages/dashboards/AdminDashboardPage';
 import { RoleDashboardPage } from '../pages/dashboards/RoleDashboardPage';
 import { PlaceholderPage } from '../components/shared/PlaceholderPage';
+import { EventsTicketingModule } from '../components/modules/events/EventsTicketingModule';
+import { MembershipModule } from '../components/modules/memberships/MembershipModule';
+import { MerchandiseTaskModule } from '../components/modules/merchandise/MerchandiseTaskModule';
+import { FinanceLedgerModule } from '../components/modules/finance/FinanceLedgerModule';
+import { AnnouncementBoardModule } from '../components/modules/announcements/AnnouncementBoardModule';
 import { useAuthStore } from '../stores/auth.store';
 import { ROLES, getDefaultRole, ROLE_DEFAULT_PATHS } from '../config/roles';
 
@@ -75,43 +80,19 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: (
-              <PlaceholderPage
-                title="Explore Campus Events"
-                role={ROLES.STUDENT}
-                group="CAMPUS ACTIVITIES"
-              />
-            ),
+            element: <EventsTicketingModule />,
           },
           {
             path: 'announcements',
-            element: (
-              <PlaceholderPage
-                title="Campus Announcements"
-                role={ROLES.STUDENT}
-                group="CAMPUS ACTIVITIES"
-              />
-            ),
+            element: <AnnouncementBoardModule />,
           },
           {
             path: 'apply-membership',
-            element: (
-              <PlaceholderPage
-                title="Apply for Club Membership"
-                role={ROLES.STUDENT}
-                group="CLUB MEMBERSHIPS"
-              />
-            ),
+            element: <MembershipModule />,
           },
           {
             path: 'applications',
-            element: (
-              <PlaceholderPage
-                title="My Applications"
-                role={ROLES.STUDENT}
-                group="CLUB MEMBERSHIPS"
-              />
-            ),
+            element: <MembershipModule />,
           },
         ],
       },
@@ -129,53 +110,23 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: (
-              <PlaceholderPage
-                title="Club Events & Workshops"
-                role={ROLES.MEMBER}
-                group="CLUB ACTIVITIES"
-              />
-            ),
+            element: <EventsTicketingModule />,
           },
           {
             path: 'announcements',
-            element: (
-              <PlaceholderPage
-                title="Member Announcements"
-                role={ROLES.MEMBER}
-                group="CLUB ACTIVITIES"
-              />
-            ),
+            element: <AnnouncementBoardModule />,
           },
           {
             path: 'membership',
-            element: (
-              <PlaceholderPage
-                title="My Club Membership"
-                role={ROLES.MEMBER}
-                group="MEMBER HUB"
-              />
-            ),
+            element: <MembershipModule />,
           },
           {
             path: 'tickets',
-            element: (
-              <PlaceholderPage
-                title="My Event Tickets"
-                role={ROLES.MEMBER}
-                group="MEMBER HUB"
-              />
-            ),
+            element: <EventsTicketingModule />,
           },
           {
             path: 'merchandise',
-            element: (
-              <PlaceholderPage
-                title="Club Merchandise"
-                role={ROLES.MEMBER}
-                group="MEMBER HUB"
-              />
-            ),
+            element: <MerchandiseTaskModule />,
           },
         ],
       },
@@ -193,33 +144,15 @@ export const router = createBrowserRouter([
           },
           {
             path: 'tasks',
-            element: (
-              <PlaceholderPage
-                title="My Volunteer Tasks"
-                role={ROLES.VOLUNTEER}
-                group="VOLUNTEER OPERATIONS"
-              />
-            ),
+            element: <MerchandiseTaskModule />,
           },
           {
             path: 'events',
-            element: (
-              <PlaceholderPage
-                title="Volunteer Duty Events"
-                role={ROLES.VOLUNTEER}
-                group="VOLUNTEER OPERATIONS"
-              />
-            ),
+            element: <EventsTicketingModule />,
           },
           {
             path: 'submit-expense',
-            element: (
-              <PlaceholderPage
-                title="Submit Expense Claim"
-                role={ROLES.VOLUNTEER}
-                group="VOLUNTEER OPERATIONS"
-              />
-            ),
+            element: <FinanceLedgerModule />,
           },
         ],
       },
@@ -237,33 +170,15 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: (
-              <PlaceholderPage
-                title="My Managed Events"
-                role={ROLES.EVENT_ORGANIZER}
-                group="EVENT OPERATIONS"
-              />
-            ),
+            element: <EventsTicketingModule />,
           },
           {
             path: 'attendees',
-            element: (
-              <PlaceholderPage
-                title="Attendees & Check-in Desk"
-                role={ROLES.EVENT_ORGANIZER}
-                group="EVENT OPERATIONS"
-              />
-            ),
+            element: <EventsTicketingModule />,
           },
           {
             path: 'tasks',
-            element: (
-              <PlaceholderPage
-                title="Event Logistics & Tasks"
-                role={ROLES.EVENT_ORGANIZER}
-                group="EVENT OPERATIONS"
-              />
-            ),
+            element: <MerchandiseTaskModule />,
           },
         ],
       },
@@ -281,33 +196,15 @@ export const router = createBrowserRouter([
           },
           {
             path: 'transactions',
-            element: (
-              <PlaceholderPage
-                title="Financial Transactions"
-                role={ROLES.TREASURER}
-                group="FINANCE & BUDGET"
-              />
-            ),
+            element: <FinanceLedgerModule />,
           },
           {
             path: 'reimbursements',
-            element: (
-              <PlaceholderPage
-                title="Reimbursements & Claims Review"
-                role={ROLES.TREASURER}
-                group="FINANCE & BUDGET"
-              />
-            ),
+            element: <FinanceLedgerModule />,
           },
           {
             path: 'reports',
-            element: (
-              <PlaceholderPage
-                title="Audited Financial Reports"
-                role={ROLES.TREASURER}
-                group="FINANCE & BUDGET"
-              />
-            ),
+            element: <FinanceLedgerModule />,
           },
         ],
       },
@@ -325,33 +222,15 @@ export const router = createBrowserRouter([
           },
           {
             path: 'members',
-            element: (
-              <PlaceholderPage
-                title="Club Membership Directory"
-                role={ROLES.PRESIDENT}
-                group="CLUB GOVERNANCE"
-              />
-            ),
+            element: <MembershipModule />,
           },
           {
             path: 'events',
-            element: (
-              <PlaceholderPage
-                title="Executive Event Calendar"
-                role={ROLES.PRESIDENT}
-                group="CLUB GOVERNANCE"
-              />
-            ),
+            element: <EventsTicketingModule />,
           },
           {
             path: 'announcements',
-            element: (
-              <PlaceholderPage
-                title="Presidential Announcements"
-                role={ROLES.PRESIDENT}
-                group="COMMUNICATIONS"
-              />
-            ),
+            element: <AnnouncementBoardModule />,
           },
           {
             path: 'elections',
@@ -365,13 +244,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'finance',
-            element: (
-              <PlaceholderPage
-                title="Finance Overview"
-                role={ROLES.PRESIDENT}
-                group="FINANCIAL OVERSIGHT"
-              />
-            ),
+            element: <FinanceLedgerModule />,
           },
         ],
       },
@@ -389,121 +262,39 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: (
-              <PlaceholderPage
-                title="My Events"
-                role={ROLES.ADMIN}
-                group="EVENT MANAGEMENT"
-              />
-            ),
+            element: <EventsTicketingModule />,
           },
           {
             path: 'incoming-events',
-            element: (
-              <PlaceholderPage
-                title="Incoming Events"
-                role={ROLES.ADMIN}
-                group="EVENT MANAGEMENT"
-              />
-            ),
+            element: <EventsTicketingModule />,
           },
           {
             path: 'events-overview',
-            element: (
-              <PlaceholderPage
-                title="Events Overview"
-                role={ROLES.ADMIN}
-                group="EVENT MANAGEMENT"
-              />
-            ),
+            element: <EventsTicketingModule />,
           },
           {
             path: 'event-analytics',
-            element: (
-              <PlaceholderPage
-                title="Event Analytics"
-                role={ROLES.ADMIN}
-                group="EVENT MANAGEMENT"
-              />
-            ),
+            element: <EventsTicketingModule />,
           },
           {
             path: 'analytics',
-            element: (
-              <PlaceholderPage
-                title="Institutional Analytics"
-                role={ROLES.ADMIN}
-                group="INSTITUTIONAL DATA"
-              />
-            ),
+            element: <FinanceLedgerModule />,
           },
           {
             path: 'reports',
-            element: (
-              <PlaceholderPage
-                title="Reports & Exports"
-                role={ROLES.ADMIN}
-                group="INSTITUTIONAL DATA"
-              />
-            ),
-          },
-          {
-            path: 'db-assistant',
-            element: (
-              <PlaceholderPage
-                title="DB Assistant"
-                role={ROLES.ADMIN}
-                group="INSTITUTIONAL DATA"
-              />
-            ),
-          },
-          {
-            path: 'winners',
-            element: (
-              <PlaceholderPage
-                title="Declared Winners"
-                role={ROLES.ADMIN}
-                group="INSTITUTIONAL DATA"
-              />
-            ),
+            element: <FinanceLedgerModule />,
           },
           {
             path: 'users',
-            element: (
-              <PlaceholderPage
-                title="User Accounts & Directory"
-                role={ROLES.ADMIN}
-                group="USER MANAGEMENT"
-              />
-            ),
-          },
-          {
-            path: 'roles',
-            element: (
-              <PlaceholderPage
-                title="Role Assignment & Permissions"
-                role={ROLES.ADMIN}
-                group="USER MANAGEMENT"
-              />
-            ),
+            element: <MembershipModule />,
           },
           {
             path: 'settings',
             element: (
               <PlaceholderPage
-                title="Organization Settings"
+                title="Institutional Settings"
                 role={ROLES.ADMIN}
-                group="USER MANAGEMENT"
-              />
-            ),
-          },
-          {
-            path: 'audit-log',
-            element: (
-              <PlaceholderPage
-                title="Platform Audit Log"
-                role={ROLES.ADMIN}
-                group="USER MANAGEMENT"
+                group="PLATFORM SETTINGS"
               />
             ),
           },
@@ -512,9 +303,7 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // ---------------------------------------------------------------------------
-  // Fallback / Catch-all
-  // ---------------------------------------------------------------------------
+  // Fallback Wildcard
   {
     path: '*',
     element: <Navigate to="/" replace />,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuthStore } from '../../stores/auth.store';
 import {
   Calendar,
@@ -6,225 +6,222 @@ import {
   Trophy,
   IndianRupee,
   Plus,
-  PlusCircle,
-  TrendingUp,
-  BellRing,
   Building2,
-  ArrowRight,
+  ShieldCheck,
 } from 'lucide-react';
+import { activeClub } from '../../data/mockClubData';
+import { TeamWorkstreamBanner, WorkstreamId } from '../../components/modules/TeamWorkstreamBanner';
+import { EventsTicketingModule } from '../../components/modules/events/EventsTicketingModule';
+import { MembershipModule } from '../../components/modules/memberships/MembershipModule';
+import { MerchandiseTaskModule } from '../../components/modules/merchandise/MerchandiseTaskModule';
+import { FinanceLedgerModule } from '../../components/modules/finance/FinanceLedgerModule';
+import { AnnouncementBoardModule } from '../../components/modules/announcements/AnnouncementBoardModule';
 
 export const AdminDashboardPage: React.FC = () => {
   const { user, collegeName } = useAuthStore();
+  const [activeStream, setActiveStream] = useState<WorkstreamId>('all');
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
-      {/* Page Header (Matches UI reference) */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-            Admin Dashboard
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Welcome back{user?.name ? `, ${user.name}` : ''}! Here's an overview of {collegeName}
-          </p>
+      {/* 4-Developer Workstream Banner */}
+      <TeamWorkstreamBanner
+        activeStream={activeStream}
+        onSelectStream={(s) => setActiveStream(s)}
+      />
+
+      {/* Module Inspector or Admin Overview */}
+      {activeStream === 'events' ? (
+        <EventsTicketingModule />
+      ) : activeStream === 'memberships' ? (
+        <MembershipModule />
+      ) : activeStream === 'merch_tasks' ? (
+        <MerchandiseTaskModule />
+      ) : activeStream === 'finance_announcements' ? (
+        <div className="space-y-8">
+          <FinanceLedgerModule />
+          <AnnouncementBoardModule />
         </div>
-
-        {/* Right Header Badges & Actions */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 text-xs text-slate-600 bg-white border border-slate-200 px-3.5 py-2 rounded-lg shadow-xs">
-            <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
-            <span className="font-medium truncate max-w-[200px] sm:max-w-none">{collegeName}</span>
-            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-              A++
-            </span>
-          </div>
-
-          <button
-            type="button"
-            className="flex items-center gap-2 bg-[#1e3a8a] hover:bg-[#172554] text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-xs transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Create Event</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 4 Stat Cards Row (Matches UI reference) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {/* Card 1: Total Events */}
-        <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs flex items-center gap-4">
-          <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100/60">
-            <Calendar className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-slate-500">Total Events</p>
-            <p className="text-2xl font-bold text-slate-900 mt-0.5">10</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">9 active</p>
-          </div>
-        </div>
-
-        {/* Card 2: Participants */}
-        <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs flex items-center gap-4">
-          <div className="h-12 w-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100/60">
-            <Users className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-slate-500">Participants</p>
-            <p className="text-2xl font-bold text-slate-900 mt-0.5">1,013</p>
-            <p className="text-[11px] text-emerald-600 font-medium mt-0.5">↗+16% +24 this week</p>
-          </div>
-        </div>
-
-        {/* Card 3: Winners */}
-        <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs flex items-center gap-4">
-          <div className="h-12 w-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100/60">
-            <Trophy className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-slate-500">Winners</p>
-            <p className="text-2xl font-bold text-slate-900 mt-0.5">3</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">From completed events</p>
-          </div>
-        </div>
-
-        {/* Card 4: Revenue Generated */}
-        <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs flex items-center gap-4">
-          <div className="h-12 w-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100/60">
-            <IndianRupee className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-slate-500">Revenue Generated</p>
-            <p className="text-2xl font-bold text-slate-900 mt-0.5">₹367,500</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">From registration fees</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions (Matches UI reference) */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-bold text-slate-800">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Action 1 */}
-          <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-xs hover:border-slate-300 transition-colors flex items-center gap-3.5 cursor-pointer group">
-            <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <PlusCircle className="h-5 w-5" />
-            </div>
+      ) : (
+        <div className="space-y-8">
+          {/* Page Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1">
             <div>
-              <p className="text-xs font-bold text-slate-900">Create Event</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Host a new hackathon, workshop, or seminar
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                  Campus Admin Console
+                </span>
+                <span className="text-xs text-slate-500 font-medium">Multi-Tenant Management</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mt-1">
+                Admin Dashboard
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Welcome back{user?.name ? `, ${user.name}` : ''}! Managing club organizations, events, and campus finances.
               </p>
             </div>
-          </div>
 
-          {/* Action 2 */}
-          <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-xs hover:border-slate-300 transition-colors flex items-center gap-3.5 cursor-pointer group">
-            <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <Calendar className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-900">My Events</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Manage your hosted events</p>
-            </div>
-          </div>
+            {/* Right Header Badges */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2 text-xs text-slate-600 bg-white border border-slate-200 px-3.5 py-2 rounded-xl shadow-xs">
+                <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
+                <span className="font-medium truncate max-w-[200px] sm:max-w-none">{collegeName}</span>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                  A++
+                </span>
+              </div>
 
-          {/* Action 3 */}
-          <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-xs hover:border-slate-300 transition-colors flex items-center gap-3.5 cursor-pointer group">
-            <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <Trophy className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-900">Declare Winners</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Announce winners for completed events</p>
+              <button
+                type="button"
+                className="flex items-center gap-2 bg-[#1e3a8a] hover:bg-[#172554] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-xs transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Register New Club Tenant</span>
+              </button>
             </div>
           </div>
 
-          {/* Action 4 */}
-          <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-xs hover:border-slate-300 transition-colors flex items-center gap-3.5 cursor-pointer group">
-            <div className="h-10 w-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <Users className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-900">Registered Teams</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">View and manage team registrations</p>
-            </div>
-          </div>
-
-          {/* Action 5 */}
-          <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-xs hover:border-slate-300 transition-colors flex items-center gap-3.5 cursor-pointer group">
-            <div className="h-10 w-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <TrendingUp className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-900">Event Analytics</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Insights and performance metrics</p>
-            </div>
-          </div>
-
-          {/* Action 6 */}
-          <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-xs hover:border-slate-300 transition-colors flex items-center gap-3.5 cursor-pointer group">
-            <div className="h-10 w-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <BellRing className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-900">Incoming Events</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">External events from partner colleges</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Events & Event Status (Matches UI reference bottom cards) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Recent Events (2 columns on lg) */}
-        <div className="lg:col-span-2 bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-blue-600" />
-              <h3 className="text-sm font-bold text-slate-900">Recent Events</h3>
-            </div>
-            <button
-              type="button"
-              className="text-xs font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1"
-            >
-              <span>View All</span>
-              <ArrowRight className="h-3 w-3" />
-            </button>
-          </div>
-
-          <div className="rounded-xl border border-slate-100 p-3.5 flex items-center justify-between hover:bg-slate-50/70 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-slate-900 text-sky-400 flex items-center justify-center font-mono font-bold text-xs shrink-0 overflow-hidden">
-                <span className="text-[10px]">CTF</span>
+          {/* 4 Stat Cards Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100/60">
+                <Calendar className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-xs font-semibold text-slate-900">Cybersecurity CTF Challenge</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">Hackathon • May 1</p>
+                <p className="text-xs font-medium text-slate-500">Total Events</p>
+                <p className="text-2xl font-bold text-slate-900 mt-0.5">10</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">9 active this semester</p>
               </div>
             </div>
 
-            <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
-              Pending
-            </span>
-          </div>
-        </div>
-
-        {/* Event Status (1 column on lg) */}
-        <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-4">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-emerald-600" />
-            <h3 className="text-sm font-bold text-slate-900">Event Status</h3>
-          </div>
-
-          <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs font-medium text-emerald-900">Ongoing</span>
+            <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100/60">
+                <Users className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-slate-500">Club Members</p>
+                <p className="text-2xl font-bold text-slate-900 mt-0.5">1,013</p>
+                <p className="text-[11px] text-emerald-600 font-medium mt-0.5">↗+16% across 6 clubs</p>
+              </div>
             </div>
-            <span className="text-base font-bold text-emerald-900">0</span>
+
+            <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100/60">
+                <Trophy className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-slate-500">Active Clubs</p>
+                <p className="text-2xl font-bold text-slate-900 mt-0.5">6</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Skyline SA, Coding, Roboclub</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100/60">
+                <IndianRupee className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-slate-500">Total Fund Inflow</p>
+                <p className="text-2xl font-bold text-slate-900 mt-0.5">₹367,500</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Dues & Gala tickets</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Multi-Tenant Club Management Table */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-indigo-600" />
+                  Campus Club Tenants (Multi-Tenant Architecture)
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Each student club operates as an isolated tenant with dedicated membership dues, role hierarchies, and treasury books.
+                </p>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto rounded-xl border border-slate-100">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                  <tr>
+                    <th className="py-3 px-4">Club Organization</th>
+                    <th className="py-3 px-4">Tenant Slug</th>
+                    <th className="py-3 px-4">Annual Dues</th>
+                    <th className="py-3 px-4">Active Members</th>
+                    <th className="py-3 px-4">Treasury Balance</th>
+                    <th className="py-3 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  <tr className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-8 w-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">
+                          SSA
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-900">{activeClub.name}</p>
+                          <p className="text-[11px] text-slate-400">Primary Student Association</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 font-mono font-medium text-slate-700">{activeClub.slug}</td>
+                    <td className="py-3.5 px-4 font-bold text-slate-900">₹{activeClub.duesAmount}/yr</td>
+                    <td className="py-3.5 px-4">
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        {activeClub.memberCount} Members
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 font-bold text-indigo-600">₹{activeClub.activeBudget.toLocaleString()}</td>
+                    <td className="py-3.5 px-4 text-right">
+                      <button
+                        onClick={() => setActiveStream('finance_announcements')}
+                        className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold"
+                      >
+                        Audit Ledger →
+                      </button>
+                    </td>
+                  </tr>
+
+                  <tr className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-8 w-8 rounded-lg bg-amber-600 text-white flex items-center justify-center font-bold text-xs">
+                          DSC
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-900">Developer Student Club</p>
+                          <p className="text-[11px] text-slate-400">Technical Hackathon Chapter</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 font-mono font-medium text-slate-700">dsc-chapter</td>
+                    <td className="py-3.5 px-4 font-bold text-slate-900">₹300/yr</td>
+                    <td className="py-3.5 px-4">
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        185 Members
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 font-bold text-indigo-600">₹64,200</td>
+                    <td className="py-3.5 px-4 text-right">
+                      <button className="text-xs text-slate-400 hover:text-slate-600 font-semibold">
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Quick Workstream Showcase */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <EventsTicketingModule />
+            <FinanceLedgerModule />
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
