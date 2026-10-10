@@ -13,7 +13,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
-    "seed:clubs": "tsx prisma/seed-clubs.ts"
+    "seed:clubs": "tsx prisma/seed-clubs.ts",
+    "test": "tsx --test src/modules/payment/payment.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

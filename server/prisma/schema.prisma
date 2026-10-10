@@ -160,6 +160,7 @@ model Organization {
   duesRecords            DuesRecord[]
   merchProducts          MerchProduct[]
   studentMerchOrders     StudentMerchOrder[]
+  payments               Payment[]
 
   @@map("organizations")
 }
@@ -407,6 +408,7 @@ model Payment {
   id                 String        @id
   userId             String
   bookingId          String?
+  organizationId     String?
   status             PaymentStatus @default(CREATED)
   amount             Int           // INR paise
   currency           String        @default("INR") @db.VarChar(3)
@@ -422,11 +424,13 @@ model Payment {
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Restrict)
-  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  booking      Booking?      @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@index([bookingId])
+  @@index([organizationId])
   @@index([status])
   @@map("payments")
 }

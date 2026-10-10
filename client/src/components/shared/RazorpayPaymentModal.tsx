@@ -10,6 +10,8 @@ import {
   Loader2,
 } from 'lucide-react';
 import { PaymentReceipt } from '../../stores/club.store';
+import { apiClient } from '../../services/api-client';
+import { useAuthStore } from '../../stores/auth.store';
 
 interface RazorpayPaymentModalProps {
   isOpen: boolean;
@@ -19,6 +21,8 @@ interface RazorpayPaymentModalProps {
   amount: number;
   payerName?: string;
   payerEmail?: string;
+  organizationId?: string;
+  bookingId?: string;
   onSuccess: (receipt: PaymentReceipt) => void;
 }
 
@@ -30,6 +34,8 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
   amount,
   payerName = 'Deepak Kumar',
   payerEmail = 'deepaka.ad24@bitsathy.ac.in',
+  organizationId,
+  bookingId,
   onSuccess,
 }) => {
   const [activeTab, setActiveTab] = useState<'UPI' | 'CARD' | 'NETBANKING'>('UPI');
@@ -45,14 +51,36 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleLaunchOfficialRazorpay = () => {
-    const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_Tm4KSE4i6vVkvs';
+  const handleLaunchOfficialRazorpay = async () => {
+    let razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_Tm4KSE4i6vVkvs';
+    let orderId: string | undefined;
+    let paymentAmountPaise = Math.round(amount * 100);
+
+    // Call authenticated backend /api/payment/create-order endpoint to generate canonical Razorpay order
+    try {
+      const token = useAuthStore.getState().token;
+      if (token) {
+        const payload: any = { purpose };
+        if (organizationId) payload.organizationId = organizationId;
+        if (bookingId) payload.bookingId = bookingId;
+
+        const res = await apiClient.post('/payment/create-order', payload);
+        const orderData = res.data?.data || res.data;
+        if (orderData?.orderId || orderData?.id) {
+          orderId = orderData.orderId || orderData.id;
+          if (orderData.keyId) razorpayKey = orderData.keyId;
+          if (orderData.amount) paymentAmountPaise = orderData.amount;
+        }
+      }
+    } catch (orderErr) {
+      console.warn('Backend Razorpay order creation notice:', orderErr);
+    }
 
     if (typeof (window as any).Razorpay === 'function') {
       try {
-        const options = {
+        const options: any = {
           key: razorpayKey,
-          amount: Math.round(amount * 100), // in paise
+          amount: paymentAmountPaise, // in paise
           currency: 'INR',
           name: 'Skyline Student Association',
           description: purpose || title || 'Campus Organization Payment',
@@ -70,10 +98,23 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
           theme: {
             color: '#1e3a8a',
           },
-          handler: function (response: any) {
+          handler: async function (response: any) {
+            // Verify payment signature with backend
+            try {
+              if (response.razorpay_order_id && response.razorpay_payment_id && response.razorpay_signature) {
+                await apiClient.post('/payment/verify', {
+                  orderId: response.razorpay_order_id,
+                  paymentId: response.razorpay_payment_id,
+                  signature: response.razorpay_signature,
+                });
+              }
+            } catch (verErr) {
+              console.warn('Signature verification notice:', verErr);
+            }
+
             const receipt: PaymentReceipt = {
               paymentId: response.razorpay_payment_id || `pay_${Date.now()}`,
-              orderId: response.razorpay_order_id || `order_${Date.now()}`,
+              orderId: response.razorpay_order_id || orderId || `order_${Date.now()}`,
               amount,
               currency: 'INR',
               purpose,
@@ -99,6 +140,10 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
             },
           },
         };
+
+        if (orderId) {
+          options.order_id = orderId;
+        }
 
         const rzpInstance = new (window as any).Razorpay(options);
         rzpInstance.on('payment.failed', function (resp: any) {
