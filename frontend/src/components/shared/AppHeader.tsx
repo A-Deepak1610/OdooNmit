@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Menu,
   PanelLeftClose,
@@ -9,10 +9,14 @@ import {
   Moon,
   Bell,
   Shield,
-} from 'lucide-react';
-import { useUiStore } from '../../stores/ui.store';
-import { useAuthStore } from '../../stores/auth.store';
-import { ROLE_DEFAULT_PATHS, ROLE_DISPLAY_NAMES, UserRole } from '../../config/roles';
+} from "lucide-react";
+import { useUiStore } from "../../stores/ui.store";
+import { useAuthStore } from "../../stores/auth.store";
+import {
+  ROLE_DEFAULT_PATHS,
+  ROLE_DISPLAY_NAMES,
+  UserRole,
+} from "../../config/roles";
 
 export const AppHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -47,9 +51,13 @@ export const AppHeader: React.FC = () => {
           type="button"
           onClick={toggleSidebar}
           className="hidden md:inline-flex rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
-          aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {sidebarCollapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          {sidebarCollapsed ? (
+            <PanelLeft className="h-4 w-4" />
+          ) : (
+            <PanelLeftClose className="h-4 w-4" />
+          )}
         </button>
 
         {/* College Name Pill (Matches UI reference) */}
@@ -78,7 +86,7 @@ export const AppHeader: React.FC = () => {
           <div className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50/60 px-2.5 py-1 text-xs">
             <Shield className="h-3.5 w-3.5 text-blue-600 shrink-0" />
             <select
-              value={role || ''}
+              value={role || ""}
               onChange={handleRoleChange}
               className="bg-transparent text-xs font-semibold text-blue-800 focus:outline-none cursor-pointer pr-1"
               aria-label="Switch role workspace"
@@ -93,7 +101,7 @@ export const AppHeader: React.FC = () => {
         ) : (
           <div className="hidden sm:flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-xs text-slate-600 font-medium">
             <Shield className="h-3.5 w-3.5 text-slate-500" />
-            <span>{role ? (ROLE_DISPLAY_NAMES[role] || role) : 'Student'}</span>
+            <span>{role ? ROLE_DISPLAY_NAMES[role] || role : "Student"}</span>
           </div>
         )}
 
@@ -122,12 +130,12 @@ export const AppHeader: React.FC = () => {
         {user?.avatarUrl ? (
           <img
             src={user.avatarUrl}
-            alt={user.name || 'User'}
+            alt={user.name || "User"}
             className="h-8 w-8 rounded-full border border-slate-200 object-cover"
           />
         ) : (
           <div className="h-8 w-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-            {user?.name ? user.name.substring(0, 2).toUpperCase() : 'CM'}
+            {user?.name ? user.name.substring(0, 2).toUpperCase() : "CM"}
           </div>
         )}
       </div>

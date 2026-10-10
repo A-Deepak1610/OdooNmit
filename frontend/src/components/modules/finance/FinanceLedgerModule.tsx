@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Receipt,
   ArrowUpRight,
@@ -6,12 +6,12 @@ import {
   CheckCircle2,
   Download,
   Landmark,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   mockTreasurerLedger,
   mockExpenses,
   MockExpense,
-} from '../../../data/mockClubData';
+} from "../../../data/mockClubData";
 
 export const FinanceLedgerModule: React.FC = () => {
   const [expenses, setExpenses] = useState<MockExpense[]>(mockExpenses);
@@ -23,9 +23,9 @@ export const FinanceLedgerModule: React.FC = () => {
     setExpenses((prev) =>
       prev.map((e) =>
         e.id === id
-          ? { ...e, status: e.status === 'PENDING' ? 'APPROVED' : 'REIMBURSED' }
-          : e
-      )
+          ? { ...e, status: e.status === "PENDING" ? "APPROVED" : "REIMBURSED" }
+          : e,
+      ),
     );
     setActionNotice(`Expense claim #${id} status updated successfully.`);
   };
@@ -39,14 +39,19 @@ export const FinanceLedgerModule: React.FC = () => {
             <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
               Dev 4 Workstream
             </span>
-            <span className="text-xs text-slate-400 font-medium">Problem Statement Scene:</span>
-            <span className="text-xs font-semibold text-slate-700">"The treasurer closing the books at semester end"</span>
+            <span className="text-xs text-slate-400 font-medium">
+              Problem Statement Scene:
+            </span>
+            <span className="text-xs font-semibold text-slate-700">
+              "The treasurer closing the books at semester end"
+            </span>
           </div>
           <h2 className="text-xl font-bold text-slate-900 mt-1">
             Treasury Books & Volunteer Reimbursement Ledger
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Real-time audited accounting replacing chaotic paper notebooks: track dues, ticket sales, merch income, and volunteer receipts.
+            Real-time audited accounting replacing chaotic paper notebooks:
+            track dues, ticket sales, merch income, and volunteer receipts.
           </p>
         </div>
 
@@ -74,40 +79,64 @@ export const FinanceLedgerModule: React.FC = () => {
       {/* 4 Financial Health Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <span className="text-xs font-medium text-slate-500">Opening Balance</span>
-          <p className="text-2xl font-bold text-slate-900 mt-1">₹{ledger.openingBalance.toLocaleString()}</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Rolled over from Fall 2025</p>
+          <span className="text-xs font-medium text-slate-500">
+            Opening Balance
+          </span>
+          <p className="text-2xl font-bold text-slate-900 mt-1">
+            ₹{ledger.openingBalance.toLocaleString()}
+          </p>
+          <p className="text-[11px] text-slate-400 mt-0.5">
+            Rolled over from Fall 2025
+          </p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Total Inflow (Income)</span>
+            <span className="text-xs font-medium text-slate-500">
+              Total Inflow (Income)
+            </span>
             <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
               <ArrowUpRight className="h-3 w-3" /> Inflow
             </span>
           </div>
-          <p className="text-2xl font-bold text-emerald-600 mt-1">₹{ledger.income.totalIncome.toLocaleString()}</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Dues, Gala Tickets & Fundraiser</p>
+          <p className="text-2xl font-bold text-emerald-600 mt-1">
+            ₹{ledger.income.totalIncome.toLocaleString()}
+          </p>
+          <p className="text-[11px] text-slate-400 mt-0.5">
+            Dues, Gala Tickets & Fundraiser
+          </p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Total Outflow (Expenses)</span>
+            <span className="text-xs font-medium text-slate-500">
+              Total Outflow (Expenses)
+            </span>
             <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
               <ArrowDownRight className="h-3 w-3" /> Outflow
             </span>
           </div>
-          <p className="text-2xl font-bold text-rose-600 mt-1">₹{ledger.expenses.totalExpenses.toLocaleString()}</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Venue, catering & reimbursements</p>
+          <p className="text-2xl font-bold text-rose-600 mt-1">
+            ₹{ledger.expenses.totalExpenses.toLocaleString()}
+          </p>
+          <p className="text-[11px] text-slate-400 mt-0.5">
+            Venue, catering & reimbursements
+          </p>
         </div>
 
         <div className="bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-5 rounded-2xl shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-indigo-200">Net Closing Balance</span>
+            <span className="text-xs font-medium text-indigo-200">
+              Net Closing Balance
+            </span>
             <Landmark className="h-4 w-4 text-emerald-400" />
           </div>
-          <p className="text-2xl font-bold text-emerald-300 mt-1">₹{ledger.netClosingBalance.toLocaleString()}</p>
-          <p className="text-[11px] text-indigo-200 mt-0.5">Books balanced & verified</p>
+          <p className="text-2xl font-bold text-emerald-300 mt-1">
+            ₹{ledger.netClosingBalance.toLocaleString()}
+          </p>
+          <p className="text-[11px] text-indigo-200 mt-0.5">
+            Books balanced & verified
+          </p>
         </div>
       </div>
 
@@ -128,34 +157,56 @@ export const FinanceLedgerModule: React.FC = () => {
           <div className="space-y-3 text-xs">
             <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
               <div>
-                <p className="font-bold text-slate-800">Annual Membership Dues</p>
-                <p className="text-[11px] text-slate-400">194 student dues collected at ₹250/yr</p>
+                <p className="font-bold text-slate-800">
+                  Annual Membership Dues
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  194 student dues collected at ₹250/yr
+                </p>
               </div>
-              <span className="font-bold text-emerald-700">₹{ledger.income.membershipDues.toLocaleString()}</span>
+              <span className="font-bold text-emerald-700">
+                ₹{ledger.income.membershipDues.toLocaleString()}
+              </span>
             </div>
 
             <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
               <div>
-                <p className="font-bold text-slate-800">Spring Gala Ticket Sales</p>
-                <p className="text-[11px] text-slate-400">420 tickets sold across member/VIP tiers</p>
+                <p className="font-bold text-slate-800">
+                  Spring Gala Ticket Sales
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  420 tickets sold across member/VIP tiers
+                </p>
               </div>
-              <span className="font-bold text-emerald-700">₹{ledger.income.galaTickets.toLocaleString()}</span>
+              <span className="font-bold text-emerald-700">
+                ₹{ledger.income.galaTickets.toLocaleString()}
+              </span>
             </div>
 
             <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
               <div>
-                <p className="font-bold text-slate-800">Club Hoodie & T-shirt Sales</p>
-                <p className="text-[11px] text-slate-400">Online store apparel orders</p>
+                <p className="font-bold text-slate-800">
+                  Club Hoodie & T-shirt Sales
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  Online store apparel orders
+                </p>
               </div>
-              <span className="font-bold text-emerald-700">₹{ledger.income.merchandise.toLocaleString()}</span>
+              <span className="font-bold text-emerald-700">
+                ₹{ledger.income.merchandise.toLocaleString()}
+              </span>
             </div>
 
             <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
               <div>
                 <p className="font-bold text-slate-800">Bake Sale Fundraiser</p>
-                <p className="text-[11px] text-slate-400">Campus plaza quad baked goods vouchers</p>
+                <p className="text-[11px] text-slate-400">
+                  Campus plaza quad baked goods vouchers
+                </p>
               </div>
-              <span className="font-bold text-emerald-700">₹{ledger.income.bakeSale.toLocaleString()}</span>
+              <span className="font-bold text-emerald-700">
+                ₹{ledger.income.bakeSale.toLocaleString()}
+              </span>
             </div>
           </div>
         </div>
@@ -175,34 +226,58 @@ export const FinanceLedgerModule: React.FC = () => {
           <div className="space-y-3 text-xs">
             <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
               <div>
-                <p className="font-bold text-slate-800">Campus Grand Auditorium Rental</p>
-                <p className="text-[11px] text-slate-400">Official invoice #AUD-883</p>
+                <p className="font-bold text-slate-800">
+                  Campus Grand Auditorium Rental
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  Official invoice #AUD-883
+                </p>
               </div>
-              <span className="font-bold text-rose-600">₹{ledger.expenses.venueBooking.toLocaleString()}</span>
+              <span className="font-bold text-rose-600">
+                ₹{ledger.expenses.venueBooking.toLocaleString()}
+              </span>
             </div>
 
             <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
               <div>
-                <p className="font-bold text-slate-800">Gala Catering & Refreshments</p>
-                <p className="text-[11px] text-slate-400">450 plated dinners + mocktails</p>
+                <p className="font-bold text-slate-800">
+                  Gala Catering & Refreshments
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  450 plated dinners + mocktails
+                </p>
               </div>
-              <span className="font-bold text-rose-600">₹{ledger.expenses.galaCatering.toLocaleString()}</span>
+              <span className="font-bold text-rose-600">
+                ₹{ledger.expenses.galaCatering.toLocaleString()}
+              </span>
             </div>
 
             <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
               <div>
-                <p className="font-bold text-slate-800">Volunteer Expense Reimbursements</p>
-                <p className="text-[11px] text-slate-400">Verified ingredient & equipment receipts</p>
+                <p className="font-bold text-slate-800">
+                  Volunteer Expense Reimbursements
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  Verified ingredient & equipment receipts
+                </p>
               </div>
-              <span className="font-bold text-rose-600">₹{ledger.expenses.volunteerReimbursements.toLocaleString()}</span>
+              <span className="font-bold text-rose-600">
+                ₹{ledger.expenses.volunteerReimbursements.toLocaleString()}
+              </span>
             </div>
 
             <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50">
               <div>
-                <p className="font-bold text-slate-800">Merchandise Bulk Production</p>
-                <p className="text-[11px] text-slate-400">Embroidered hoodie batch manufacture</p>
+                <p className="font-bold text-slate-800">
+                  Merchandise Bulk Production
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  Embroidered hoodie batch manufacture
+                </p>
               </div>
-              <span className="font-bold text-rose-600">₹{ledger.expenses.merchandisePrinting.toLocaleString()}</span>
+              <span className="font-bold text-rose-600">
+                ₹{ledger.expenses.merchandisePrinting.toLocaleString()}
+              </span>
             </div>
           </div>
         </div>
@@ -217,7 +292,8 @@ export const FinanceLedgerModule: React.FC = () => {
               Volunteer Expense Claims (Digital Receipt Audit)
             </h3>
             <p className="text-xs text-slate-500">
-              Volunteers submit receipts online so treasurers never chase faded paper slips.
+              Volunteers submit receipts online so treasurers never chase faded
+              paper slips.
             </p>
           </div>
         </div>
@@ -237,18 +313,31 @@ export const FinanceLedgerModule: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {expenses.map((exp) => (
-                <tr key={exp.id} className="hover:bg-slate-50/60 transition-colors">
-                  <td className="py-3.5 px-4 font-mono font-bold text-slate-700">{exp.id}</td>
-                  <td className="py-3.5 px-4 font-bold text-slate-900">{exp.title}</td>
-                  <td className="py-3.5 px-4 text-slate-600">{exp.submittedBy}</td>
-                  <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500">{exp.receiptNote}</td>
-                  <td className="py-3.5 px-4 font-bold text-slate-900">₹{exp.amount}</td>
+                <tr
+                  key={exp.id}
+                  className="hover:bg-slate-50/60 transition-colors"
+                >
+                  <td className="py-3.5 px-4 font-mono font-bold text-slate-700">
+                    {exp.id}
+                  </td>
+                  <td className="py-3.5 px-4 font-bold text-slate-900">
+                    {exp.title}
+                  </td>
+                  <td className="py-3.5 px-4 text-slate-600">
+                    {exp.submittedBy}
+                  </td>
+                  <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500">
+                    {exp.receiptNote}
+                  </td>
+                  <td className="py-3.5 px-4 font-bold text-slate-900">
+                    ₹{exp.amount}
+                  </td>
                   <td className="py-3.5 px-4">
-                    {exp.status === 'REIMBURSED' ? (
+                    {exp.status === "REIMBURSED" ? (
                       <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                         Reimbursed
                       </span>
-                    ) : exp.status === 'APPROVED' ? (
+                    ) : exp.status === "APPROVED" ? (
                       <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
                         Approved (Pending Payout)
                       </span>
@@ -259,14 +348,14 @@ export const FinanceLedgerModule: React.FC = () => {
                     )}
                   </td>
                   <td className="py-3.5 px-4 text-right">
-                    {exp.status === 'PENDING' ? (
+                    {exp.status === "PENDING" ? (
                       <button
                         onClick={() => handleApproveExpense(exp.id)}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg text-xs font-semibold shadow-xs"
                       >
                         Approve Claim
                       </button>
-                    ) : exp.status === 'APPROVED' ? (
+                    ) : exp.status === "APPROVED" ? (
                       <button
                         onClick={() => handleApproveExpense(exp.id)}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg text-xs font-semibold shadow-xs"
@@ -274,7 +363,9 @@ export const FinanceLedgerModule: React.FC = () => {
                         Disburse Funds
                       </button>
                     ) : (
-                      <span className="text-[11px] text-slate-400 font-medium">Closed</span>
+                      <span className="text-[11px] text-slate-400 font-medium">
+                        Closed
+                      </span>
                     )}
                   </td>
                 </tr>

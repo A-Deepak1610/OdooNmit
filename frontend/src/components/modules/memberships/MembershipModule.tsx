@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   AlertTriangle,
   QrCode,
@@ -6,18 +6,18 @@ import {
   CheckCircle2,
   Award,
   Search,
-} from 'lucide-react';
-import { mockMembers } from '../../../data/mockClubData';
+} from "lucide-react";
+import { mockMembers } from "../../../data/mockClubData";
 
 export const MembershipModule: React.FC = () => {
   const [members, setMembers] = useState(mockMembers);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [newStudent, setNewStudent] = useState({
-    name: '',
-    email: '',
-    rollNo: '',
-    dept: 'Computer Science',
+    name: "",
+    email: "",
+    rollNo: "",
+    dept: "Computer Science",
   });
   const [registeredNotice, setRegisteredNotice] = useState<string | null>(null);
 
@@ -25,22 +25,22 @@ export const MembershipModule: React.FC = () => {
     (m) =>
       m.name.toLowerCase().includes(search.toLowerCase()) ||
       m.membershipId.toLowerCase().includes(search.toLowerCase()) ||
-      m.email.toLowerCase().includes(search.toLowerCase())
+      m.email.toLowerCase().includes(search.toLowerCase()),
   );
 
   const handleRegisterNewMember = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newStudent.name || !newStudent.email) return;
 
-    const newId = `SSA-2026-${String(members.length + 101).padStart(4, '0')}`;
+    const newId = `SSA-2026-${String(members.length + 101).padStart(4, "0")}`;
     const addedMember = {
       id: `mem-${Date.now()}`,
       name: newStudent.name,
       email: newStudent.email,
       membershipId: newId,
-      tier: 'STANDARD' as const,
+      tier: "STANDARD" as const,
       duesPaid: true,
-      duesExpiresAt: 'May 31, 2027',
+      duesExpiresAt: "May 31, 2027",
       renewalAlert: false,
       discountEligible: true,
     };
@@ -48,9 +48,14 @@ export const MembershipModule: React.FC = () => {
     setMembers([addedMember, ...members]);
     setShowRegisterForm(false);
     setRegisteredNotice(
-      `Welcome ${newStudent.name}! Member profile created with ID ${newId}. Dues of ₹250 recorded as Paid.`
+      `Welcome ${newStudent.name}! Member profile created with ID ${newId}. Dues of ₹250 recorded as Paid.`,
     );
-    setNewStudent({ name: '', email: '', rollNo: '', dept: 'Computer Science' });
+    setNewStudent({
+      name: "",
+      email: "",
+      rollNo: "",
+      dept: "Computer Science",
+    });
   };
 
   return (
@@ -62,14 +67,19 @@ export const MembershipModule: React.FC = () => {
             <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
               Dev 2 Workstream
             </span>
-            <span className="text-xs text-slate-400 font-medium">Problem Statement Scene:</span>
-            <span className="text-xs font-semibold text-slate-700">"A new student joins & dues tracking"</span>
+            <span className="text-xs text-slate-400 font-medium">
+              Problem Statement Scene:
+            </span>
+            <span className="text-xs font-semibold text-slate-700">
+              "A new student joins & dues tracking"
+            </span>
           </div>
           <h2 className="text-xl font-bold text-slate-900 mt-1">
             Membership Lifecycle & Dues Management
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Instant table sign-up, annual dues payment tracking (₹250/yr), renewal lapse reminders, and digital verification passes.
+            Instant table sign-up, annual dues payment tracking (₹250/yr),
+            renewal lapse reminders, and digital verification passes.
           </p>
         </div>
 
@@ -108,7 +118,9 @@ export const MembershipModule: React.FC = () => {
               Upcoming Annual Dues Renewal Window (Spring 2026)
             </h4>
             <p className="text-amber-700 text-[11px] mt-0.5">
-              18 student memberships are lapsing within 30 days. Automated renewal notifications dispatched to prevent loss of gala discounts.
+              18 student memberships are lapsing within 30 days. Automated
+              renewal notifications dispatched to prevent loss of gala
+              discounts.
             </p>
           </div>
         </div>
@@ -126,7 +138,8 @@ export const MembershipModule: React.FC = () => {
                 Campus Table Registration (Sign-up Desk)
               </h3>
               <p className="text-xs text-slate-500">
-                Register a newly joined student right at the orientation table and collect their ₹250 dues.
+                Register a newly joined student right at the orientation table
+                and collect their ₹250 dues.
               </p>
             </div>
             <button
@@ -137,34 +150,49 @@ export const MembershipModule: React.FC = () => {
             </button>
           </div>
 
-          <form onSubmit={handleRegisterNewMember} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+          <form
+            onSubmit={handleRegisterNewMember}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs"
+          >
             <div>
-              <label className="font-semibold text-slate-700 block mb-1">Full Student Name</label>
+              <label className="font-semibold text-slate-700 block mb-1">
+                Full Student Name
+              </label>
               <input
                 type="text"
                 required
                 placeholder="e.g. Rahul Sharma"
                 value={newStudent.name}
-                onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
+                onChange={(e) =>
+                  setNewStudent({ ...newStudent, name: e.target.value })
+                }
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
               />
             </div>
             <div>
-              <label className="font-semibold text-slate-700 block mb-1">College Email Address</label>
+              <label className="font-semibold text-slate-700 block mb-1">
+                College Email Address
+              </label>
               <input
                 type="email"
                 required
                 placeholder="e.g. rahul@bitsathy.ac.in"
                 value={newStudent.email}
-                onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+                onChange={(e) =>
+                  setNewStudent({ ...newStudent, email: e.target.value })
+                }
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
               />
             </div>
             <div>
-              <label className="font-semibold text-slate-700 block mb-1">Department</label>
+              <label className="font-semibold text-slate-700 block mb-1">
+                Department
+              </label>
               <select
                 value={newStudent.dept}
-                onChange={(e) => setNewStudent({ ...newStudent, dept: e.target.value })}
+                onChange={(e) =>
+                  setNewStudent({ ...newStudent, dept: e.target.value })
+                }
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
               >
                 <option value="Computer Science">Computer Science</option>
@@ -208,8 +236,12 @@ export const MembershipModule: React.FC = () => {
               </div>
               <div>
                 <h4 className="text-base font-bold text-white">Deepak Kumar</h4>
-                <p className="text-xs text-emerald-200 font-mono">SSA-2026-0042</p>
-                <p className="text-[11px] text-emerald-300/80">dept: Computer Science</p>
+                <p className="text-xs text-emerald-200 font-mono">
+                  SSA-2026-0042
+                </p>
+                <p className="text-[11px] text-emerald-300/80">
+                  dept: Computer Science
+                </p>
               </div>
             </div>
 
@@ -224,7 +256,9 @@ export const MembershipModule: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-emerald-200">Discounts Active:</span>
-                <span className="font-bold text-emerald-300">Gala 60% • Merch 20%</span>
+                <span className="font-bold text-emerald-300">
+                  Gala 60% • Merch 20%
+                </span>
               </div>
             </div>
 
@@ -249,7 +283,8 @@ export const MembershipModule: React.FC = () => {
                 Member Verification & Dues Ledger (248 Members)
               </h3>
               <p className="text-xs text-slate-500">
-                Check member authenticity at events or verify fee status before issuing discounts.
+                Check member authenticity at events or verify fee status before
+                issuing discounts.
               </p>
             </div>
 
@@ -279,8 +314,13 @@ export const MembershipModule: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredMembers.map((m) => (
-                  <tr key={m.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-3.5 px-4 font-mono font-bold text-slate-700">{m.membershipId}</td>
+                  <tr
+                    key={m.id}
+                    className="hover:bg-slate-50/60 transition-colors"
+                  >
+                    <td className="py-3.5 px-4 font-mono font-bold text-slate-700">
+                      {m.membershipId}
+                    </td>
                     <td className="py-3.5 px-4">
                       <p className="font-bold text-slate-900">{m.name}</p>
                       <p className="text-[11px] text-slate-400">{m.email}</p>
@@ -308,9 +348,13 @@ export const MembershipModule: React.FC = () => {
                     </td>
                     <td className="py-3.5 px-4">
                       {m.discountEligible ? (
-                        <span className="text-[10px] text-emerald-600 font-semibold">Eligible (60% Off)</span>
+                        <span className="text-[10px] text-emerald-600 font-semibold">
+                          Eligible (60% Off)
+                        </span>
                       ) : (
-                        <span className="text-[10px] text-slate-400">Regular Rates</span>
+                        <span className="text-[10px] text-slate-400">
+                          Regular Rates
+                        </span>
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-right">

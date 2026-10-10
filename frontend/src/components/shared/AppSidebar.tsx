@@ -1,15 +1,16 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { useAuthStore } from '../../stores/auth.store';
-import { useUiStore } from '../../stores/ui.store';
-import { getPermittedNavigationItems } from '../../config/navigation';
-import { ROLE_DISPLAY_NAMES } from '../../config/roles';
-import { cn } from '../../utils/cn';
-import { GraduationCap, LogOut, X } from 'lucide-react';
+import React from "react";
+import { NavLink } from "react-router-dom";
+import { useAuthStore } from "../../stores/auth.store";
+import { useUiStore } from "../../stores/ui.store";
+import { getPermittedNavigationItems } from "../../config/navigation";
+import { ROLE_DISPLAY_NAMES } from "../../config/roles";
+import { cn } from "../../utils/cn";
+import { GraduationCap, LogOut, X } from "lucide-react";
 
 export const AppSidebar: React.FC = () => {
   const { user, role, logout } = useAuthStore();
-  const { sidebarCollapsed, mobileSidebarOpen, setMobileSidebarOpen } = useUiStore();
+  const { sidebarCollapsed, mobileSidebarOpen, setMobileSidebarOpen } =
+    useUiStore();
 
   const permittedItems = getPermittedNavigationItems(role);
 
@@ -17,7 +18,7 @@ export const AppSidebar: React.FC = () => {
   const groupedItems = React.useMemo(() => {
     const groups: Record<string, typeof permittedItems> = {};
     permittedItems.forEach((item) => {
-      const groupKey = item.group || 'MAIN';
+      const groupKey = item.group || "MAIN";
       if (!groups[groupKey]) groups[groupKey] = [];
       groups[groupKey].push(item);
     });
@@ -73,11 +74,11 @@ export const AppSidebar: React.FC = () => {
                     onClick={() => setMobileSidebarOpen(false)}
                     className={({ isActive }) =>
                       cn(
-                        'group flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-150',
+                        "group flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-150",
                         isActive
-                          ? 'bg-blue-50 text-blue-600 font-semibold'
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
-                        sidebarCollapsed && 'justify-center px-2'
+                          ? "bg-blue-50 text-blue-600 font-semibold"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+                        sidebarCollapsed && "justify-center px-2",
                       )
                     }
                     title={sidebarCollapsed ? item.label : undefined}
@@ -101,20 +102,20 @@ export const AppSidebar: React.FC = () => {
             {user?.avatarUrl ? (
               <img
                 src={user.avatarUrl}
-                alt={user.name || 'User avatar'}
+                alt={user.name || "User avatar"}
                 className="h-9 w-9 rounded-full object-cover border border-slate-200"
               />
             ) : (
               <div className="h-9 w-9 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                {user?.name ? user.name.substring(0, 2).toUpperCase() : 'CM'}
+                {user?.name ? user.name.substring(0, 2).toUpperCase() : "CM"}
               </div>
             )}
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold text-slate-900 truncate">
-                {user?.name || 'CampusMitra User'}
+                {user?.name || "CampusMitra User"}
               </p>
               <p className="text-[11px] text-slate-500 truncate">
-                {role ? (ROLE_DISPLAY_NAMES[role] || role) : 'Student'}
+                {role ? ROLE_DISPLAY_NAMES[role] || role : "Student"}
               </p>
             </div>
           </div>
@@ -124,8 +125,8 @@ export const AppSidebar: React.FC = () => {
           type="button"
           onClick={handleSignOut}
           className={cn(
-            'w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors',
-            sidebarCollapsed && 'px-2'
+            "w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors",
+            sidebarCollapsed && "px-2",
           )}
           title="Sign Out"
         >
@@ -150,8 +151,8 @@ export const AppSidebar: React.FC = () => {
       {/* Mobile Drawer */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-2xl transition-transform duration-200 ease-in-out md:hidden border-r border-slate-200',
-          mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          "fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-2xl transition-transform duration-200 ease-in-out md:hidden border-r border-slate-200",
+          mobileSidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         {sidebarContent}
@@ -160,8 +161,8 @@ export const AppSidebar: React.FC = () => {
       {/* Desktop Persistent Sidebar */}
       <aside
         className={cn(
-          'hidden md:flex flex-col border-r border-slate-200 bg-white transition-all duration-200 shrink-0 select-none shadow-xs',
-          sidebarCollapsed ? 'w-18' : 'w-64'
+          "hidden md:flex flex-col border-r border-slate-200 bg-white transition-all duration-200 shrink-0 select-none shadow-xs",
+          sidebarCollapsed ? "w-18" : "w-64",
         )}
       >
         {sidebarContent}

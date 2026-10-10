@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   ShoppingBag,
   CheckSquare,
@@ -6,33 +6,33 @@ import {
   Clock,
   Plus,
   Truck,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   mockMerchandise,
   mockFundraiserTasks,
   MockTask,
-} from '../../../data/mockClubData';
+} from "../../../data/mockClubData";
 
 export const MerchandiseTaskModule: React.FC = () => {
   const [tasks, setTasks] = useState<MockTask[]>(mockFundraiserTasks);
   const [selectedSize, setSelectedSize] = useState<Record<string, string>>({
-    'merch-hoodie': 'M',
-    'merch-tee': 'L',
+    "merch-hoodie": "M",
+    "merch-tee": "L",
   });
   const [orderAlert, setOrderAlert] = useState<string | null>(null);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [newTask, setNewTask] = useState({
-    title: '',
-    category: 'Baking' as const,
-    assignee: '',
-    dueDate: 'May 2, 2026',
+    title: "",
+    category: "Baking" as const,
+    assignee: "",
+    dueDate: "May 2, 2026",
   });
 
   const handleOrder = (itemName: string, size: string, price: number) => {
     setOrderAlert(
       `Order placed for ${itemName} (Size: ${size}) at member price ₹${price}! Order #SSA-ORD-${Math.floor(
-        1000 + Math.random() * 9000
-      )} recorded.`
+        1000 + Math.random() * 9000,
+      )} recorded.`,
     );
   };
 
@@ -40,11 +40,11 @@ export const MerchandiseTaskModule: React.FC = () => {
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
-          const nextStatus = t.status === 'DONE' ? 'IN_PROGRESS' : 'DONE';
+          const nextStatus = t.status === "DONE" ? "IN_PROGRESS" : "DONE";
           return { ...t, status: nextStatus };
         }
         return t;
-      })
+      }),
     );
   };
 
@@ -57,15 +57,20 @@ export const MerchandiseTaskModule: React.FC = () => {
       title: newTask.title,
       category: newTask.category,
       assignee: newTask.assignee,
-      status: 'TODO',
+      status: "TODO",
       dueDate: newTask.dueDate,
     };
     setTasks([...tasks, task]);
     setShowTaskModal(false);
-    setNewTask({ title: '', category: 'Baking', assignee: '', dueDate: 'May 2, 2026' });
+    setNewTask({
+      title: "",
+      category: "Baking",
+      assignee: "",
+      dueDate: "May 2, 2026",
+    });
   };
 
-  const completedCount = tasks.filter((t) => t.status === 'DONE').length;
+  const completedCount = tasks.filter((t) => t.status === "DONE").length;
   const progressPercent = Math.round((completedCount / tasks.length) * 100);
 
   return (
@@ -77,14 +82,19 @@ export const MerchandiseTaskModule: React.FC = () => {
             <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
               Dev 3 Workstream
             </span>
-            <span className="text-xs text-slate-400 font-medium">Problem Statement Scenes:</span>
-            <span className="text-xs font-semibold text-slate-700">"Ordering club hoodies" & "Planning a fundraiser"</span>
+            <span className="text-xs text-slate-400 font-medium">
+              Problem Statement Scenes:
+            </span>
+            <span className="text-xs font-semibold text-slate-700">
+              "Ordering club hoodies" & "Planning a fundraiser"
+            </span>
           </div>
           <h2 className="text-xl font-bold text-slate-900 mt-1">
             Merchandise Inventory & Fundraiser Operations
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Online apparel sizing & real-time stock control, plus collaborative volunteer task tracking replacing chaotic group chats.
+            Online apparel sizing & real-time stock control, plus collaborative
+            volunteer task tracking replacing chaotic group chats.
           </p>
         </div>
       </div>
@@ -121,7 +131,9 @@ export const MerchandiseTaskModule: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {mockMerchandise.map((item) => {
             const currentSize = selectedSize[item.id] || item.variants[0].size;
-            const currentVariant = item.variants.find((v) => v.size === currentSize);
+            const currentVariant = item.variants.find(
+              (v) => v.size === currentSize,
+            );
             const isLowStock = currentVariant && currentVariant.stock <= 5;
 
             return (
@@ -144,10 +156,16 @@ export const MerchandiseTaskModule: React.FC = () => {
 
                 <div className="flex-1 flex flex-col justify-between space-y-3">
                   <div>
-                    <h4 className="text-sm font-bold text-slate-900">{item.name}</h4>
+                    <h4 className="text-sm font-bold text-slate-900">
+                      {item.name}
+                    </h4>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-base font-bold text-emerald-600">₹{item.memberPrice}</span>
-                      <span className="text-xs text-slate-400 line-through">₹{item.basePrice}</span>
+                      <span className="text-base font-bold text-emerald-600">
+                        ₹{item.memberPrice}
+                      </span>
+                      <span className="text-xs text-slate-400 line-through">
+                        ₹{item.basePrice}
+                      </span>
                       <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
                         Member 20% Off
                       </span>
@@ -165,15 +183,22 @@ export const MerchandiseTaskModule: React.FC = () => {
                         return (
                           <button
                             key={v.size}
-                            onClick={() => setSelectedSize({ ...selectedSize, [item.id]: v.size })}
+                            onClick={() =>
+                              setSelectedSize({
+                                ...selectedSize,
+                                [item.id]: v.size,
+                              })
+                            }
                             className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
                               isSelected
-                                ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
-                                : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                                ? "bg-amber-600 text-white border-amber-600 shadow-xs"
+                                : "bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300"
                             }`}
                           >
                             <span>{v.size}</span>
-                            <span className="text-[10px] opacity-75 ml-1 font-normal">({v.stock})</span>
+                            <span className="text-[10px] opacity-75 ml-1 font-normal">
+                              ({v.stock})
+                            </span>
                           </button>
                         );
                       })}
@@ -181,11 +206,15 @@ export const MerchandiseTaskModule: React.FC = () => {
                   </div>
 
                   <button
-                    onClick={() => handleOrder(item.name, currentSize, item.memberPrice)}
+                    onClick={() =>
+                      handleOrder(item.name, currentSize, item.memberPrice)
+                    }
                     className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2 px-3 rounded-xl transition-colors shadow-xs flex items-center justify-center gap-1.5"
                   >
                     <Truck className="h-3.5 w-3.5" />
-                    <span>Order Online (Size {currentSize} • ₹{item.memberPrice})</span>
+                    <span>
+                      Order Online (Size {currentSize} • ₹{item.memberPrice})
+                    </span>
                   </button>
                 </div>
               </div>
@@ -208,7 +237,8 @@ export const MerchandiseTaskModule: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Everyone sees who is baking, buying supplies, and staffing tables without losing track in WhatsApp chats.
+              Everyone sees who is baking, buying supplies, and staffing tables
+              without losing track in WhatsApp chats.
             </p>
           </div>
 
@@ -241,19 +271,25 @@ export const MerchandiseTaskModule: React.FC = () => {
             onSubmit={handleAddTask}
             className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 text-xs"
           >
-            <div className="font-bold text-slate-800">New Volunteer Task Assignment</div>
+            <div className="font-bold text-slate-800">
+              New Volunteer Task Assignment
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <input
                 type="text"
                 placeholder="Task description (e.g. Bake brownies)"
                 value={newTask.title}
-                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                onChange={(e) =>
+                  setNewTask({ ...newTask, title: e.target.value })
+                }
                 className="px-3 py-2 rounded-lg border border-slate-200 bg-white"
                 required
               />
               <select
                 value={newTask.category}
-                onChange={(e) => setNewTask({ ...newTask, category: e.target.value as any })}
+                onChange={(e) =>
+                  setNewTask({ ...newTask, category: e.target.value as any })
+                }
                 className="px-3 py-2 rounded-lg border border-slate-200 bg-white"
               >
                 <option value="Baking">Baking Duty</option>
@@ -265,7 +301,9 @@ export const MerchandiseTaskModule: React.FC = () => {
                 type="text"
                 placeholder="Assignee student name"
                 value={newTask.assignee}
-                onChange={(e) => setNewTask({ ...newTask, assignee: e.target.value })}
+                onChange={(e) =>
+                  setNewTask({ ...newTask, assignee: e.target.value })
+                }
                 className="px-3 py-2 rounded-lg border border-slate-200 bg-white"
                 required
               />
@@ -291,12 +329,13 @@ export const MerchandiseTaskModule: React.FC = () => {
         {/* Task Cards List */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {tasks.map((task) => {
-            const isDone = task.status === 'DONE';
+            const isDone = task.status === "DONE";
             const categoryColors: Record<string, string> = {
-              Baking: 'bg-amber-50 text-amber-700 border-amber-200',
-              Supplies: 'bg-blue-50 text-blue-700 border-blue-200',
-              'Table Shift': 'bg-emerald-50 text-emerald-700 border-emerald-200',
-              Promotion: 'bg-purple-50 text-purple-700 border-purple-200',
+              Baking: "bg-amber-50 text-amber-700 border-amber-200",
+              Supplies: "bg-blue-50 text-blue-700 border-blue-200",
+              "Table Shift":
+                "bg-emerald-50 text-emerald-700 border-emerald-200",
+              Promotion: "bg-purple-50 text-purple-700 border-purple-200",
             };
 
             return (
@@ -304,15 +343,16 @@ export const MerchandiseTaskModule: React.FC = () => {
                 key={task.id}
                 className={`p-4 rounded-xl border transition-all flex flex-col justify-between space-y-3 ${
                   isDone
-                    ? 'bg-slate-50/70 border-slate-200 text-slate-500'
-                    : 'bg-white border-slate-200 shadow-xs hover:border-indigo-300'
+                    ? "bg-slate-50/70 border-slate-200 text-slate-500"
+                    : "bg-white border-slate-200 shadow-xs hover:border-indigo-300"
                 }`}
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <span
                       className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
-                        categoryColors[task.category] || 'bg-slate-100 text-slate-700'
+                        categoryColors[task.category] ||
+                        "bg-slate-100 text-slate-700"
                       }`}
                     >
                       {task.category}
@@ -323,7 +363,9 @@ export const MerchandiseTaskModule: React.FC = () => {
                     </span>
                   </div>
 
-                  <p className={`text-xs font-bold ${isDone ? 'line-through text-slate-400' : 'text-slate-900'}`}>
+                  <p
+                    className={`text-xs font-bold ${isDone ? "line-through text-slate-400" : "text-slate-900"}`}
+                  >
                     {task.title}
                   </p>
                 </div>
@@ -333,18 +375,20 @@ export const MerchandiseTaskModule: React.FC = () => {
                     <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-[10px]">
                       {task.assignee.substring(0, 2)}
                     </div>
-                    <span className="font-medium text-slate-700">{task.assignee}</span>
+                    <span className="font-medium text-slate-700">
+                      {task.assignee}
+                    </span>
                   </div>
 
                   <button
                     onClick={() => handleToggleTask(task.id)}
                     className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors ${
                       isDone
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : 'bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-700'
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-700"
                     }`}
                   >
-                    {isDone ? 'Completed' : 'Mark Done'}
+                    {isDone ? "Completed" : "Mark Done"}
                   </button>
                 </div>
               </div>

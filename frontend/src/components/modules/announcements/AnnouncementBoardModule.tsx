@@ -51,7 +51,7 @@ export const AnnouncementBoardModule: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-orange-700 bg-[#fff4ed] px-2.5 py-0.5 rounded-full border border-orange-200">
               Dev 4 Workstream
             </span>
             <span className="text-xs text-slate-400 font-medium">Problem Statement Scene:</span>
@@ -67,7 +67,7 @@ export const AnnouncementBoardModule: React.FC = () => {
 
         <button
           onClick={() => setShowCreate(!showCreate)}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-xs transition-colors self-start sm:self-center"
+          className="flex items-center gap-2 bg-[#ea580c] hover:bg-[#c2410c] text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-xs transition-colors self-start sm:self-center"
         >
           <Megaphone className="h-4 w-4" />
           <span>Broadcast Notice</span>
@@ -93,7 +93,7 @@ export const AnnouncementBoardModule: React.FC = () => {
       {showCreate && (
         <form
           onSubmit={handlePostNotice}
-          className="bg-white rounded-2xl border border-indigo-200 p-6 shadow-sm space-y-4 animate-in slide-in-from-top-4 text-xs"
+          className="bg-white rounded-2xl border border-orange-200 p-6 shadow-sm space-y-4 animate-in slide-in-from-top-4 text-xs"
         >
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
@@ -120,7 +120,7 @@ export const AnnouncementBoardModule: React.FC = () => {
                 placeholder="e.g. Venue Change for Spring Gala"
                 value={newNotice.title}
                 onChange={(e) => setNewNotice({ ...newNotice, title: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
               />
             </div>
             <div>
@@ -128,7 +128,7 @@ export const AnnouncementBoardModule: React.FC = () => {
               <select
                 value={newNotice.category}
                 onChange={(e) => setNewNotice({ ...newNotice, category: e.target.value as any })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
               >
                 <option value="EVENT">Event Update</option>
                 <option value="MEETING">General Body Meeting</option>
@@ -141,7 +141,7 @@ export const AnnouncementBoardModule: React.FC = () => {
               <select
                 value={newNotice.priority}
                 onChange={(e) => setNewNotice({ ...newNotice, priority: e.target.value as any })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
               >
                 <option value="NORMAL">Standard Notice</option>
                 <option value="HIGH">High Priority</option>
@@ -158,14 +158,14 @@ export const AnnouncementBoardModule: React.FC = () => {
               placeholder="Type your message details here..."
               value={newNotice.content}
               onChange={(e) => setNewNotice({ ...newNotice, content: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
             />
           </div>
 
           <div className="flex justify-end gap-2">
             <button
               type="submit"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-xl transition-colors shadow-xs flex items-center gap-2"
+              className="bg-[#ea580c] hover:bg-[#c2410c] text-white font-semibold py-2 px-4 rounded-xl transition-colors shadow-xs flex items-center gap-2"
             >
               <Send className="h-3.5 w-3.5" />
               <span>Broadcast Now</span>
@@ -219,7 +219,7 @@ export const AnnouncementBoardModule: React.FC = () => {
                   <Users className="h-3.5 w-3.5" />
                   <span>Audience: Skyline Association & Campus Students</span>
                 </div>
-                <span className="font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer">
+                <span className="font-semibold text-orange-600 hover:text-orange-800 cursor-pointer">
                   View Full Thread →
                 </span>
               </div>

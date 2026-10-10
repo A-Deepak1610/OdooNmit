@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { GraduationCap, Lock, User, AlertCircle, Sparkles, ArrowRight } from 'lucide-react';
+import { Flame, Lock, User, AlertCircle, Sparkles, ArrowRight } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
@@ -16,29 +16,29 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-slate-950 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      {/* Background glowing light orbs */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] bg-blue-600/20 rounded-full blur-[130px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[380px] h-[380px] bg-indigo-500/15 rounded-full blur-[110px] pointer-events-none" />
+    <div className="relative min-h-screen flex items-center justify-center bg-stone-950 px-4 sm:px-6 lg:px-8 overflow-hidden font-sans">
+      {/* Background glowing warm orange light orbs */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] bg-orange-600/20 rounded-full blur-[130px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-[380px] h-[380px] bg-amber-500/15 rounded-full blur-[110px] pointer-events-none" />
 
       {/* Main Glassmorphic Glowing Card */}
       <div className="relative w-full max-w-md">
-        {/* Glow border gradient effect */}
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-sky-400 rounded-2xl blur-sm opacity-50 transition duration-1000 group-hover:opacity-100 animate-pulse" />
+        {/* Glow border gradient effect in warm orange/amber */}
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 rounded-2xl blur-sm opacity-50 transition duration-1000 group-hover:opacity-100 animate-pulse" />
 
-        <div className="relative bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-2xl p-8 sm:p-10 shadow-2xl">
+        <div className="relative bg-stone-900/90 backdrop-blur-xl border border-stone-800 rounded-2xl p-8 sm:p-10 shadow-2xl">
           {/* Brand Logo & Header */}
           <div className="text-center space-y-3">
-            <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-500/30">
-              <GraduationCap className="h-8 w-8" />
+            <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-orange-600 text-white shadow-lg shadow-orange-500/30">
+              <Flame className="h-8 w-8 fill-orange-200/30" />
             </div>
 
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-white flex items-center justify-center gap-2">
                 CampusMitra
               </h1>
-              <p className="text-xs text-slate-400 mt-1">
-                Unified Campus Ecosystem for Students & Clubs
+              <p className="text-xs text-stone-400 mt-1">
+                Student Organization & Campus Ecosystem
               </p>
             </div>
           </div>
@@ -65,7 +65,7 @@ export const LoginPage: React.FC = () => {
               id="google-signin-btn"
               onClick={handleGoogleSignIn}
               disabled={isRedirecting}
-              className="w-full flex items-center justify-center gap-3.5 px-4 py-3.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-750 hover:border-slate-600 text-white font-medium text-sm transition-all duration-200 shadow-md hover:shadow-blue-500/10 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 cursor-pointer"
+              className="w-full flex items-center justify-center gap-3.5 px-4 py-3.5 rounded-xl border border-stone-700 bg-stone-800/80 hover:bg-stone-750 hover:border-stone-600 text-white font-medium text-sm transition-all duration-200 shadow-md hover:shadow-orange-500/10 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-60 cursor-pointer"
             >
               {/* Google Brand SVG */}
               <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24">
@@ -91,10 +91,10 @@ export const LoginPage: React.FC = () => {
 
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-800" />
+                <div className="w-full border-t border-stone-800" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-slate-900 px-3 text-slate-500 uppercase tracking-wider font-semibold">
+                <span className="bg-stone-900 px-3 text-stone-500 uppercase tracking-wider font-semibold">
                   Or Credentials
                 </span>
               </div>
@@ -104,40 +104,40 @@ export const LoginPage: React.FC = () => {
             <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-slate-300">Username or Email</label>
-                  <span className="text-[10px] font-semibold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
+                  <label className="text-xs font-medium text-stone-300">Username or Email</label>
+                  <span className="text-[10px] font-semibold text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/20">
                     Coming Soon
                   </span>
                 </div>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-500">
                     <User className="h-4 w-4" />
                   </div>
                   <input
                     type="text"
                     disabled
                     placeholder="student@campus.edu"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-800/40 border border-slate-800 text-slate-500 text-sm cursor-not-allowed placeholder-slate-600 focus:outline-none"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-stone-800/40 border border-stone-800 text-stone-500 text-sm cursor-not-allowed placeholder-stone-600 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-slate-300">Password</label>
-                  <span className="text-[10px] font-semibold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
+                  <label className="text-xs font-medium text-stone-300">Password</label>
+                  <span className="text-[10px] font-semibold text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/20">
                     Coming Soon
                   </span>
                 </div>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-500">
                     <Lock className="h-4 w-4" />
                   </div>
                   <input
                     type="password"
                     disabled
                     placeholder="••••••••••••"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-800/40 border border-slate-800 text-slate-500 text-sm cursor-not-allowed placeholder-slate-600 focus:outline-none"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-stone-800/40 border border-stone-800 text-stone-500 text-sm cursor-not-allowed placeholder-stone-600 focus:outline-none"
                   />
                 </div>
               </div>
@@ -145,7 +145,7 @@ export const LoginPage: React.FC = () => {
               <button
                 type="button"
                 disabled
-                className="w-full py-2.5 rounded-xl bg-slate-800/50 text-slate-500 font-medium text-xs border border-slate-800/80 cursor-not-allowed flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 rounded-xl bg-stone-800/50 text-stone-500 font-medium text-xs border border-stone-800/80 cursor-not-allowed flex items-center justify-center gap-1.5"
               >
                 <span>Password Sign-in (Available in next release)</span>
                 <ArrowRight className="h-3 w-3" />
@@ -154,9 +154,9 @@ export const LoginPage: React.FC = () => {
           </div>
 
           {/* Footer Information */}
-          <div className="mt-8 pt-6 border-t border-slate-800/80 text-center">
-            <p className="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
-              <Sparkles className="h-3 w-3 text-blue-400" />
+          <div className="mt-8 pt-6 border-t border-stone-800/80 text-center">
+            <p className="text-[11px] text-stone-400 flex items-center justify-center gap-1.5">
+              <Sparkles className="h-3 w-3 text-orange-400" />
               <span>CampusMitra automatically assigns student membership upon first login.</span>
             </p>
           </div>

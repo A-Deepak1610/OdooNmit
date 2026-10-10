@@ -22,7 +22,7 @@ export const AdminDashboardPage: React.FC = () => {
   const [activeStream, setActiveStream] = useState<WorkstreamId>('all');
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-200">
+    <div className="space-y-6 animate-in fade-in duration-200">
       {/* 4-Developer Workstream Banner */}
       <TeamWorkstreamBanner
         activeStream={activeStream}
@@ -37,17 +37,17 @@ export const AdminDashboardPage: React.FC = () => {
       ) : activeStream === 'merch_tasks' ? (
         <MerchandiseTaskModule />
       ) : activeStream === 'finance_announcements' ? (
-        <div className="space-y-8">
+        <div className="space-y-6">
           <FinanceLedgerModule />
           <AnnouncementBoardModule />
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {/* Page Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                <span className="text-[11px] font-bold text-orange-700 bg-[#fff4ed] px-2.5 py-0.5 rounded-full border border-orange-200">
                   Campus Admin Console
                 </span>
                 <span className="text-xs text-slate-500 font-medium">Multi-Tenant Management</span>
@@ -63,7 +63,7 @@ export const AdminDashboardPage: React.FC = () => {
             {/* Right Header Badges */}
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2 text-xs text-slate-600 bg-white border border-slate-200 px-3.5 py-2 rounded-xl shadow-xs">
-                <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
+                <Building2 className="h-4 w-4 text-orange-600 shrink-0" />
                 <span className="font-medium truncate max-w-[200px] sm:max-w-none">{collegeName}</span>
                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                   A++
@@ -72,7 +72,7 @@ export const AdminDashboardPage: React.FC = () => {
 
               <button
                 type="button"
-                className="flex items-center gap-2 bg-[#1e3a8a] hover:bg-[#172554] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-xs transition-colors"
+                className="flex items-center gap-2 bg-[#ea580c] hover:bg-[#c2410c] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-xs transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 <span>Register New Club Tenant</span>
@@ -83,7 +83,7 @@ export const AdminDashboardPage: React.FC = () => {
           {/* 4 Stat Cards Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100/60">
+              <div className="h-12 w-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0 border border-orange-200/60">
                 <Calendar className="h-6 w-6" />
               </div>
               <div>
@@ -116,7 +116,7 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100/60">
+              <div className="h-12 w-12 rounded-xl bg-[#fff4ed] text-orange-600 flex items-center justify-center shrink-0 border border-orange-200/60">
                 <IndianRupee className="h-6 w-6" />
               </div>
               <div>
@@ -132,7 +132,7 @@ export const AdminDashboardPage: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5 text-indigo-600" />
+                  <ShieldCheck className="h-5 w-5 text-orange-600" />
                   Campus Club Tenants (Multi-Tenant Architecture)
                 </h3>
                 <p className="text-xs text-slate-500">
@@ -157,7 +157,7 @@ export const AdminDashboardPage: React.FC = () => {
                   <tr className="hover:bg-slate-50/60 transition-colors">
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">
+                        <div className="h-8 w-8 rounded-xl bg-orange-600 text-white flex items-center justify-center font-bold text-xs">
                           SSA
                         </div>
                         <div>
@@ -173,11 +173,11 @@ export const AdminDashboardPage: React.FC = () => {
                         {activeClub.memberCount} Members
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-indigo-600">₹{activeClub.activeBudget.toLocaleString()}</td>
+                    <td className="py-3.5 px-4 font-bold text-orange-600">₹{activeClub.activeBudget.toLocaleString()}</td>
                     <td className="py-3.5 px-4 text-right">
                       <button
                         onClick={() => setActiveStream('finance_announcements')}
-                        className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold"
+                        className="text-xs text-orange-600 hover:text-orange-800 font-semibold"
                       >
                         Audit Ledger →
                       </button>
@@ -187,7 +187,7 @@ export const AdminDashboardPage: React.FC = () => {
                   <tr className="hover:bg-slate-50/60 transition-colors">
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 rounded-lg bg-amber-600 text-white flex items-center justify-center font-bold text-xs">
+                        <div className="h-8 w-8 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold text-xs">
                           DSC
                         </div>
                         <div>
@@ -203,7 +203,7 @@ export const AdminDashboardPage: React.FC = () => {
                         185 Members
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-indigo-600">₹64,200</td>
+                    <td className="py-3.5 px-4 font-bold text-orange-600">₹64,200</td>
                     <td className="py-3.5 px-4 text-right">
                       <button className="text-xs text-slate-400 hover:text-slate-600 font-semibold">
                         View Details
