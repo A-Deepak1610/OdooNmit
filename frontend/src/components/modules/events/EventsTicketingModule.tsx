@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import {
-  Users,
   CheckCircle2,
   QrCode,
   Search,
@@ -11,6 +10,7 @@ import {
   X,
   Settings,
   Check,
+  ClipboardList,
 } from 'lucide-react';
 import {
   mockEvents,
@@ -21,7 +21,7 @@ import {
   MockEventAttendee,
 } from '../../../data/mockClubData';
 import { useAuthStore } from '../../../stores/auth.store';
-import { ROLES } from '../../../config/roles';
+import { ROLES, UserRole } from '../../../config/roles';
 
 // Preset banner images matching the tech symposium reference screenshot
 const BANNER_PRESETS = [
@@ -33,24 +33,13 @@ const BANNER_PRESETS = [
   { label: 'Design & UI/UX', url: 'https://images.unsplash.com/photo-1581291518655-9523c93269c4?auto=format&fit=crop&w=900&q=80' },
 ];
 
-export const EventsTicketingModule: React.FC = () => {
+interface EventsTicketingModuleProps {
+  role?: UserRole;
+}
+
+export const EventsTicketingModule: React.FC<EventsTicketingModuleProps> = ({ role }) => {
   const { role: authRole } = useAuthStore();
-
-  // Active view perspective (defaults to active user role or PRESIDENT if president/admin)
-  const initialPerspective =
-    authRole === ROLES.PRESIDENT
-      ? 'PRESIDENT'
-      : authRole === ROLES.EVENT_ORGANIZER
-      ? 'EVENT_ORGANIZER'
-      : authRole === ROLES.MEMBER
-      ? 'MEMBER'
-      : authRole === ROLES.STUDENT
-      ? 'STUDENT'
-      : 'PRESIDENT';
-
-  const [viewPerspective, setViewPerspective] = useState<'PRESIDENT' | 'EVENT_ORGANIZER' | 'MEMBER' | 'STUDENT'>(
-    initialPerspective
-  );
+  const currentRole = role || authRole || ROLES.STUDENT;
 
   // Events list state
   const [eventsList, setEventsList] = useState<MockEvent[]>(mockEvents);
@@ -117,11 +106,14 @@ export const EventsTicketingModule: React.FC = () => {
   // Registration modal state
   const [selectedTierId, setSelectedTierId] = useState<string>(activeEvent?.tiers[0]?.id || '');
   const [regName, setRegName] = useState(
-    viewPerspective === 'MEMBER' ? 'Deepak Kumar (Verified Member)' : 'Aarav Patel (Student)'
+    currentRole === ROLES.MEMBER ? 'Deepak Kumar (Verified Member)' : 'Aarav Patel (Student)'
   );
   const [regEmail, setRegEmail] = useState(
-    viewPerspective === 'MEMBER' ? 'deepaka.ad24@bitsathy.ac.in' : 'aarav.patel@campus.edu'
+    currentRole === ROLES.MEMBER ? 'deepaka.ad24@bitsathy.ac.in' : 'aarav.patel@campus.edu'
   );
+
+  // Volunteer Door Check-in search query
+  const [volunteerSearchQuery, setVolunteerSearchQuery] = useState('');
 
   // Filtered Events
   const filteredEvents = useMemo(() => {
@@ -220,7 +212,7 @@ export const EventsTicketingModule: React.FC = () => {
     setIsPresidentCreateOpen(false);
     setNotification({
       type: 'success',
-      message: `Event "${createdEvent.title}" initialized! Forwarded to Event Organiser ${assignedMember.name}.`,
+      message: `Event "${createdEvent.title}" initialized and forwarded to Event Organiser ${assignedMember.name}.`,
     });
   };
 
@@ -292,7 +284,7 @@ export const EventsTicketingModule: React.FC = () => {
     });
   };
 
-  // Handler: Attendee Door Check-in
+  // Handler: Attendee Door Check-in (Used by Organizer & Volunteer)
   const handleCheckInAttendee = (attendeeId: string) => {
     const updatedAttendees = activeEvent.attendees.map((att) =>
       att.id === attendeeId
@@ -315,7 +307,7 @@ export const EventsTicketingModule: React.FC = () => {
     setEventsList((prev) => prev.map((evt) => (evt.id === activeEvent.id ? updatedEvent : evt)));
     setNotification({
       type: 'success',
-      message: `Attendee checked in successfully! Turnout updated.`,
+      message: `Attendee checked in successfully! Turnout recorded.`,
     });
   };
 
@@ -341,7 +333,7 @@ export const EventsTicketingModule: React.FC = () => {
   const handleRegisterTicket = (e: React.FormEvent) => {
     e.preventDefault();
     const tier = activeEvent.tiers.find((t) => t.id === selectedTierId) || activeEvent.tiers[0];
-    const isMember = viewPerspective === 'MEMBER';
+    const isMember = currentRole === ROLES.MEMBER;
     const finalPrice = isMember ? tier.memberPrice : tier.nonMemberPrice;
 
     const newAttendee: MockEventAttendee = {
@@ -369,61 +361,120 @@ export const EventsTicketingModule: React.FC = () => {
     setRegisteredTicketPass({ event: updatedEvent, attendee: newAttendee });
     setNotification({
       type: 'success',
-      message: `Registration confirmed! Digital Pass generated at ₹${finalPrice}.`,
+      message: `Registration confirmed! Digital pass generated for ₹${finalPrice}.`,
     });
   };
 
+  // Volunteer duty finding for the active logged-in volunteer
+  const myVolunteerAssignments = useMemo(() => {
+    const list: { event: MockEvent; assignment: MockVolunteerAssignment }[] = [];
+    eventsList.forEach((evt) => {
+      evt.volunteers.forEach((v) => {
+        // Match volunteer by name or email or default to first if in volunteer role
+        if (
+          v.memberEmail.toLowerCase().includes('deepak') ||
+          v.memberName.toLowerCase().includes('deepak') ||
+          v.role.includes('Registration')
+        ) {
+          list.push({ event: evt, assignment: v });
+        }
+      });
+    });
+    return list.length > 0
+      ? list
+      : [{ event: eventsList[0], assignment: eventsList[0].volunteers[0] }];
+  }, [eventsList]);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: 'var(--font-family-body)' }}>
-      {/* ── TOP ROLE PERSPECTIVE SWITCHER & HEADER BANNER ──────────────────────── */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', fontFamily: 'var(--font-family-body)' }}>
+      {/* ── CLEAN, SHARP, ROLE-AWARE MODULE HEADER (NO CLUTTER) ────────────────── */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #172554 100%)',
-          borderRadius: '16px',
-          padding: '24px 28px',
-          color: 'white',
-          boxShadow: '0 10px 25px -5px rgba(30, 58, 138, 0.25)',
+          background: 'white',
+          border: '1px solid #e2e8f0',
+          borderRadius: '12px',
+          padding: '20px 24px',
           display: 'flex',
-          flexDirection: 'column',
-          gap: '18px',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '16px',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+            <span
+              style={{
+                color: '#1e3a8a',
+                background: '#eff6ff',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                fontWeight: 700,
+                fontSize: '11px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+              }}
+            >
+              {currentRole === ROLES.PRESIDENT && 'President Operations'}
+              {currentRole === ROLES.EVENT_ORGANIZER && 'Event Organiser Operations'}
+              {currentRole === ROLES.VOLUNTEER && 'Volunteer Duty Console'}
+              {currentRole === ROLES.MEMBER && 'Member Portal'}
+              {currentRole === ROLES.STUDENT && 'Campus Ticketing'}
+              {currentRole === ROLES.TREASURER && 'Treasury Event Income'}
+              {currentRole === ROLES.ADMIN && 'Admin Oversight'}
+            </span>
+
+            {currentRole === ROLES.MEMBER && (
               <span
                 style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  backdropFilter: 'blur(8px)',
-                  padding: '4px 10px',
-                  borderRadius: '999px',
-                  fontSize: '11px',
+                  background: '#dcfce7',
+                  color: '#15803d',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
                   fontWeight: 700,
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
+                  fontSize: '11px',
                 }}
               >
-                CampusFlow Events & Ticketing Suite
+                ✓ Active Member (SSA-2026-0042) • 60% Concession
               </span>
-              <span style={{ fontSize: '12px', color: '#93c5fd' }}>• Skyline Student Association</span>
-            </div>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
-              Campus Events & Differential Ticketing Platform
-            </h1>
-            <p style={{ fontSize: '13px', color: '#bfdbfe', margin: 0, maxWidth: '780px', lineHeight: 1.5 }}>
-              Seamless end-to-end lifecycle: President initiates & delegates to Organizer • Organizer configures tiers, capacity & volunteers with guides • Verified club members unlock steep discounts.
-            </p>
+            )}
           </div>
 
-          {/* Quick Action: President Create Event Button */}
-          {(viewPerspective === 'PRESIDENT' || authRole === ROLES.PRESIDENT) && (
+          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: '0 0 4px 0' }}>
+            {currentRole === ROLES.PRESIDENT && 'Events & Delegation Management'}
+            {currentRole === ROLES.EVENT_ORGANIZER && 'Event Organiser Management Console'}
+            {currentRole === ROLES.VOLUNTEER && 'Volunteer Duty & Door Check-in Console'}
+            {currentRole === ROLES.MEMBER && 'Campus Events & Member Passes'}
+            {currentRole === ROLES.STUDENT && 'Campus Events & Passes'}
+            {(currentRole === ROLES.TREASURER || currentRole === ROLES.ADMIN) && 'Campus Events & Ticketing Platform'}
+          </h2>
+
+          <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+            {currentRole === ROLES.PRESIDENT &&
+              'Create upcoming events, set target scope, and assign club members as Event Organisers.'}
+            {currentRole === ROLES.EVENT_ORGANIZER &&
+              'Manage your delegated events: ticket tier pricing, volunteer allocation with SOP guides, and attendance.'}
+            {currentRole === ROLES.VOLUNTEER &&
+              'Review your assigned duties, follow step-by-step guidance instructions, and scan attendee entry passes.'}
+            {currentRole === ROLES.MEMBER &&
+              'Explore upcoming college events. Member discounted pricing is automatically applied to your bookings.'}
+            {currentRole === ROLES.STUDENT &&
+              'Explore upcoming college hackathons, bootcamps, and symposiums. Club members receive up to 60% discount.'}
+            {(currentRole === ROLES.TREASURER || currentRole === ROLES.ADMIN) &&
+              'Monitor ticket tiers, verified membership concessions, seat availability, and gate collections.'}
+          </p>
+        </div>
+
+        {/* Primary Role Action */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {currentRole === ROLES.PRESIDENT && (
             <button
               onClick={() => setIsPresidentCreateOpen(true)}
               style={{
-                background: '#3b82f6',
+                background: '#1e3a8a',
                 color: 'white',
                 border: 'none',
-                borderRadius: '10px',
+                borderRadius: '8px',
                 padding: '10px 18px',
                 fontSize: '13px',
                 fontWeight: 700,
@@ -431,66 +482,35 @@ export const EventsTicketingModule: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.35)',
-                transition: 'all 0.2s',
+                boxShadow: '0 2px 8px rgba(30, 58, 138, 0.25)',
               }}
             >
               <Plus style={{ width: '16px', height: '16px' }} />
-              Initiate Event & Delegate Organizer
+              Create Event & Assign Organiser
             </button>
           )}
-        </div>
 
-        {/* Dynamic Perspective Switcher Bar */}
-        <div
-          style={{
-            background: 'rgba(15, 23, 42, 0.45)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            borderRadius: '12px',
-            padding: '8px 12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '12px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Sparkles style={{ width: '15px', height: '15px', color: '#fbbf24' }} />
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#e2e8f0' }}>Simulate Active User Perspective:</span>
-          </div>
-
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            {[
-              { id: 'PRESIDENT', label: '👑 Club President', desc: 'Create & Delegate' },
-              { id: 'EVENT_ORGANIZER', label: '📋 Event Organiser', desc: 'Full Operations' },
-              { id: 'MEMBER', label: '🎖️ Club Member', desc: 'Discounted Pricing' },
-              { id: 'STUDENT', label: '🎓 Student (Non-Member)', desc: 'Standard Pricing' },
-            ].map((p) => {
-              const isActive = viewPerspective === p.id;
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => setViewPerspective(p.id as any)}
-                  style={{
-                    background: isActive ? 'white' : 'rgba(255, 255, 255, 0.08)',
-                    color: isActive ? '#1e3a8a' : '#cbd5e1',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '6px 12px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.2)' : 'none',
-                  }}
-                >
-                  {p.label}
-                </button>
-              );
-            })}
-          </div>
+          {currentRole === ROLES.EVENT_ORGANIZER && (
+            <button
+              onClick={() => setIsOrganizerManageOpen(true)}
+              style={{
+                background: '#0f172a',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '10px 18px',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <Settings style={{ width: '15px', height: '15px' }} />
+              Open Organizer Operations Workbench
+            </button>
+          )}
         </div>
       </div>
 
@@ -507,7 +527,6 @@ export const EventsTicketingModule: React.FC = () => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -523,108 +542,71 @@ export const EventsTicketingModule: React.FC = () => {
         </div>
       )}
 
-      {/* ── PERSPECTIVE ROLE BANNER & CONTEXT HELP ──────────────────────────────── */}
-      <div
-        style={{
-          background: 'white',
-          border: '1px solid #e2e8f0',
-          borderRadius: '12px',
-          padding: '14px 20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '8px',
-              background:
-                viewPerspective === 'PRESIDENT'
-                  ? '#eff6ff'
-                  : viewPerspective === 'EVENT_ORGANIZER'
-                  ? '#fdf2f8'
-                  : viewPerspective === 'MEMBER'
-                  ? '#ecfdf5'
-                  : '#f8fafc',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color:
-                viewPerspective === 'PRESIDENT'
-                  ? '#1e3a8a'
-                  : viewPerspective === 'EVENT_ORGANIZER'
-                  ? '#9d174d'
-                  : viewPerspective === 'MEMBER'
-                  ? '#047857'
-                  : '#475569',
-            }}
-          >
-            {viewPerspective === 'PRESIDENT' && <Building2 style={{ width: '20px', height: '20px' }} />}
-            {viewPerspective === 'EVENT_ORGANIZER' && <Settings style={{ width: '20px', height: '20px' }} />}
-            {viewPerspective === 'MEMBER' && <ShieldCheck style={{ width: '20px', height: '20px' }} />}
-            {viewPerspective === 'STUDENT' && <Users style={{ width: '20px', height: '20px' }} />}
-          </div>
-
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>
-                {viewPerspective === 'PRESIDENT' && 'Role: Club President Console'}
-                {viewPerspective === 'EVENT_ORGANIZER' && 'Role: Event Organiser Operations Workbench'}
-                {viewPerspective === 'MEMBER' && 'Role: Verified Club Member Portal'}
-                {viewPerspective === 'STUDENT' && 'Role: Campus Student View'}
-              </span>
-              <span
-                style={{
-                  background:
-                    viewPerspective === 'MEMBER'
-                      ? '#dcfce7'
-                      : viewPerspective === 'PRESIDENT'
-                      ? '#dbeafe'
-                      : '#f1f5f9',
-                  color:
-                    viewPerspective === 'MEMBER'
-                      ? '#15803d'
-                      : viewPerspective === 'PRESIDENT'
-                      ? '#1d4ed8'
-                      : '#475569',
-                  padding: '2px 8px',
-                  borderRadius: '999px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                }}
-              >
-                {viewPerspective === 'MEMBER' ? 'Member Concession Active (-60%)' : 'Standard View'}
-              </span>
+      {/* ── EVENT ORGANIZER ROLE: INCOMING DELEGATION REQUEST BANNER ───────────── */}
+      {currentRole === ROLES.EVENT_ORGANIZER && (
+        <div
+          style={{
+            background: '#f8fafc',
+            border: '1px solid #cbd5e1',
+            borderRadius: '12px',
+            padding: '18px 22px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '14px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '8px',
+                background: '#eff6ff',
+                color: '#1e3a8a',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <ClipboardList style={{ width: '22px', height: '22px' }} />
             </div>
-            <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0 0' }}>
-              {viewPerspective === 'PRESIDENT' &&
-                'You can initialize upcoming campus events, draft initial scopes, and delegate lead responsibilities to club members.'}
-              {viewPerspective === 'EVENT_ORGANIZER' &&
-                'You manage the full event: date, hall, capacity, ticket tier pricing, volunteer SOP guide allocation, and live sales monitoring.'}
-              {viewPerspective === 'MEMBER' &&
-                'Your Skyline Membership (SSA-2026-0042) is recognized! Member pass rates are automatically applied to your cart.'}
-              {viewPerspective === 'STUDENT' &&
-                'Standard ticket prices are shown. Joining the Skyline Student Association unlocks up to 60% member discount on every event.'}
-            </p>
-          </div>
-        </div>
 
-        {/* Quick Organiser Action */}
-        {(viewPerspective === 'EVENT_ORGANIZER' || viewPerspective === 'PRESIDENT') && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                  Delegated Event Request: {activeEvent.title}
+                </span>
+                <span
+                  style={{
+                    background: '#fef3c7',
+                    color: '#92400e',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                  }}
+                >
+                  Action Required
+                </span>
+              </div>
+              <p style={{ fontSize: '13px', color: '#475569', margin: '4px 0 0 0' }}>
+                <strong>President Directive:</strong> {activeEvent.presidentNotes || 'Set member & non-member pricing tiers, enforce club discount rules, and allocate volunteers.'}
+              </p>
+            </div>
+          </div>
+
           <button
             onClick={() => setIsOrganizerManageOpen(true)}
             style={{
-              background: '#0f172a',
+              background: '#1e3a8a',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
-              padding: '8px 16px',
-              fontSize: '12px',
+              padding: '9px 18px',
+              fontSize: '13px',
               fontWeight: 700,
               cursor: 'pointer',
               display: 'flex',
@@ -632,11 +614,222 @@ export const EventsTicketingModule: React.FC = () => {
               gap: '6px',
             }}
           >
-            <Settings style={{ width: '14px', height: '14px' }} />
-            Open Event Management Console ({activeEvent.title.slice(0, 18)}...)
+            <Settings style={{ width: '15px', height: '15px' }} />
+            Configure Tiers, Capacity & Volunteers
           </button>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* ── VOLUNTEER ROLE: MY ASSIGNED DUTIES & SOP OPERATING GUIDANCE ────────── */}
+      {currentRole === ROLES.VOLUNTEER && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+              My Assigned Event Responsibilities & Standard Operating Guidance
+            </h3>
+            <span style={{ fontSize: '12px', color: '#64748b' }}>
+              Allocated by Event Organiser
+            </span>
+          </div>
+
+          {myVolunteerAssignments.map(({ event, assignment }) => (
+            <div
+              key={assignment.id}
+              style={{
+                background: 'white',
+                border: '1px solid #cbd5e1',
+                borderRadius: '14px',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+              }}
+            >
+              {/* Duty Overview Bar */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span
+                      style={{
+                        background: '#eff6ff',
+                        color: '#1e3a8a',
+                        padding: '3px 10px',
+                        borderRadius: '6px',
+                        fontWeight: 700,
+                        fontSize: '12px',
+                      }}
+                    >
+                      {assignment.role}
+                    </span>
+                    <span
+                      style={{
+                        background: assignment.status === 'ON_DUTY' ? '#dcfce7' : '#f1f5f9',
+                        color: assignment.status === 'ON_DUTY' ? '#15803d' : '#475569',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {assignment.status}
+                    </span>
+                  </div>
+                  <h4 style={{ fontSize: '17px', fontWeight: 700, color: '#0f172a', margin: '6px 0 2px 0' }}>
+                    {event.title}
+                  </h4>
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>
+                    Shift: <strong>{assignment.shift}</strong> • Venue: {event.location} ({event.venueHall})
+                  </span>
+                </div>
+
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Turnout Progress</span>
+                  <span style={{ fontSize: '16px', fontWeight: 800, color: '#047857' }}>
+                    {event.checkedInCount} / {event.soldCount} Checked In
+                  </span>
+                </div>
+              </div>
+
+              {/* Standard Operating Guidance (SOP) Instructions Box */}
+              <div
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '10px',
+                  padding: '16px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                  <ShieldCheck style={{ width: '16px', height: '16px', color: '#1e3a8a' }} />
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#1e3a8a', textTransform: 'uppercase' }}>
+                    Duty Guide & Instructions for {assignment.memberName}:
+                  </span>
+                </div>
+
+                <ol style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: '#334155', lineHeight: 1.6 }}>
+                  {assignment.guideInstructions.map((instruction, idx) => (
+                    <li key={idx} style={{ marginBottom: '4px' }}>
+                      {instruction}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              {/* Volunteer Live Door Check-in Tool */}
+              <div
+                style={{
+                  borderTop: '1px solid #f1f5f9',
+                  paddingTop: '14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>
+                    Gate Check-in Scanner Console:
+                  </span>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>
+                    {event.attendees.filter((a) => !a.checkedIn).length} attendees pending entry
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <div style={{ position: 'relative', flex: 1 }}>
+                    <Search
+                      style={{
+                        position: 'absolute',
+                        left: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        width: '14px',
+                        height: '14px',
+                        color: '#94a3b8',
+                      }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Search attendee by name or ticket ID (e.g. Aarav, TKT-AI-001)..."
+                      value={volunteerSearchQuery}
+                      onChange={(e) => setVolunteerSearchQuery(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '8px 12px 8px 32px',
+                        borderRadius: '6px',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '12px',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Attendee Check-in quick table */}
+                <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
+                    <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                      <tr>
+                        <th style={{ padding: '8px 12px', color: '#475569' }}>Ticket ID</th>
+                        <th style={{ padding: '8px 12px', color: '#475569' }}>Attendee</th>
+                        <th style={{ padding: '8px 12px', color: '#475569' }}>Membership Check</th>
+                        <th style={{ padding: '8px 12px', color: '#475569' }}>Tier</th>
+                        <th style={{ padding: '8px 12px', color: '#475569' }}>Status / Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {event.attendees
+                        .filter(
+                          (a) =>
+                            a.name.toLowerCase().includes(volunteerSearchQuery.toLowerCase()) ||
+                            a.ticketId.toLowerCase().includes(volunteerSearchQuery.toLowerCase())
+                        )
+                        .map((att) => (
+                          <tr key={att.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '8px 12px', fontWeight: 600, color: '#1e3a8a' }}>{att.ticketId}</td>
+                            <td style={{ padding: '8px 12px', fontWeight: 600 }}>{att.name}</td>
+                            <td style={{ padding: '8px 12px' }}>
+                              {att.isMember ? (
+                                <span style={{ color: '#15803d', fontWeight: 700, fontSize: '11px' }}>
+                                  ✓ Verified Member ({att.membershipId})
+                                </span>
+                              ) : (
+                                <span style={{ color: '#64748b', fontSize: '11px' }}>General Student</span>
+                              )}
+                            </td>
+                            <td style={{ padding: '8px 12px', color: '#475569' }}>{att.tier}</td>
+                            <td style={{ padding: '8px 12px' }}>
+                              {att.checkedIn ? (
+                                <span style={{ color: '#10b981', fontWeight: 700 }}>
+                                  ✓ Admitted ({att.checkInTime || 'Scanned'})
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => handleCheckInAttendee(att.id)}
+                                  style={{
+                                    background: '#10b981',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    padding: '4px 10px',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  Check In Attendee
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ── FILTER & SEARCH TOOLBAR ────────────────────────────────────────────── */}
       <div
@@ -752,10 +945,8 @@ export const EventsTicketingModule: React.FC = () => {
                     width: '100%',
                     height: '100%',
                     objectFit: 'cover',
-                    transition: 'transform 0.3s ease',
                   }}
                   onError={(e) => {
-                    // Fallback to high-res tech symposium photo
                     (e.target as HTMLImageElement).src = BANNER_PRESETS[0].url;
                   }}
                 />
@@ -856,7 +1047,7 @@ export const EventsTicketingModule: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Member vs Student Pricing Highlight */}
+                {/* Member vs Student Pricing Display */}
                 <div
                   style={{
                     marginTop: 'auto',
@@ -867,7 +1058,7 @@ export const EventsTicketingModule: React.FC = () => {
                     alignItems: 'baseline',
                   }}
                 >
-                  {viewPerspective === 'MEMBER' ? (
+                  {currentRole === ROLES.MEMBER ? (
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ fontSize: '18px', fontWeight: 800, color: '#047857' }}>
@@ -890,7 +1081,7 @@ export const EventsTicketingModule: React.FC = () => {
                         </span>
                       </div>
                       <span style={{ fontSize: '10px', color: '#059669', fontWeight: 600 }}>
-                        ✓ Skyline Member Benefit Applied
+                        ✓ Member Benefit Applied
                       </span>
                     </div>
                   ) : (
@@ -907,7 +1098,7 @@ export const EventsTicketingModule: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Organizer Delegate Name tag */}
+                  {/* Organizer Delegate tag */}
                   {evt.assignedOrganizer && (
                     <span style={{ fontSize: '11px', color: '#64748b' }}>
                       Org: <strong style={{ color: '#1e293b' }}>{evt.assignedOrganizer.name.split(' ')[0]}</strong>
@@ -930,7 +1121,6 @@ export const EventsTicketingModule: React.FC = () => {
                     <span style={{ fontSize: '12px', fontWeight: 600, color: isSoldOut ? '#ef4444' : '#334155' }}>
                       {isSoldOut ? 'Sold Out' : `${seatsLeft} seats left`}
                     </span>
-                    {/* Progress Underline bar */}
                     <div
                       style={{
                         width: '90px',
@@ -951,8 +1141,8 @@ export const EventsTicketingModule: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* CTA Button */}
-                  {viewPerspective === 'EVENT_ORGANIZER' || viewPerspective === 'PRESIDENT' ? (
+                  {/* CTA Button Based on Role */}
+                  {currentRole === ROLES.EVENT_ORGANIZER || currentRole === ROLES.PRESIDENT ? (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -968,7 +1158,6 @@ export const EventsTicketingModule: React.FC = () => {
                         fontSize: '13px',
                         fontWeight: 700,
                         cursor: 'pointer',
-                        transition: 'background 0.2s',
                         whiteSpace: 'nowrap',
                       }}
                     >
@@ -991,7 +1180,6 @@ export const EventsTicketingModule: React.FC = () => {
                         fontSize: '13px',
                         fontWeight: 700,
                         cursor: isSoldOut ? 'not-allowed' : 'pointer',
-                        transition: 'background 0.2s',
                         whiteSpace: 'nowrap',
                       }}
                     >
@@ -1142,7 +1330,7 @@ export const EventsTicketingModule: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
                   <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '6px' }}>
-                    Institution / Campus Location *
+                    Campus Location *
                   </label>
                   <input
                     type="text"
@@ -1202,7 +1390,6 @@ export const EventsTicketingModule: React.FC = () => {
                   />
                 </div>
 
-                {/* THE CORE PRESIDENT FEATURE: ASSIGN CLUB MEMBER AS ORGANIZER */}
                 <div>
                   <label style={{ fontSize: '12px', fontWeight: 700, color: '#1e3a8a', display: 'block', marginBottom: '6px' }}>
                     Assign Club Member as Event Organiser *
@@ -1227,7 +1414,7 @@ export const EventsTicketingModule: React.FC = () => {
                     ))}
                   </select>
                   <span style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'block' }}>
-                    Full operational control will be delegated to this organizer upon submission.
+                    Operational control will be delegated to this organizer upon submission.
                   </span>
                 </div>
               </div>
@@ -1292,7 +1479,7 @@ export const EventsTicketingModule: React.FC = () => {
                 />
               </div>
 
-              {/* President Handover Briefing Notes */}
+              {/* President Handover Directives */}
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '6px' }}>
                   President Directive / Handover Instructions to Organizer
@@ -2261,8 +2448,7 @@ export const EventsTicketingModule: React.FC = () => {
 
             {/* Registration Form */}
             <form onSubmit={handleRegisterTicket} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Member Discount Status Highlight */}
-              {viewPerspective === 'MEMBER' ? (
+              {currentRole === ROLES.MEMBER ? (
                 <div
                   style={{
                     background: '#ecfdf5',
@@ -2307,7 +2493,7 @@ export const EventsTicketingModule: React.FC = () => {
                 </label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {activeEvent.tiers.map((t) => {
-                    const price = viewPerspective === 'MEMBER' ? t.memberPrice : t.nonMemberPrice;
+                    const price = currentRole === ROLES.MEMBER ? t.memberPrice : t.nonMemberPrice;
                     const isSelected = selectedTierId === t.id;
 
                     return (
@@ -2332,7 +2518,7 @@ export const EventsTicketingModule: React.FC = () => {
 
                         <div style={{ textAlign: 'right' }}>
                           <div style={{ fontSize: '18px', fontWeight: 800, color: '#1e3a8a' }}>₹{price}</div>
-                          {viewPerspective === 'MEMBER' && (
+                          {currentRole === ROLES.MEMBER && (
                             <div style={{ fontSize: '10px', color: '#10b981', fontWeight: 700 }}>
                               Reg: ₹{t.nonMemberPrice}
                             </div>

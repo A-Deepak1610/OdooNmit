@@ -163,7 +163,7 @@ export const RoleDashboardPage: React.FC<RoleDashboardProps> = ({ role }) => {
 
       {/* Render dedicated Dev Workstream or Full Standard Dashboard */}
       {activeStream === 'events' ? (
-        <EventsTicketingModule />
+        <EventsTicketingModule role={role} />
       ) : activeStream === 'memberships' ? (
         <MembershipModule />
       ) : activeStream === 'merch_tasks' ? (

@@ -80,7 +80,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: <EventsTicketingModule />,
+            element: <EventsTicketingModule role={ROLES.STUDENT} />,
           },
           {
             path: 'announcements',
@@ -110,7 +110,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: <EventsTicketingModule />,
+            element: <EventsTicketingModule role={ROLES.MEMBER} />,
           },
           {
             path: 'announcements',
@@ -122,7 +122,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'tickets',
-            element: <EventsTicketingModule />,
+            element: <EventsTicketingModule role={ROLES.MEMBER} />,
           },
           {
             path: 'merchandise',
@@ -148,7 +148,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: <EventsTicketingModule />,
+            element: <EventsTicketingModule role={ROLES.VOLUNTEER} />,
           },
           {
             path: 'submit-expense',
@@ -170,11 +170,11 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: <EventsTicketingModule />,
+            element: <EventsTicketingModule role={ROLES.EVENT_ORGANIZER} />,
           },
           {
             path: 'attendees',
-            element: <EventsTicketingModule />,
+            element: <EventsTicketingModule role={ROLES.EVENT_ORGANIZER} />,
           },
           {
             path: 'tasks',
@@ -226,7 +226,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: <EventsTicketingModule />,
+            element: <EventsTicketingModule role={ROLES.PRESIDENT} />,
           },
           {
             path: 'announcements',
