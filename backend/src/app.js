@@ -26,6 +26,9 @@ app.get("/healthz", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
+// Health check module
+app.use('/api/v1/health', healthRoutes);
+
 // Catch-all for undefined routes
 app.use(notFoundMiddleware);
 
