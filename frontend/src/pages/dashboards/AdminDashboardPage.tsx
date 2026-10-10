@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Building2,
   Users,
@@ -121,8 +120,6 @@ const INITIAL_AUDITS: AuditEntry[] = [
 ];
 
 export const AdminDashboardPage: React.FC = () => {
-  const navigate = useNavigate();
-  const [activeStream, setActiveStream] = useState<WorkstreamId>('all');
   const [organizations, setOrganizations] = useState<OrganizationItem[]>(INITIAL_ORGANIZATIONS);
   const [audits] = useState<AuditEntry[]>(INITIAL_AUDITS);
   const [searchQuery, setSearchQuery] = useState('');
@@ -141,10 +138,6 @@ export const AdminDashboardPage: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState('PRESIDENT');
   const [assignmentSuccess, setAssignmentSuccess] = useState<string | null>(null);
 
-  const quickActions = [
-    { label: 'Register Club Tenant', description: 'Onboard new campus chapter with dues settings', color: '#1e3a8a', bg: '#eff6ff', icon: Building2, targetPath: '/admin/clubs' },
-    { label: 'Audit Treasury Ledger', description: 'Inspect end-of-semester income & closing balances', color: '#15803d', bg: '#dcfce7', icon: IndianRupee, targetStream: 'finance_announcements' as WorkstreamId },
-    { label: 'Manage All Events', description: 'Monitor Spring Gala quotas and door check-in rates', color: '#b45309', bg: '#fef3c7', icon: Calendar, targetStream: 'events' as WorkstreamId },
   const stats = [
     {
       label: 'Campus Organizations',
@@ -303,9 +296,6 @@ export const AdminDashboardPage: React.FC = () => {
             <span>Assign Club Leadership</span>
           </button>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <button
-                onClick={() => navigate('/admin/clubs')}
           <button
             onClick={() => setShowOrgModal(true)}
             style={{
@@ -644,75 +634,6 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
           </div>
 
-          {/* ── 3. QUICK ACTIONS (3-col, Part 13 & Part 17 Rule 13) ──── */}
-          <div style={{ marginBottom: '28px' }}>
-            <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#1e293b', margin: '0 0 16px 0' }}>
-              Quick Actions
-            </h2>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '14px',
-              }}
-            >
-              {quickActions.map((action, i) => {
-                const Icon = action.icon;
-                return (
-                  <div
-                    key={i}
-                    onClick={() => {
-                      if ('targetPath' in action && action.targetPath) {
-                        navigate(action.targetPath as string);
-                      } else if (action.targetStream) {
-                        setActiveStream(action.targetStream);
-                      }
-                    }}
-                    style={{
-                      background: 'white',
-                      borderRadius: '12px',
-                      padding: '18px 20px',
-                      border: '1px solid #e2e8f0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '14px',
-                      transition: 'all 0.2s',
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = action.color;
-                      e.currentTarget.style.boxShadow = `0 4px 12px ${action.color}15`;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '#e2e8f0';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '44px',
-                        height: '44px',
-                        borderRadius: '10px',
-                        background: action.bg,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Icon style={{ width: '22px', height: '22px', color: action.color }} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b', marginBottom: '2px' }}>
-                        {action.label}
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
-                        {action.description}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
           {/* Platform Settings & Access Recovery Card */}
           <div
             style={{
@@ -897,38 +818,6 @@ export const AdminDashboardPage: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  <ShieldCheck style={{ width: '16px', height: '16px', color: '#1e3a8a' }} />
-                  Multi-Tenant Club Directory
-                </h3>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span
-                    style={{
-                      color: '#15803d',
-                      background: '#dcfce7',
-                      padding: '2px 8px',
-                      borderRadius: '4px',
-                      fontWeight: 600,
-                      fontSize: '11px',
-                    }}
-                  >
-                    Active Isolation
-                  </span>
-                  <button
-                    onClick={() => navigate('/admin/clubs')}
-                    style={{
-                      background: '#eff6ff',
-                      color: '#1e3a8a',
-                      border: '1px solid #bfdbfe',
-                      borderRadius: '6px',
-                      padding: '4px 10px',
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Manage All Clubs →
-                  </button>
-                </div>
                   Cancel
                 </button>
                 <button
@@ -952,95 +841,6 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       )}
 
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textAlign: 'left' }}>
-                      <th style={{ padding: '10px 12px', fontWeight: 600 }}>Club Tenant</th>
-                      <th style={{ padding: '10px 12px', fontWeight: 600 }}>Slug</th>
-                      <th style={{ padding: '10px 12px', fontWeight: 600 }}>Annual Dues</th>
-                      <th style={{ padding: '10px 12px', fontWeight: 600 }}>Members</th>
-                      <th style={{ padding: '10px 12px', fontWeight: 600 }}>Treasury Balance</th>
-                      <th style={{ padding: '10px 12px', fontWeight: 600, textAlign: 'right' }}>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '12px' }}>
-                        <div style={{ fontWeight: 600, color: '#1e293b' }}>{activeClub.name}</div>
-                        <div style={{ fontSize: '11px', color: '#94a3b8' }}>Skyline Student Chapter</div>
-                      </td>
-                      <td style={{ padding: '12px', fontFamily: 'monospace', color: '#64748b' }}>
-                        {activeClub.slug}
-                      </td>
-                      <td style={{ padding: '12px', fontWeight: 600, color: '#1e293b' }}>
-                        ₹{activeClub.duesAmount}/yr
-                      </td>
-                      <td style={{ padding: '12px' }}>
-                        <span style={{ color: '#15803d', background: '#dcfce7', padding: '2px 6px', borderRadius: '4px', fontWeight: 600, fontSize: '11px' }}>
-                          {activeClub.memberCount} Members
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px', fontWeight: 700, color: '#1e3a8a' }}>
-                        ₹{activeClub.activeBudget.toLocaleString()}
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'right' }}>
-                        <button
-                          onClick={() => setActiveStream('finance_announcements')}
-                          style={{
-                            color: '#1e3a8a',
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                          }}
-                        >
-                          Audit →
-                        </button>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td style={{ padding: '12px' }}>
-                        <div style={{ fontWeight: 600, color: '#1e293b' }}>Developer Student Club</div>
-                        <div style={{ fontSize: '11px', color: '#94a3b8' }}>Technical Hackathons</div>
-                      </td>
-                      <td style={{ padding: '12px', fontFamily: 'monospace', color: '#64748b' }}>
-                        dsc-chapter
-                      </td>
-                      <td style={{ padding: '12px', fontWeight: 600, color: '#1e293b' }}>
-                        ₹300/yr
-                      </td>
-                      <td style={{ padding: '12px' }}>
-                        <span style={{ color: '#15803d', background: '#dcfce7', padding: '2px 6px', borderRadius: '4px', fontWeight: 600, fontSize: '11px' }}>
-                          185 Members
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px', fontWeight: 700, color: '#1e3a8a' }}>
-                        ₹64,200
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'right' }}>
-                        <button
-                          onClick={() => navigate('/admin/clubs')}
-                          style={{
-                            color: '#1e3a8a',
-                            background: '#eff6ff',
-                            border: '1px solid #bfdbfe',
-                            borderRadius: '4px',
-                            padding: '4px 8px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                          }}
-                        >
-                          Details →
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
       {/* ── Modal: Assign Leadership & Roles ─────────────────────── */}
       {showRoleModal && (
         <div
