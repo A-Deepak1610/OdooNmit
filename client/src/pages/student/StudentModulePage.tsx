@@ -12,13 +12,8 @@ import {
   Loader2,
   X,
   MailCheck,
-<<<<<<< HEAD
-  ShieldCheck,
-  Award,
   CreditCard,
   ShoppingBag,
-=======
->>>>>>> 3e2f62b (feat: improved ellection page ui)
 } from 'lucide-react';
 import {
   studentService,
@@ -190,6 +185,8 @@ export const StudentModulePage: React.FC = () => {
       (c.category && c.category.toLowerCase().includes(clubSearch.toLowerCase()))
     );
   });
+
+
 
   return (
     <div className="text-slate-800 pb-12">
@@ -639,209 +636,7 @@ export const StudentModulePage: React.FC = () => {
       )}
 
       {/* ── 3. SEPARATE SCREEN: ELECTIONS & VOTING ───────────────────── */}
-<<<<<<< HEAD
-      {activeTab === 'elections' && (
-        <div className="space-y-6">
-          {/* Election Notice Banner */}
-          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 text-white shadow-md flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-1">
-                <Award className="w-4 h-4 text-amber-400" />
-                <span>Annual Campus Elections</span>
-              </div>
-              <h2 className="text-lg font-bold text-white">Student Leadership Democracy & Voting</h2>
-              <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                Review official election notices, vote for your preferred candidate with strict 1-time ballot
-                protection, or apply to run as Club President.
-              </p>
-            </div>
-          </div>
-
-          {/* Elections List */}
-          <div className="space-y-6">
-            {elections.map((elec) => (
-              <div key={elec.id} className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-5">
-                {/* Election Head */}
-                <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="text-xs font-extrabold text-blue-600">{elec.organization.name}</span>
-                      <span className="text-slate-400">•</span>
-                      <span className="text-xs font-semibold text-slate-500">Term {elec.academicYear}</span>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${elec.status === 'VOTING_OPEN'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : elec.status === 'NOMINATION_OPEN'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-slate-100 text-slate-700'
-                          }`}
-                      >
-                        {elec.status.replace('_', ' ')}
-                      </span>
-                    </div>
-                    <h3 className="text-lg font-bold text-slate-900">{elec.title}</h3>
-                    <p className="text-xs text-slate-600 mt-1 max-w-3xl leading-relaxed">{elec.description}</p>
-                  </div>
-
-                  {/* Apply for Club President Trigger */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {elec.myNomination ? (
-                      <div className="px-3 py-1.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-xs font-bold flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-amber-600" />
-                        <span>
-                          President Nomination: {elec.myNomination.status} (Super Admin Review)
-                        </span>
-                      </div>
-                    ) : (
-                      elec.status === 'NOMINATION_OPEN' && (
-                        <button
-                          onClick={() => handleOpenNominationModal(elec)}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold cursor-pointer shadow-xs transition-all"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>Apply for Club President</span>
-                        </button>
-                      )
-                    )}
-                  </div>
-                </div>
-
-                {/* Timeline */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl text-xs font-medium text-slate-600">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-slate-400" />
-                    <span>Nomination Deadline: {new Date(elec.nominationDeadline).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Vote className="w-4 h-4 text-emerald-500" />
-                    <span>
-                      Voting: {new Date(elec.votingStartDate).toLocaleDateString()} -{' '}
-                      {new Date(elec.votingEndDate).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-indigo-500" />
-                    <span>
-                      Status:{' '}
-                      {elec.hasVoted ? (
-                        <strong className="text-emerald-600">You have Voted</strong>
-                      ) : (
-                        'Ballot Available'
-                      )}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Candidate Ballots Section */}
-                <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
-                    Approved Candidates ({elec.candidates.filter((c) => c.status === 'APPROVED').length})
-                  </h4>
-
-                  {elec.candidates.length === 0 ? (
-                    <div className="p-8 rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400">
-                      Nominations are open! Be the first to apply to run for President of this club above.
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {elec.candidates.map((cand) => (
-                        <div
-                          key={cand.id}
-                          className={`p-4 rounded-xl border transition-all flex flex-col justify-between ${elec.votedCandidateId === cand.id
-                              ? 'border-emerald-500 bg-emerald-50/30'
-                              : 'border-slate-200/80 bg-slate-50/50'
-                            }`}
-                        >
-                          <div>
-                            <div className="flex items-start justify-between gap-2 mb-2">
-                              <div className="flex items-center gap-2.5">
-                                <img
-                                  src={
-                                    cand.user.avatarUrl ||
-                                    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'
-                                  }
-                                  alt={cand.user.fullName}
-                                  className="w-9 h-9 rounded-full object-cover"
-                                />
-                                <div>
-                                  <div className="text-xs font-bold text-slate-900">{cand.user.fullName}</div>
-                                  <div className="text-[10px] text-slate-500">@{cand.user.username}</div>
-                                </div>
-                              </div>
-
-                              <span
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${cand.status === 'APPROVED'
-                                    ? 'bg-emerald-100 text-emerald-800'
-                                    : 'bg-amber-100 text-amber-800'
-                                  }`}
-                              >
-                                {cand.status}
-                              </span>
-                            </div>
-
-                            {cand.statementOfPurpose && (
-                              <div className="text-[11px] text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200/60 mb-2">
-                                <span className="font-bold text-slate-500 uppercase text-[9px] block">
-                                  Why Applying:
-                                </span>
-                                {cand.statementOfPurpose}
-                              </div>
-                            )}
-
-                            {cand.experience && (
-                              <div className="text-[11px] text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200/60 mb-2">
-                                <span className="font-bold text-slate-500 uppercase text-[9px] block">
-                                  Leadership Experience:
-                                </span>
-                                {cand.experience}
-                              </div>
-                            )}
-
-                            <div className="text-xs text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200/60 leading-relaxed mb-3">
-                              <span className="font-bold text-slate-500 uppercase text-[9px] block">Manifesto:</span>
-                              "{cand.manifesto}"
-                            </div>
-                          </div>
-
-                          {/* Ballot Action */}
-                          <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
-                            <span className="text-xs font-bold text-indigo-700">
-                              {cand.voteCount} Ballots Cast
-                            </span>
-
-                            {elec.status === 'VOTING_OPEN' && cand.status === 'APPROVED' ? (
-                              elec.hasVoted ? (
-                                elec.votedCandidateId === cand.id ? (
-                                  <span className="px-3 py-1 rounded-lg bg-emerald-600 text-white text-xs font-bold flex items-center gap-1">
-                                    <CheckCircle2 className="w-3.5 h-3.5" /> Your Choice
-                                  </span>
-                                ) : (
-                                  <span className="text-xs text-slate-400 font-semibold">Ballot Cast</span>
-                                )
-                              ) : (
-                                <button
-                                  onClick={() => handleCastVote(elec.id, cand.id)}
-                                  disabled={actionLoading}
-                                  className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold cursor-pointer shadow-xs disabled:opacity-50"
-                                >
-                                  Vote for Candidate
-                                </button>
-                              )
-                            ) : null}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-=======
       {activeTab === 'elections' && <ElectionsVotingModule />}
->>>>>>> f7da100 (feat: improved ellection page ui)
 
       {/* ── 4. SEPARATE SCREEN: CLUBS & MEMBERSHIP ───────────────────── */}
       {activeTab === 'clubs' && (
