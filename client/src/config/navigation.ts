@@ -170,8 +170,8 @@ export const navigationConfig: NavigationItem[] = [
 
   // ===========================================================================
   // 4. EVENT ORGANIZER NAVIGATION
-  // Create events, set member/non-member prices, monitor capacity,
-  // scan tickets & prevent duplicates, verify membership, view revenue.
+  // Tickets & quotas, Mapbox analytics, revenue & fee collections,
+  // volunteer squad management, and event-day live check-in analysis.
   // ===========================================================================
   {
     id: 'organizer-dashboard',
@@ -183,35 +183,44 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'organizer-events',
-    label: 'Events & Ticket Quotas',
+    label: 'Events & Tickets Details',
     path: '/organizer/events',
-    icon: Calendar,
+    icon: Ticket,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
     group: 'EVENT OPERATIONS',
   },
   {
-    id: 'organizer-scanner',
-    label: 'Door Ticket Scanner',
-    path: '/volunteer/scanner',
-    icon: QrCode,
+    id: 'organizer-analytics',
+    label: 'Analytics Details',
+    path: '/organizer/analytics',
+    icon: PieChart,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
     group: 'EVENT OPERATIONS',
   },
   {
-    id: 'organizer-attendees',
-    label: 'Attendance & Revenue',
-    path: '/organizer/attendees',
+    id: 'organizer-revenue',
+    label: 'Revenue & Collections',
+    path: '/organizer/revenue',
+    icon: DollarSign,
+    allowedRoles: [ROLES.EVENT_ORGANIZER],
+    group: 'EVENT OPERATIONS',
+  },
+  {
+    id: 'organizer-volunteers',
+    label: 'Volunteer Management',
+    path: '/organizer/volunteers',
     icon: Users,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
     group: 'EVENT OPERATIONS',
   },
   {
-    id: 'organizer-tasks',
-    label: 'Logistics Tasks',
-    path: '/organizer/tasks',
-    icon: CheckSquare,
+    id: 'organizer-checkin',
+    label: 'Event Day Check-in',
+    path: '/organizer/checkin',
+    icon: UserCheck,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
     group: 'EVENT OPERATIONS',
+    badge: 'Live',
   },
 
   // ===========================================================================
