@@ -74,6 +74,7 @@ export interface StudentElectionItem {
   hasVoted: boolean;
   votedCandidateId: string | null;
   myNomination: StudentCandidateItem | null;
+  winnerCandidateId?: string | null;
 }
 
 export class StudentService {

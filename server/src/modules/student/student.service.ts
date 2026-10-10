@@ -246,6 +246,7 @@ export class StudentService {
         hasVoted: Boolean(userVote),
         votedCandidateId: userVote ? userVote.candidateId : null,
         myNomination: myCandidate,
+        winnerCandidateId: elec.winnerCandidateId,
       };
     });
   }

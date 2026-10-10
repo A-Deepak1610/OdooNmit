@@ -60,6 +60,17 @@ const ModuleRedirect: React.FC<{ subpath: string }> = ({ subpath }) => {
     return <Navigate to={`/login?redirect=/${subpath}`} replace />;
   }
   const activeRole = role || getDefaultRole(user.roles || []);
+
+  if (subpath === 'elections' || subpath === 'voting') {
+    if (activeRole === ROLES.ADMIN) {
+      return <Navigate to="/admin/elections" replace />;
+    }
+    if (activeRole === ROLES.MEMBER) {
+      return <Navigate to="/member/elections" replace />;
+    }
+    return <Navigate to="/student/elections" replace />;
+  }
+
   const rolePrefix =
     activeRole === ROLES.ADMIN
       ? 'admin'
@@ -146,6 +157,14 @@ export const router = createBrowserRouter([
   {
     path: '/announcements',
     element: <ModuleRedirect subpath="announcements" />,
+  },
+  {
+    path: '/elections',
+    element: <ModuleRedirect subpath="elections" />,
+  },
+  {
+    path: '/voting',
+    element: <ModuleRedirect subpath="elections" />,
   },
 
 

@@ -238,6 +238,11 @@ export const adminService = {
     return res.data.data;
   },
 
+  updateElectionStatus: async (electionId: string, status: string) => {
+    const res = await apiClient.patch(`/admin/elections/${electionId}/status`, { status });
+    return res.data.data;
+  },
+
   updateCandidateStatus: async (candidateId: string, status: 'APPROVED' | 'REJECTED') => {
     const res = await apiClient.patch(`/admin/elections/candidates/${candidateId}/status`, { status });
     return res.data.data;

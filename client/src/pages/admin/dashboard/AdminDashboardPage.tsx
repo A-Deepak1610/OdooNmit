@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  Vote,
-  Plus,
   CheckCircle2,
   AlertCircle,
-  Clock,
   RefreshCw,
-  Trophy,
   Loader2,
-  X,
-  Users,
 } from 'lucide-react';
 import {
   adminService,
@@ -23,6 +17,7 @@ import { AdminDbAssistantPage } from '../AdminDbAssistantPage';
 import { AdminQuickOverview } from './AdminQuickOverview';
 import { AdminClubsView } from './AdminClubsView';
 import { AdminTicketsView, AdminTicketDetailModal } from './AdminTicketsView';
+import { AdminElectionsView } from './AdminElectionsView';
 
 export const AdminDashboardPage: React.FC = () => {
   const location = useLocation();
@@ -56,18 +51,8 @@ export const AdminDashboardPage: React.FC = () => {
   const [activeTicket, setActiveTicket] = useState<(SupportTicketItem & { messages: SupportMessageItem[] }) | null>(null);
   const [replyText, setReplyText] = useState('');
 
-  // Elections Data & Modals
+  // Elections Data
   const [elections, setElections] = useState<ElectionItem[]>([]);
-  const [showCreateElectionModal, setShowCreateElectionModal] = useState(false);
-  const [newElectionForm, setNewElectionForm] = useState({
-    title: '',
-    organizationId: '',
-    academicYear: '2026-2027',
-    description: '',
-    nominationDeadline: new Date(Date.now() + 5 * 86400000).toISOString().split('T')[0],
-    votingStartDate: new Date(Date.now() + 6 * 86400000).toISOString().split('T')[0],
-    votingEndDate: new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0],
-  });
   // Show auto-dismissing toast
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
     setToastMessage({ text, type });
@@ -133,73 +118,7 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
-  // ── Election Handlers ─────────────────────────────────────────────────────
-  const handleCreateElectionSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newElectionForm.title.trim() || !newElectionForm.organizationId) {
-      showToast('Please provide an election title and select a club.', 'error');
-      return;
-    }
 
-    setActionLoading(true);
-    try {
-      await adminService.createElection(newElectionForm);
-      showToast('Election announced and campus notification sent!');
-      setShowCreateElectionModal(false);
-      const updated = await adminService.getElections();
-      setElections(updated);
-    } catch (err: any) {
-      showToast(err.message || 'Failed to announce election', 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleNomineeStatusChange = async (candidateId: string, status: 'APPROVED' | 'REJECTED') => {
-    setActionLoading(true);
-    try {
-      await adminService.updateCandidateStatus(candidateId, status);
-      showToast(`Candidate nomination ${status.toLowerCase()} successfully.`);
-      const updated = await adminService.getElections();
-      setElections(updated);
-    } catch (err: any) {
-      showToast(err.message || 'Failed to update candidate', 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleCastVote = async (electionId: string, candidateId: string) => {
-    setActionLoading(true);
-    try {
-      await adminService.castVote(electionId, candidateId);
-      showToast('Ballot registered! Atomic 1-time vote verified.');
-      const updated = await adminService.getElections();
-      setElections(updated);
-    } catch (err: any) {
-      showToast(err.message || 'Vote rejected', 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleFinalizeElection = async (electionId: string) => {
-    if (!window.confirm('Finalize this election? The top candidate will be automatically promoted to President.')) return;
-
-    setActionLoading(true);
-    try {
-      const res = await adminService.finalizeElection(electionId);
-      showToast(`Election finalized! ${res.winner.fullName} is now President of ${res.organization}!`);
-      const updated = await adminService.getElections();
-      setElections(updated);
-      const updatedClubs = await adminService.getClubs();
-      setClubs(updatedClubs);
-    } catch (err: any) {
-      showToast(err.message || 'Failed to finalize election', 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
 
 
@@ -304,170 +223,16 @@ export const AdminDashboardPage: React.FC = () => {
 
       {/* ── 4. ANNUAL ELECTIONS ──────────────────────────────────────── */}
       {activeTab === 'elections' && (
-        <div className="space-y-6">
-          {/* Header Action */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-            <div>
-              <h3 className="text-base font-bold text-slate-900">Yearly Club Elections & Leadership Ratification</h3>
-              <p className="text-xs text-slate-500">
-                Announce yearly elections, review candidate nominations, enforce atomic 1-time voting, and promote elected winners to President.
-              </p>
-            </div>
-            <button
-              onClick={() => setShowCreateElectionModal(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold cursor-pointer shadow-xs"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Announce Election</span>
-            </button>
-          </div>
-
-          {/* Elections List */}
-          <div className="space-y-6">
-            {elections.map((elec) => (
-              <div key={elec.id} className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-                <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-extrabold text-indigo-600">{elec.organization?.name}</span>
-                      <span className="text-slate-400">•</span>
-                      <span className="text-xs font-semibold text-slate-500">Term {elec.academicYear}</span>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          elec.status === 'VOTING_OPEN'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : elec.status === 'NOMINATION_OPEN'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-slate-100 text-slate-700'
-                        }`}
-                      >
-                        {elec.status.replace('_', ' ')}
-                      </span>
-                    </div>
-                    <h4 className="text-lg font-bold text-slate-900">{elec.title}</h4>
-                    <p className="text-xs text-slate-600 mt-1 max-w-3xl leading-relaxed">{elec.description}</p>
-                  </div>
-
-                  {elec.status !== 'COMPLETED' && (
-                    <button
-                      onClick={() => handleFinalizeElection(elec.id)}
-                      disabled={actionLoading}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50"
-                    >
-                      <Trophy className="w-4 h-4" />
-                      <span>Finalize & Promote President</span>
-                    </button>
-                  )}
-                </div>
-
-                {/* Timeline */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl text-xs font-medium text-slate-600">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-slate-400" />
-                    <span>Nomination Closes: {new Date(elec.nominationDeadline).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Vote className="w-4 h-4 text-emerald-500" />
-                    <span>Voting: {new Date(elec.votingStartDate).toLocaleDateString()} - {new Date(elec.votingEndDate).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-indigo-500" />
-                    <span>Ballots Cast: {elec._count?.votes || 0} Total</span>
-                  </div>
-                </div>
-
-                {/* Nominees */}
-                <div>
-                  <h5 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
-                    Nominees ({elec.candidates.length})
-                  </h5>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {elec.candidates.map((cand) => (
-                      <div key={cand.id} className="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <div className="flex items-center gap-2.5">
-                              <img
-                                src={cand.user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}
-                                alt={cand.user.fullName}
-                                className="w-8 h-8 rounded-full object-cover"
-                              />
-                              <div>
-                                <div className="text-xs font-bold text-slate-900">{cand.user.fullName}</div>
-                                <div className="text-[10px] text-slate-500">@{cand.user.username}</div>
-                              </div>
-                            </div>
-
-                            <span
-                              className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                                cand.status === 'APPROVED'
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : cand.status === 'PENDING'
-                                  ? 'bg-amber-100 text-amber-800'
-                                  : 'bg-red-100 text-red-800'
-                              }`}
-                            >
-                              {cand.status}
-                            </span>
-                          </div>
-
-                          {cand.statementOfPurpose && (
-                            <div className="text-[11px] text-slate-700 bg-white p-2 rounded-lg border border-slate-200/60 mb-2">
-                              <span className="font-bold text-slate-500 uppercase text-[9px] block">Why Applying:</span>
-                              {cand.statementOfPurpose}
-                            </div>
-                          )}
-                          {cand.experience && (
-                            <div className="text-[11px] text-slate-700 bg-white p-2 rounded-lg border border-slate-200/60 mb-2">
-                              <span className="font-bold text-slate-500 uppercase text-[9px] block">Leadership Experience:</span>
-                              {cand.experience}
-                            </div>
-                          )}
-                          <div className="text-xs text-slate-600 line-clamp-3 bg-white p-2.5 rounded-lg border border-slate-200/60 leading-relaxed mb-3">
-                            <span className="font-bold text-slate-500 uppercase text-[9px] block">Manifesto:</span>
-                            "{cand.manifesto}"
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
-                          <span className="text-xs font-bold text-indigo-700">{cand.voteCount} Ballots</span>
-
-                          <div className="flex items-center gap-2">
-                            {cand.status === 'PENDING' ? (
-                              <>
-                                <button
-                                  onClick={() => handleNomineeStatusChange(cand.id, 'APPROVED')}
-                                  className="px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold cursor-pointer"
-                                >
-                                  Approve
-                                </button>
-                                <button
-                                  onClick={() => handleNomineeStatusChange(cand.id, 'REJECTED')}
-                                  className="px-2 py-1 rounded-md bg-red-100 text-red-700 hover:bg-red-200 text-[10px] font-bold cursor-pointer"
-                                >
-                                  Reject
-                                </button>
-                              </>
-                            ) : cand.status === 'APPROVED' && elec.status === 'VOTING_OPEN' ? (
-                              <button
-                                onClick={() => handleCastVote(elec.id, cand.id)}
-                                disabled={actionLoading}
-                                className="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold cursor-pointer shadow-xs disabled:opacity-50"
-                              >
-                                Cast 1-Time Ballot
-                              </button>
-                            ) : null}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <AdminElectionsView
+          elections={elections}
+          clubs={clubs}
+          isLoading={isLoading}
+          actionLoading={actionLoading}
+          onRefresh={fetchAllData}
+          onElectionsUpdated={(updated) => setElections(updated)}
+          onClubsUpdated={(updated) => setClubs(updated)}
+          showToast={showToast}
+        />
       )}
 
       {/* ── 5. DB QUERY ASSISTANT ────────────────────────────────────── */}
@@ -501,123 +266,7 @@ export const AdminDashboardPage: React.FC = () => {
 
 
 
-      {/* 4. Announce Election Modal */}
-      {showCreateElectionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-900">Announce Annual Election</h3>
-              <button onClick={() => setShowCreateElectionModal(false)} className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            <form onSubmit={handleCreateElectionSubmit} className="space-y-3 text-xs font-bold text-slate-700">
-              <div>
-                <label className="block mb-1">Election Title</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. 2026-2027 Executive Officer Election"
-                  value={newElectionForm.title}
-                  onChange={(e) => setNewElectionForm({ ...newElectionForm, title: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block mb-1">Target Club</label>
-                  <select
-                    value={newElectionForm.organizationId}
-                    onChange={(e) => setNewElectionForm({ ...newElectionForm, organizationId: e.target.value })}
-                    required
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="">Select a Club</option>
-                    {clubs.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block mb-1">Academic Year</label>
-                  <input
-                    type="text"
-                    value={newElectionForm.academicYear}
-                    onChange={(e) => setNewElectionForm({ ...newElectionForm, academicYear: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 font-medium text-slate-900"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <label className="block mb-1">Nomination Closes</label>
-                  <input
-                    type="date"
-                    required
-                    value={newElectionForm.nominationDeadline}
-                    onChange={(e) => setNewElectionForm({ ...newElectionForm, nominationDeadline: e.target.value })}
-                    className="w-full px-2.5 py-2 rounded-xl border border-slate-300 font-medium text-slate-900 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1">Voting Starts</label>
-                  <input
-                    type="date"
-                    required
-                    value={newElectionForm.votingStartDate}
-                    onChange={(e) => setNewElectionForm({ ...newElectionForm, votingStartDate: e.target.value })}
-                    className="w-full px-2.5 py-2 rounded-xl border border-slate-300 font-medium text-slate-900 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1">Voting Ends</label>
-                  <input
-                    type="date"
-                    required
-                    value={newElectionForm.votingEndDate}
-                    onChange={(e) => setNewElectionForm({ ...newElectionForm, votingEndDate: e.target.value })}
-                    className="w-full px-2.5 py-2 rounded-xl border border-slate-300 font-medium text-slate-900 text-xs"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block mb-1">Description & Guidelines</label>
-                <textarea
-                  rows={2}
-                  placeholder="Voting eligibility and atomic 1-time ballot policy..."
-                  value={newElectionForm.description}
-                  onChange={(e) => setNewElectionForm({ ...newElectionForm, description: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 font-medium text-slate-900"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateElectionModal(false)}
-                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={actionLoading}
-                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold cursor-pointer disabled:opacity-50"
-                >
-                  Broadcast Election
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

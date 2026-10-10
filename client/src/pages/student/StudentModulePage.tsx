@@ -9,14 +9,16 @@ import {
   Clock,
   Sparkles,
   Search,
-  Plus,
   Loader2,
   X,
   MailCheck,
+<<<<<<< HEAD
   ShieldCheck,
   Award,
   CreditCard,
   ShoppingBag,
+=======
+>>>>>>> 3e2f62b (feat: improved ellection page ui)
 } from 'lucide-react';
 import {
   studentService,
@@ -25,6 +27,7 @@ import {
   StudentElectionItem,
   MembershipDuesStatus,
 } from '../../services/student.service';
+import { ElectionsVotingModule } from '../../components/modules/elections/ElectionsVotingModule';
 
 export const StudentModulePage: React.FC = () => {
   const location = useLocation();
@@ -34,7 +37,7 @@ export const StudentModulePage: React.FC = () => {
   const getTabFromPath = () => {
     const path = location.pathname;
     if (path.includes('/student/notifications')) return 'notifications';
-    if (path.includes('/student/elections')) return 'elections';
+    if (path.includes('/student/elections') || path.includes('/student/voting')) return 'elections';
     if (path.includes('/student/clubs') || path.includes('/student/organizations')) return 'clubs';
     return 'overview';
   };
@@ -69,17 +72,6 @@ export const StudentModulePage: React.FC = () => {
     experience: '',
     department: 'Computer Science & Engineering',
     semester: '6th Semester',
-  });
-
-  // 2. Election President Nomination Modal
-  const [nominationModal, setNominationModal] = useState<{ open: boolean; election: StudentElectionItem | null }>({
-    open: false,
-    election: null,
-  });
-  const [nominationForm, setNominationForm] = useState({
-    statementOfPurpose: '',
-    experience: '',
-    manifesto: '',
   });
 
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
@@ -182,56 +174,7 @@ export const StudentModulePage: React.FC = () => {
     }
   };
 
-  // ── Handlers: Election Voting & Nomination ────────────────────────────────
-  const handleCastVote = async (electionId: string, candidateId: string) => {
-    setActionLoading(true);
-    try {
-      await studentService.castVote(electionId, candidateId);
-      showToast('Ballot registered! Your 1-time vote was securely recorded.');
-      const updatedElections = await studentService.getElections();
-      setElections(updatedElections);
-    } catch (err: any) {
-      showToast(err.message || 'Vote failed', 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
-  const handleOpenNominationModal = (election: StudentElectionItem) => {
-    setNominationModal({ open: true, election });
-    setNominationForm({
-      statementOfPurpose: '',
-      experience: '',
-      manifesto: '',
-    });
-  };
-
-  const handleSubmitNomination = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!nominationModal.election) return;
-    if (!nominationForm.statementOfPurpose.trim() || !nominationForm.experience.trim()) {
-      showToast('Please fill out why you are applying and your relevant experience.', 'error');
-      return;
-    }
-
-    setActionLoading(true);
-    try {
-      await studentService.applyNomination(nominationModal.election.id, {
-        statementOfPurpose: nominationForm.statementOfPurpose,
-        experience: nominationForm.experience,
-        manifesto: nominationForm.manifesto || nominationForm.statementOfPurpose,
-      });
-
-      showToast('Nomination application submitted! Forwarded to Super Admin for verification.');
-      setNominationModal({ open: false, election: null });
-      const updatedElections = await studentService.getElections();
-      setElections(updatedElections);
-    } catch (err: any) {
-      showToast(err.message || 'Failed to submit nomination', 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   // Filtered Notifications
   const filteredNotifications = notifications.filter((n) => {
@@ -696,6 +639,7 @@ export const StudentModulePage: React.FC = () => {
       )}
 
       {/* ── 3. SEPARATE SCREEN: ELECTIONS & VOTING ───────────────────── */}
+<<<<<<< HEAD
       {activeTab === 'elections' && (
         <div className="space-y-6">
           {/* Election Notice Banner */}
@@ -895,6 +839,9 @@ export const StudentModulePage: React.FC = () => {
           </div>
         </div>
       )}
+=======
+      {activeTab === 'elections' && <ElectionsVotingModule />}
+>>>>>>> f7da100 (feat: improved ellection page ui)
 
       {/* ── 4. SEPARATE SCREEN: CLUBS & MEMBERSHIP ───────────────────── */}
       {activeTab === 'clubs' && (
@@ -1077,92 +1024,6 @@ export const StudentModulePage: React.FC = () => {
         </div>
       )}
 
-      {/* 2. President Nomination Modal */}
-      {nominationModal.open && nominationModal.election && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-bold text-slate-900">Run for Club President</h3>
-                <p className="text-xs text-slate-500">
-                  {nominationModal.election.organization.name} • {nominationModal.election.title}
-                </p>
-              </div>
-              <button
-                onClick={() => setNominationModal({ open: false, election: null })}
-                className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-xs">
-              <strong>Notice:</strong> Your nomination application will be forwarded directly to the{' '}
-              <strong>Super Admin</strong> for eligibility verification and manifesto review.
-            </div>
-
-            <form onSubmit={handleSubmitNomination} className="space-y-3.5 text-xs font-bold text-slate-700">
-              <div>
-                <label className="block mb-1">
-                  Why are you applying for President? <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  rows={3}
-                  required
-                  placeholder="Detail your leadership motivation, vision for the club, and goals for the academic term..."
-                  value={nominationForm.statementOfPurpose}
-                  onChange={(e) =>
-                    setNominationForm({ ...nominationForm, statementOfPurpose: e.target.value })
-                  }
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1">
-                  What leadership experience do you have? <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  rows={2}
-                  required
-                  placeholder="Past club roles, event organizing, collegiate initiatives, team leadership..."
-                  value={nominationForm.experience}
-                  onChange={(e) => setNominationForm({ ...nominationForm, experience: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1">Manifesto & Campaign Promise</label>
-                <textarea
-                  rows={2}
-                  placeholder="Key promises to voting students (e.g., industry workshops, hackathons, open mentorship)..."
-                  value={nominationForm.manifesto}
-                  onChange={(e) => setNominationForm({ ...nominationForm, manifesto: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-medium text-slate-900"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setNominationModal({ open: false, election: null })}
-                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={actionLoading}
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer disabled:opacity-50"
-                >
-                  Submit for Super Admin Review
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
