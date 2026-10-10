@@ -1,11 +1,15 @@
 import { app } from './app.js';
 import { ENV } from './config/env.js';
 import { prisma } from './config/prisma.js';
+import { initSqlBotServer, stopSqlBotServer } from './config/sql-bot.js';
 
 async function bootstrap() {
   try {
     await prisma.$connect();
     console.log('✅ Connected to TiDB MySQL Database successfully.');
+
+    // Initialize Python SQL Chatbot server on port 8001
+    await initSqlBotServer();
 
     const server = app.listen(ENV.PORT, () => {
       console.log(`🚀 [${ENV.APP_NAME}] running on http://localhost:${ENV.PORT}`);
@@ -15,6 +19,7 @@ async function bootstrap() {
 
     const shutdown = async () => {
       console.log('⏳ Gracefully shutting down...');
+      stopSqlBotServer();
       server.close(async () => {
         await prisma.$disconnect();
         console.log('🛑 Server and Database connections closed.');

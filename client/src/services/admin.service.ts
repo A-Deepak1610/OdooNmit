@@ -218,7 +218,37 @@ export const adminService = {
   },
 
   // 5. DB Assistant
-  queryDbAssistant: async (query: string) => {
+  queryDbAssistant: async (query: string): Promise<DbAssistantResult> => {
+    try {
+      const directRes = await fetch('http://localhost:8001/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: query.trim() }),
+      });
+      if (directRes.ok) {
+        const data = await directRes.json();
+        const results = data.results || [];
+        const columns = results.length > 0 ? Object.keys(results[0]) : ['Result'];
+        const rows =
+          results.length > 0
+            ? results.map((r: any) => columns.map((col) => String(r[col] ?? '')))
+            : [['No records found']];
+        return {
+          query: data.question,
+          interpretedIntent: data.answer,
+          sqlQuery: data.sql,
+          summaryMetrics: [
+            { label: 'Rows Returned', value: `${results.length}` },
+            { label: 'Database', value: 'TiDB Cloud MySQL' },
+            { label: 'AI Model', value: 'openai/gpt-oss-20b' },
+          ],
+          columns,
+          rows,
+        };
+      }
+    } catch {
+      // Fallback to Express backend /admin/db-assistant
+    }
     const res = await apiClient.post('/admin/db-assistant', { query });
     return res.data.data as DbAssistantResult;
   },

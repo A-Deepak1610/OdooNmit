@@ -1,6 +1,8 @@
 import { PrismaClient, RoleType, ApplicationStatus } from '@prisma/client';
 import { v7 as uuidv7 } from 'uuid';
 
+export { RoleType, ApplicationStatus };
+
 const prisma = new PrismaClient();
 
 export class PresidentService {

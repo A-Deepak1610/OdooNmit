@@ -15,7 +15,6 @@ import {
   X,
   ChevronRight,
   Users,
-  Code2,
 } from 'lucide-react';
 import {
   adminService,
@@ -23,8 +22,8 @@ import {
   SupportTicketItem,
   SupportMessageItem,
   ElectionItem,
-  DbAssistantResult,
 } from '../../../services/admin.service';
+import { AdminDbAssistantPage } from '../AdminDbAssistantPage';
 
 export const AdminDashboardPage: React.FC = () => {
   const location = useLocation();
@@ -80,12 +79,6 @@ export const AdminDashboardPage: React.FC = () => {
     votingStartDate: new Date(Date.now() + 6 * 86400000).toISOString().split('T')[0],
     votingEndDate: new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0],
   });
-
-  // DB Assistant State
-  const [assistantQuery, setAssistantQuery] = useState('');
-  const [assistantResult, setAssistantResult] = useState<DbAssistantResult | null>(null);
-  const [isAssistantSearching, setIsAssistantSearching] = useState(false);
-
   // Show auto-dismissing toast
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
     setToastMessage({ text, type });
@@ -107,9 +100,6 @@ export const AdminDashboardPage: React.FC = () => {
       setClubs(clubsData);
       setTickets(ticketsData);
       setElections(electionsData);
-
-      const defaultAi = await adminService.queryDbAssistant('Show campus organizations overview and tickets');
-      setAssistantResult(defaultAi);
     } catch (err: any) {
       showToast(err.message || 'Failed to sync with backend', 'error');
     } finally {
@@ -272,21 +262,6 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
-  // ── DB Assistant Query Handler ────────────────────────────────────────────
-  const handleRunAssistantQuery = async (queryToRun: string) => {
-    if (!queryToRun.trim()) return;
-    setIsAssistantSearching(true);
-    try {
-      const res = await adminService.queryDbAssistant(queryToRun);
-      setAssistantResult(res);
-      setAssistantQuery(queryToRun);
-    } catch (err: any) {
-      showToast(err.message || 'Assistant query failed', 'error');
-    } finally {
-      setIsAssistantSearching(false);
-    }
-  };
-
   // Filtered lists
   const filteredClubs = clubs.filter((c) => {
     const matchesSearch = c.name.toLowerCase().includes(clubSearch.toLowerCase()) || c.category.toLowerCase().includes(clubSearch.toLowerCase());
@@ -313,38 +288,38 @@ export const AdminDashboardPage: React.FC = () => {
       )}
 
       {/* Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-              {activeTab === 'overview' && 'Quick Overview'}
-              {activeTab === 'clubs' && 'Club Management'}
-              {activeTab === 'tickets' && 'Ticket Support'}
-              {activeTab === 'elections' && 'Annual Elections'}
-              {activeTab === 'assistant' && 'DB Query Assistant'}
-            </h1>
-            <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-              SUPER ADMIN
-            </span>
+      {activeTab !== 'assistant' && (
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                {activeTab === 'overview' && 'Quick Overview'}
+                {activeTab === 'clubs' && 'Club Management'}
+                {activeTab === 'tickets' && 'Ticket Support'}
+                {activeTab === 'elections' && 'Annual Elections'}
+              </h1>
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                SUPER ADMIN
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {activeTab === 'overview' && 'Platform summary, active club statuses, tickets & elections'}
+              {activeTab === 'clubs' && 'Manage clubs, review status, assign leadership & charter new organizations'}
+              {activeTab === 'tickets' && 'Receive student & club queries, resolve issues & send messages'}
+              {activeTab === 'elections' && 'Yearly election governance, nominee applications & atomic voting'}
+            </p>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            {activeTab === 'overview' && 'Platform summary, active club statuses, tickets & elections'}
-            {activeTab === 'clubs' && 'Manage clubs, review status, assign leadership & charter new organizations'}
-            {activeTab === 'tickets' && 'Receive student & club queries, resolve issues & send messages'}
-            {activeTab === 'elections' && 'Yearly election governance, nominee applications & atomic voting'}
-            {activeTab === 'assistant' && 'Natural language query database assistant with formatted results'}
-          </p>
-        </div>
 
-        <button
-          onClick={fetchAllData}
-          disabled={isLoading}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold cursor-pointer shadow-xs disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-indigo-600' : ''}`} />
-          <span>Sync Data</span>
-        </button>
-      </div>
+          <button
+            onClick={fetchAllData}
+            disabled={isLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold cursor-pointer shadow-xs disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-indigo-600' : ''}`} />
+            <span>Sync Data</span>
+          </button>
+        </div>
+      )}
 
       {isLoading && !overviewData ? (
         <div className="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -863,110 +838,7 @@ export const AdminDashboardPage: React.FC = () => {
       )}
 
       {/* ── 5. DB QUERY ASSISTANT ────────────────────────────────────── */}
-      {activeTab === 'assistant' && (
-        <div className="space-y-6">
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
-            <div className="flex items-center gap-2 text-indigo-600 text-xs font-bold uppercase tracking-wider">
-              <Sparkles className="w-4 h-4" />
-              <span>Natural Query Processor</span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  value={assistantQuery}
-                  onChange={(e) => setAssistantQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleRunAssistantQuery(assistantQuery)}
-                  placeholder="Ask a natural language query, e.g. 'Show all active clubs and tickets'..."
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <button
-                onClick={() => handleRunAssistantQuery(assistantQuery)}
-                disabled={isAssistantSearching}
-                className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold cursor-pointer shadow-xs flex items-center gap-1.5 disabled:opacity-50"
-              >
-                {isAssistantSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                <span>Run Query</span>
-              </button>
-            </div>
-
-            {/* Quick chips */}
-            <div className="flex items-center gap-2 flex-wrap pt-1">
-              <span className="text-[11px] font-semibold text-slate-400">Quick Prompts:</span>
-              {[
-                'Show all active clubs and membership',
-                'List unresolved tickets with high priority',
-                'Elections status and vote tallies',
-                'General system-wide audit summary',
-              ].map((sample) => (
-                <button
-                  key={sample}
-                  onClick={() => handleRunAssistantQuery(sample)}
-                  className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 font-medium transition-all cursor-pointer"
-                >
-                  "{sample}"
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Formatted Results */}
-          {assistantResult && (
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Interpreted Intent</span>
-                  <div className="text-xs font-bold text-slate-900">{assistantResult.interpretedIntent}</div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-slate-900 text-slate-200 font-mono text-[11px] overflow-x-auto flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] uppercase text-indigo-400 font-bold block mb-1">Generated SQL</span>
-                    <code>{assistantResult.sqlQuery}</code>
-                  </div>
-                  <Code2 className="w-4 h-4 text-slate-500 flex-shrink-0" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                {assistantResult.summaryMetrics.map((m, idx) => (
-                  <div key={idx} className="p-3.5 rounded-xl border border-indigo-100 bg-indigo-50/40 text-center">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 block">{m.label}</span>
-                    <span className="text-sm font-extrabold text-indigo-950 mt-0.5 block">{m.value}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="overflow-x-auto border border-slate-200/80 rounded-xl">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold text-[10px]">
-                    <tr>
-                      {assistantResult.columns.map((col, idx) => (
-                        <th key={idx} className="py-2.5 px-4">
-                          {col}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
-                    {assistantResult.rows.map((row, rIdx) => (
-                      <tr key={rIdx} className="hover:bg-slate-50/50">
-                        {row.map((cell, cIdx) => (
-                          <td key={cIdx} className="py-2.5 px-4">
-                            {cell}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      {activeTab === 'assistant' && <AdminDbAssistantPage />}
 
       {/* ── MODALS ─────────────────────────────────────────────────── */}
       {/* 1. Ticket Conversation Drawer */}

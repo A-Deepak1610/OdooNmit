@@ -659,122 +659,70 @@ export class AdminService {
   }
 
   /**
-   * 5. Natural Language DB Assistant Query Processor
+   * 5. Natural Language DB Assistant Query Processor (Powered by TiDB Cloud RAG SQL Chatbot)
    */
   async processDbAssistantQuery(queryText: string) {
-    const q = queryText.toLowerCase().trim();
+    try {
+      const response = await fetch('http://localhost:8001/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ question: queryText.trim() }),
+      });
 
-    if (q.includes('club') || q.includes('organization')) {
+      if (!response.ok) {
+        const errorData = (await response.json().catch(() => ({}))) as any;
+        throw new Error(errorData.detail || `SQL Chatbot returned HTTP ${response.status}`);
+      }
+
+      const data = (await response.json()) as {
+        question: string;
+        sql: string;
+        answer: string;
+        results: Array<Record<string, any>>;
+      };
+
+      const results = data.results || [];
+      const columns = results.length > 0 ? Object.keys(results[0]) : ['Status'];
+      const rows =
+        results.length > 0
+          ? results.map((row) => columns.map((col) => String(row[col] ?? '')))
+          : [['No matching records returned']];
+
+      return {
+        query: data.question,
+        interpretedIntent: data.answer,
+        sqlQuery: data.sql,
+        summaryMetrics: [
+          { label: 'Rows Returned', value: `${results.length}` },
+          { label: 'Database', value: 'TiDB Cloud MySQL' },
+          { label: 'LLM Engine', value: 'openai/gpt-oss-20b' },
+        ],
+        columns,
+        rows,
+        rawResults: results,
+      };
+    } catch (err: any) {
+      console.warn(`[SQL Bot Client] Proxy fallback: ${err.message}`);
+      // Fallback for simple club query if python service temporarily starting
       const clubs = await prisma.organization.findMany({
         take: 10,
-        include: { _count: { select: { userRoles: true, supportTickets: true } } },
         orderBy: { createdAt: 'desc' },
       });
-
       return {
         query: queryText,
-        interpretedIntent: 'Querying campus organizations and active membership rosters',
-        sqlQuery: 'SELECT id, name, category, is_active, COUNT(user_roles) FROM organizations GROUP BY id LIMIT 10;',
+        interpretedIntent: `Error communicating with SQL Bot: ${err.message}. Showing cached organization records.`,
+        sqlQuery: 'SELECT id, name, category, isActive FROM organizations LIMIT 10;',
         summaryMetrics: [
-          { label: 'Organizations Analyzed', value: `${clubs.length}` },
-          { label: 'Active Status', value: `${clubs.filter((c) => c.isActive).length} Active` },
-          { label: 'Avg Members', value: '18 / Club' },
+          { label: 'Fallback Rows', value: `${clubs.length}` },
+          { label: 'Status', value: 'Fallback Mode' },
+          { label: 'Port', value: '8001' },
         ],
-        columns: ['Club Name', 'Category', 'Status', 'Members', 'Tickets'],
-        rows: clubs.map((c) => [
-          c.name,
-          c.category || 'General',
-          c.isActive ? 'ACTIVE' : 'INACTIVE',
-          `${c._count.userRoles} Members`,
-          `${c._count.supportTickets} Tickets`,
-        ]),
+        columns: ['Club Name', 'Category', 'Status'],
+        rows: clubs.map((c) => [c.name, c.category || 'General', c.isActive ? 'ACTIVE' : 'INACTIVE']),
       };
     }
-
-    if (q.includes('ticket') || q.includes('support') || q.includes('query')) {
-      const tickets = await prisma.supportTicket.findMany({
-        take: 10,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          createdBy: { select: { fullName: true } },
-          organization: { select: { name: true } },
-        },
-      });
-
-      return {
-        query: queryText,
-        interpretedIntent: 'Filtering support tickets, resolution stages, and escalation priority',
-        sqlQuery: 'SELECT ticket_number, subject, category, priority, status FROM support_tickets ORDER BY created_at DESC LIMIT 10;',
-        summaryMetrics: [
-          { label: 'Tickets Returned', value: `${tickets.length}` },
-          { label: 'Open / Pending', value: `${tickets.filter((t) => t.status === 'OPEN').length}` },
-          { label: 'SLA Status', value: '100% Compliant' },
-        ],
-        columns: ['Ticket #', 'Subject', 'Category', 'Priority', 'Status', 'Creator'],
-        rows: tickets.map((t) => [
-          t.ticketNumber,
-          t.subject,
-          t.category,
-          t.priority,
-          t.status,
-          t.createdBy.fullName,
-        ]),
-      };
-    }
-
-    if (q.includes('election') || q.includes('vote') || q.includes('candidate')) {
-      const elections = await prisma.election.findMany({
-        take: 10,
-        include: {
-          organization: { select: { name: true } },
-          _count: { select: { candidates: true, votes: true } },
-        },
-      });
-
-      return {
-        query: queryText,
-        interpretedIntent: 'Analyzing executive elections, voter participation, and ballots',
-        sqlQuery: 'SELECT title, academic_year, status, COUNT(votes) FROM elections GROUP BY id;',
-        summaryMetrics: [
-          { label: 'Elections Count', value: `${elections.length}` },
-          { label: 'Total Ballots Cast', value: `${elections.reduce((acc, e) => acc + e._count.votes, 0)}` },
-          { label: 'Turnout Integrity', value: 'Atomic 1-Time' },
-        ],
-        columns: ['Election Title', 'Organization', 'Status', 'Candidates', 'Votes Cast'],
-        rows: elections.map((e) => [
-          e.title,
-          e.organization.name,
-          e.status,
-          `${e._count.candidates} Nominees`,
-          `${e._count.votes} Votes`,
-        ]),
-      };
-    }
-
-    // Default system overview query
-    const [userCount, clubCount, ticketCount] = await Promise.all([
-      prisma.user.count(),
-      prisma.organization.count(),
-      prisma.supportTicket.count(),
-    ]);
-
-    return {
-      query: queryText,
-      interpretedIntent: 'Global platform metrics and unified multi-role audit',
-      sqlQuery: 'SELECT COUNT(*) FROM users; SELECT COUNT(*) FROM organizations; SELECT COUNT(*) FROM support_tickets;',
-      summaryMetrics: [
-        { label: 'Registered Users', value: `${userCount}` },
-        { label: 'Student Clubs', value: `${clubCount}` },
-        { label: 'Support Inquiries', value: `${ticketCount}` },
-      ],
-      columns: ['Metric Entity', 'Quantity', 'Status', 'Health Check'],
-      rows: [
-        ['Registered Students & Staff', `${userCount}`, 'Active', 'Verified'],
-        ['Campus Organizations', `${clubCount}`, 'Chartered', 'Operational'],
-        ['Support & Helpdesk Queries', `${ticketCount}`, 'Tracked', 'Normal'],
-        ['TiDB Cloud Database Partition', '100% Up', 'Synchronized', 'Healthy'],
-      ],
-    };
   }
 }
 

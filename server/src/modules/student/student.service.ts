@@ -135,12 +135,10 @@ export class StudentService {
     }
 
     // Check existing application
-    const existing = await prisma.membershipApplication.findUnique({
+    const existing = await prisma.membershipApplication.findFirst({
       where: {
-        userId_organizationId: {
-          userId,
-          organizationId,
-        },
+        userId,
+        organizationId,
       },
     });
 
