@@ -6,16 +6,13 @@ import {
   Compass,
   Megaphone,
   UserCheck,
-  FileText,
   Ticket,
   ShoppingBag,
   CheckSquare,
   Receipt,
   Users,
   DollarSign,
-  Vote,
   PieChart,
-  Shield,
   Settings,
   History,
   TrendingUp,
@@ -24,19 +21,24 @@ import {
   CalendarClock,
   Layers,
   Building2,
+  Building2,
+  ShieldCheck,
+  QrCode,
 } from 'lucide-react';
 
 /**
  * Role-specific navigation registry.
- * Defines all navigation sections and items per role matching CampusMitra's design system.
+ * Defines all navigation sections and items per role strictly aligned with role responsibilities.
  */
 export const navigationConfig: NavigationItem[] = [
   // ===========================================================================
-  // STUDENT NAVIGATION
+  // 6. STUDENT / MEMBER NAVIGATION
+  // Browse orgs, events, announcements, merch; register & pay dues;
+  // view expiry/benefits; renew; buy tickets (QR passes); order status.
   // ===========================================================================
   {
     id: 'student-dashboard',
-    label: 'Dashboard',
+    label: 'Services Hub',
     path: '/student/dashboard',
     icon: LayoutDashboard,
     allowedRoles: [ROLES.STUDENT],
@@ -44,95 +46,79 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'student-explore-events',
-    label: 'Explore Events',
+    label: 'Browse Events & Tickets',
     path: '/student/events',
     icon: Compass,
     allowedRoles: [ROLES.STUDENT],
-    group: 'CAMPUS ACTIVITIES',
+    group: 'CAMPUS SERVICES',
   },
   {
     id: 'student-announcements',
-    label: 'Announcements',
+    label: 'Club Announcements',
     path: '/student/announcements',
     icon: Megaphone,
     allowedRoles: [ROLES.STUDENT],
-    group: 'CAMPUS ACTIVITIES',
+    group: 'CAMPUS SERVICES',
   },
   {
     id: 'student-apply-membership',
-    label: 'Apply for Membership',
+    label: 'Join Organization & Dues',
     path: '/student/apply-membership',
     icon: UserCheck,
     allowedRoles: [ROLES.STUDENT],
-    group: 'CLUB MEMBERSHIPS',
-  },
-  {
-    id: 'student-my-applications',
-    label: 'My Applications',
-    path: '/student/applications',
-    icon: FileText,
-    allowedRoles: [ROLES.STUDENT],
-    group: 'CLUB MEMBERSHIPS',
+    group: 'MEMBERSHIP',
   },
 
-  // ===========================================================================
-  // MEMBER NAVIGATION
-  // ===========================================================================
+  // Member Hub
   {
     id: 'member-dashboard',
-    label: 'Dashboard',
+    label: 'Member Dashboard',
     path: '/member/dashboard',
     icon: LayoutDashboard,
     allowedRoles: [ROLES.MEMBER],
     group: 'MAIN',
   },
   {
-    id: 'member-events',
-    label: 'Events',
-    path: '/member/events',
-    icon: Calendar,
-    allowedRoles: [ROLES.MEMBER],
-    group: 'CLUB ACTIVITIES',
-  },
-  {
-    id: 'member-announcements',
-    label: 'Announcements',
-    path: '/member/announcements',
-    icon: Megaphone,
-    allowedRoles: [ROLES.MEMBER],
-    group: 'CLUB ACTIVITIES',
-  },
-  {
-    id: 'member-membership',
-    label: 'My Membership',
-    path: '/member/membership',
-    icon: UserCheck,
-    allowedRoles: [ROLES.MEMBER],
-    group: 'MEMBER HUB',
-  },
-  {
     id: 'member-tickets',
-    label: 'My Tickets',
+    label: 'My Tickets & QR Passes',
     path: '/member/tickets',
     icon: Ticket,
     allowedRoles: [ROLES.MEMBER],
     group: 'MEMBER HUB',
   },
   {
+    id: 'member-membership',
+    label: 'My Membership & Renewal',
+    path: '/member/membership',
+    icon: UserCheck,
+    allowedRoles: [ROLES.MEMBER],
+    group: 'MEMBER HUB',
+  },
+  {
     id: 'member-merchandise',
-    label: 'Merchandise',
+    label: 'Merchandise & Orders',
     path: '/member/merchandise',
     icon: ShoppingBag,
     allowedRoles: [ROLES.MEMBER],
     group: 'MEMBER HUB',
   },
+  {
+    id: 'member-announcements',
+    label: 'Member Announcements',
+    path: '/member/announcements',
+    icon: Megaphone,
+    allowedRoles: [ROLES.MEMBER],
+    group: 'MEMBER HUB',
+  },
 
   // ===========================================================================
-  // VOLUNTEER NAVIGATION
+  // 5. VOLUNTEER NAVIGATION
+  // Assigned tasks & deadlines; update progress; event duties; submit reimbursements;
+  // track status; check tickets if granted.
   // ===========================================================================
   {
     id: 'volunteer-dashboard',
-    label: 'Dashboard',
+    label: 'Operations Hub',
     path: '/volunteer/dashboard',
     icon: LayoutDashboard,
     allowedRoles: [ROLES.VOLUNTEER],
@@ -140,23 +126,23 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'volunteer-tasks',
-    label: 'My Tasks',
+    label: 'Fundraiser Tasks',
     path: '/volunteer/tasks',
     icon: CheckSquare,
     allowedRoles: [ROLES.VOLUNTEER],
     group: 'VOLUNTEER OPERATIONS',
   },
   {
-    id: 'volunteer-projects',
-    label: 'Projects & Fundraisers',
-    path: '/volunteer/projects',
-    icon: Layers,
+    id: 'volunteer-scanner',
+    label: 'Door Ticket Scanner',
+    path: '/volunteer/scanner',
+    icon: QrCode,
     allowedRoles: [ROLES.VOLUNTEER],
     group: 'VOLUNTEER OPERATIONS',
   },
   {
     id: 'volunteer-events',
-    label: 'Event Assignments',
+    label: 'Event Duties & Shifts',
     path: '/volunteer/events',
     icon: Calendar,
     allowedRoles: [ROLES.VOLUNTEER],
@@ -164,27 +150,37 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'volunteer-expenses',
-    label: 'Expense Claims',
+    label: 'Reimbursement Claims',
     path: '/volunteer/expenses',
     icon: Receipt,
     allowedRoles: [ROLES.VOLUNTEER],
     group: 'VOLUNTEER OPERATIONS',
   },
   {
+    id: 'volunteer-announcements',
+    label: 'Shift Briefings',
+    path: '/volunteer/announcements',
+    icon: Megaphone,
+    allowedRoles: [ROLES.VOLUNTEER],
+    group: 'VOLUNTEER OPERATIONS',
+  },
+  {
     id: 'volunteer-profile',
-    label: 'Volunteer Profile',
+    label: 'Volunteer Pass & ID',
     path: '/volunteer/profile',
     icon: UserCheck,
     allowedRoles: [ROLES.VOLUNTEER],
-    group: 'ACCOUNT',
+    group: 'CREDENTIALS',
   },
 
   // ===========================================================================
-  // EVENT ORGANIZER NAVIGATION
+  // 4. EVENT ORGANIZER NAVIGATION
+  // Create events, set member/non-member prices, monitor capacity,
+  // scan tickets & prevent duplicates, verify membership, view revenue.
   // ===========================================================================
   {
     id: 'organizer-dashboard',
-    label: 'Dashboard',
+    label: 'Organizer Console',
     path: '/organizer/dashboard',
     icon: LayoutDashboard,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
@@ -192,15 +188,23 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'organizer-events',
-    label: 'My Events',
+    label: 'Events & Ticket Quotas',
     path: '/organizer/events',
     icon: Calendar,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
     group: 'EVENT OPERATIONS',
   },
   {
+    id: 'organizer-scanner',
+    label: 'Door Ticket Scanner',
+    path: '/volunteer/scanner',
+    icon: QrCode,
+    allowedRoles: [ROLES.EVENT_ORGANIZER],
+    group: 'EVENT OPERATIONS',
+  },
+  {
     id: 'organizer-attendees',
-    label: 'Attendees',
+    label: 'Attendance & Revenue',
     path: '/organizer/attendees',
     icon: Users,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
@@ -208,7 +212,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'organizer-tasks',
-    label: 'Tasks',
+    label: 'Logistics Tasks',
     path: '/organizer/tasks',
     icon: CheckSquare,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
@@ -216,11 +220,13 @@ export const navigationConfig: NavigationItem[] = [
   },
 
   // ===========================================================================
-  // TREASURER NAVIGATION
+  // 3. TREASURER NAVIGATION
+  // Track dues, tickets, merch, fundraisers; categorize expenses;
+  // review receipts; approve/reject reimbursements; closing balance reports.
   // ===========================================================================
   {
     id: 'treasurer-dashboard',
-    label: 'Dashboard',
+    label: 'Financial Ledger',
     path: '/treasurer/dashboard',
     icon: LayoutDashboard,
     allowedRoles: [ROLES.TREASURER],
@@ -228,7 +234,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'treasurer-transactions',
-    label: 'Transactions',
+    label: 'Income & Expense Journal',
     path: '/treasurer/transactions',
     icon: DollarSign,
     allowedRoles: [ROLES.TREASURER],
@@ -236,7 +242,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'treasurer-reimbursements',
-    label: 'Reimbursements',
+    label: 'Reimbursement Audit',
     path: '/treasurer/reimbursements',
     icon: Receipt,
     allowedRoles: [ROLES.TREASURER],
@@ -244,7 +250,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'treasurer-reports',
-    label: 'Reports',
+    label: 'Semester Closing Reports',
     path: '/treasurer/reports',
     icon: PieChart,
     allowedRoles: [ROLES.TREASURER],
@@ -252,11 +258,13 @@ export const navigationConfig: NavigationItem[] = [
   },
 
   // ===========================================================================
-  // PRESIDENT NAVIGATION
+  // 2. CLUB PRESIDENT / ORGANIZATION ADMIN NAVIGATION
+  // Oversees activities & leadership; profile/website; announcements;
+  // events/merch/fundraisers; membership/attendance; assign duties; finance summary.
   // ===========================================================================
   {
     id: 'president-dashboard',
-    label: 'Dashboard',
+    label: 'Executive Suite',
     path: '/president/dashboard',
     icon: LayoutDashboard,
     allowedRoles: [ROLES.PRESIDENT],
@@ -264,7 +272,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'president-members',
-    label: 'Members',
+    label: 'Membership Oversight',
     path: '/president/members',
     icon: Users,
     allowedRoles: [ROLES.PRESIDENT],
@@ -272,7 +280,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'president-events',
-    label: 'Events',
+    label: 'Events & Fundraisers',
     path: '/president/events',
     icon: Calendar,
     allowedRoles: [ROLES.PRESIDENT],
@@ -280,23 +288,15 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'president-announcements',
-    label: 'Announcements',
+    label: 'Official Announcements',
     path: '/president/announcements',
     icon: Megaphone,
     allowedRoles: [ROLES.PRESIDENT],
     group: 'COMMUNICATIONS',
   },
   {
-    id: 'president-elections',
-    label: 'Elections',
-    path: '/president/elections',
-    icon: Vote,
-    allowedRoles: [ROLES.PRESIDENT],
-    group: 'CLUB GOVERNANCE',
-  },
-  {
     id: 'president-finance',
-    label: 'Finance Overview',
+    label: 'Financial Summaries',
     path: '/president/finance',
     icon: DollarSign,
     allowedRoles: [ROLES.PRESIDENT],
@@ -304,119 +304,57 @@ export const navigationConfig: NavigationItem[] = [
   },
 
   // ===========================================================================
-  // ADMIN NAVIGATION (matching attached UI reference!)
+  // 1. SUPER ADMIN / SYSTEM ADMINISTRATOR NAVIGATION
+  // Create/edit/deactivate orgs; assign leadership & role permissions;
+  // manage accounts & recovery; audit history; platform settings.
   // ===========================================================================
   {
     id: 'admin-dashboard',
-    label: 'Dashboard',
+    label: 'Platform Console',
     path: '/admin/dashboard',
     icon: LayoutDashboard,
     allowedRoles: [ROLES.ADMIN],
     group: 'MAIN',
   },
   {
-    id: 'admin-clubs',
-    label: 'Clubs',
-    path: '/admin/clubs',
+    id: 'admin-organizations',
+    label: 'Manage Organizations',
+    path: '/admin/dashboard',
     icon: Building2,
     allowedRoles: [ROLES.ADMIN],
-    group: 'CLUB MANAGEMENT',
-  },
-  {
-    id: 'admin-my-events',
-    label: 'My Events',
-    path: '/admin/events',
-    icon: Calendar,
-    allowedRoles: [ROLES.ADMIN],
-    group: 'EVENT MANAGEMENT',
-  },
-  {
-    id: 'admin-incoming-events',
-    label: 'Incoming Events',
-    path: '/admin/incoming-events',
-    icon: CalendarClock,
-    allowedRoles: [ROLES.ADMIN],
-    group: 'EVENT MANAGEMENT',
-  },
-  {
-    id: 'admin-events-overview',
-    label: 'Events Overview',
-    path: '/admin/events-overview',
-    icon: Layers,
-    allowedRoles: [ROLES.ADMIN],
-    group: 'EVENT MANAGEMENT',
-  },
-  {
-    id: 'admin-event-analytics',
-    label: 'Event Analytics',
-    path: '/admin/event-analytics',
-    icon: TrendingUp,
-    allowedRoles: [ROLES.ADMIN],
-    group: 'EVENT MANAGEMENT',
-  },
-  {
-    id: 'admin-analytics',
-    label: 'Analytics',
-    path: '/admin/analytics',
-    icon: PieChart,
-    allowedRoles: [ROLES.ADMIN],
-    group: 'INSTITUTIONAL DATA',
-  },
-  {
-    id: 'admin-reports',
-    label: 'Reports & Exports',
-    path: '/admin/reports',
-    icon: FileText,
-    allowedRoles: [ROLES.ADMIN],
-    group: 'INSTITUTIONAL DATA',
-  },
-  {
-    id: 'admin-db-assistant',
-    label: 'DB Assistant',
-    path: '/admin/db-assistant',
-    icon: Database,
-    allowedRoles: [ROLES.ADMIN],
-    group: 'INSTITUTIONAL DATA',
-  },
-  {
-    id: 'admin-winners',
-    label: 'Winners',
-    path: '/admin/winners',
-    icon: Award,
-    allowedRoles: [ROLES.ADMIN],
-    group: 'INSTITUTIONAL DATA',
-  },
-  {
-    id: 'admin-users',
-    label: 'Users',
-    path: '/admin/users',
-    icon: Users,
-    allowedRoles: [ROLES.ADMIN],
-    group: 'USER MANAGEMENT',
+    group: 'SYSTEM ADMINISTRATION',
   },
   {
     id: 'admin-roles',
-    label: 'Roles',
+    label: 'Leadership & Role Permissions',
     path: '/admin/roles',
-    icon: Shield,
+    icon: ShieldCheck,
     allowedRoles: [ROLES.ADMIN],
-    group: 'USER MANAGEMENT',
+    group: 'ACCESS CONTROL',
   },
   {
-    id: 'admin-settings',
-    label: 'Organization Settings',
-    path: '/admin/settings',
-    icon: Settings,
+    id: 'admin-users',
+    label: 'Accounts & Access Recovery',
+    path: '/admin/users',
+    icon: Users,
     allowedRoles: [ROLES.ADMIN],
-    group: 'USER MANAGEMENT',
+    group: 'ACCESS CONTROL',
   },
   {
     id: 'admin-audit-log',
-    label: 'Audit Log',
+    label: 'System Audit History',
     path: '/admin/audit-log',
     icon: History,
     allowedRoles: [ROLES.ADMIN],
-    group: 'USER MANAGEMENT',
+    group: 'SECURITY & AUDIT',
+  },
+  {
+    id: 'admin-settings',
+    label: 'Platform Settings',
+    path: '/admin/settings',
+    icon: Settings,
+    allowedRoles: [ROLES.ADMIN],
+    group: 'PLATFORM CONFIGURATION',
   },
 ];
 

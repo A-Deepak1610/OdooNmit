@@ -7,7 +7,6 @@ import { AuthCallbackPage } from '../pages/auth/AuthCallbackPage';
 import { AccessDeniedPage } from '../pages/AccessDeniedPage';
 import { AdminDashboardPage } from '../pages/dashboards/AdminDashboardPage';
 import { RoleDashboardPage } from '../pages/dashboards/RoleDashboardPage';
-import { PlaceholderPage } from '../components/shared/PlaceholderPage';
 import { EventsTicketingModule } from '../components/modules/events/EventsTicketingModule';
 import { MembershipModule } from '../components/modules/memberships/MembershipModule';
 import { MerchandiseTaskModule } from '../components/modules/merchandise/MerchandiseTaskModule';
@@ -27,6 +26,7 @@ import {
 import { useAuthStore } from '../stores/auth.store';
 import { ROLES, getDefaultRole, ROLE_DEFAULT_PATHS } from '../config/roles';
 
+import { LandingPage } from '../pages/LandingPage';
 import { AdminUsersPage } from '../pages/admin/AdminUsersPage';
 import { AdminDbAssistantPage } from '../pages/admin/AdminDbAssistantPage';
 import { AdminWinnersPage } from '../pages/admin/AdminWinnersPage';
@@ -59,13 +59,52 @@ const RootRedirect: React.FC = () => {
   return <Navigate to={targetPath} replace />;
 };
 
+/**
+ * Quick shortcut redirect for Landing Page links (events, memberships, finance, etc.)
+ */
+const ModuleRedirect: React.FC<{ subpath: string }> = ({ subpath }) => {
+  const { user, role, status } = useAuthStore();
+  if (status === 'unauthenticated' || !user) {
+    return <Navigate to={`/login?redirect=/${subpath}`} replace />;
+  }
+  const activeRole = role || getDefaultRole(user.roles || []);
+  const rolePrefix =
+    activeRole === ROLES.ADMIN
+      ? 'admin'
+      : activeRole === ROLES.PRESIDENT
+      ? 'president'
+      : activeRole === ROLES.TREASURER
+      ? 'treasurer'
+      : activeRole === ROLES.EVENT_ORGANIZER
+      ? 'organizer'
+      : activeRole === ROLES.VOLUNTEER
+      ? 'volunteer'
+      : activeRole === ROLES.MEMBER
+      ? 'member'
+      : 'student';
+
+  return <Navigate to={`/${rolePrefix}/${subpath}`} replace />;
+};
+
 export const router = createBrowserRouter([
   // ---------------------------------------------------------------------------
   // Public & Authentication Routes
   // ---------------------------------------------------------------------------
   {
+    path: '/',
+    element: <LandingPage />,
+  },
+  {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/register',
+    element: <LoginPage />,
+  },
+  {
+    path: '/dashboard',
+    element: <RootRedirect />,
   },
   {
     path: '/auth/callback',
@@ -74,6 +113,42 @@ export const router = createBrowserRouter([
   {
     path: '/access-denied',
     element: <AccessDeniedPage />,
+  },
+
+  // ---------------------------------------------------------------------------
+  // Public-facing shortcuts from Landing Page
+  // ---------------------------------------------------------------------------
+  {
+    path: '/events',
+    element: <ModuleRedirect subpath="events" />,
+  },
+  {
+    path: '/memberships',
+    element: <ModuleRedirect subpath="apply-membership" />,
+  },
+  {
+    path: '/tasks',
+    element: <ModuleRedirect subpath="tasks" />,
+  },
+  {
+    path: '/finance',
+    element: <ModuleRedirect subpath="finance" />,
+  },
+  {
+    path: '/merchandise',
+    element: <ModuleRedirect subpath="merchandise" />,
+  },
+  {
+    path: '/reimbursements',
+    element: <ModuleRedirect subpath="reimbursements" />,
+  },
+  {
+    path: '/fundraisers',
+    element: <ModuleRedirect subpath="tasks" />,
+  },
+  {
+    path: '/announcements',
+    element: <ModuleRedirect subpath="announcements" />,
   },
 
   // ---------------------------------------------------------------------------
@@ -131,20 +206,15 @@ export const router = createBrowserRouter([
   },
 
   // ---------------------------------------------------------------------------
-  // Authenticated Application Shell Routes
+  // Authenticated Application Shell Routes (Pathless Layout Route)
   // ---------------------------------------------------------------------------
   {
-    path: '/',
     element: (
       <ProtectedRoute>
         <AppLayout />
       </ProtectedRoute>
     ),
     children: [
-      {
-        index: true,
-        element: <RootRedirect />,
-      },
 
       // -----------------------------------------------------------------------
       // STUDENT ROLE ROUTES
@@ -242,6 +312,10 @@ export const router = createBrowserRouter([
             element: <EventsTicketingModule />,
           },
           {
+            path: 'scanner',
+            element: <VolunteerScanner />,
+          },
+          {
             path: 'tasks',
             element: <MerchandiseTaskModule />,
           },
@@ -298,16 +372,6 @@ export const router = createBrowserRouter([
             element: <AnnouncementBoardModule />,
           },
           {
-            path: 'elections',
-            element: (
-              <PlaceholderPage
-                title="Club Elections & Balloting"
-                role={ROLES.PRESIDENT}
-                group="CLUB GOVERNANCE"
-              />
-            ),
-          },
-          {
             path: 'finance',
             element: <FinanceLedgerModule />,
           },
@@ -362,6 +426,14 @@ export const router = createBrowserRouter([
             element: <AdminWinnersPage />,
           },
           {
+            path: 'organizations',
+            element: <AdminDashboardPage />,
+          },
+          {
+            path: 'roles',
+            element: <AdminDashboardPage />,
+          },
+          {
             path: 'users',
             element: <AdminUsersPage />,
           },
@@ -370,12 +442,12 @@ export const router = createBrowserRouter([
             element: <AdminRolesPage />,
           },
           {
-            path: 'settings',
-            element: <AdminSettingsPage />,
-          },
-          {
             path: 'audit-log',
             element: <AdminAuditLogPage />,
+          },
+          {
+            path: 'settings',
+            element: <AdminSettingsPage />,
           },
         ],
       },

@@ -18,6 +18,7 @@ interface AuthState {
 
   // Actions
   setAuthSession: (params: { user: User; token: string; refreshToken?: string }) => void;
+  setUser: (user: User, token?: string) => void;
   updateUser: (partial: Partial<User>) => void;
   switchRole: (role: UserRole) => void;
   clearAuth: () => void;
@@ -62,6 +63,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       refreshToken: refreshToken || null,
       error: null,
     });
+  },
+
+  setUser: (user, token) => {
+    get().setAuthSession({ user, token: token || 'dev-token' });
   },
 
   updateUser: (partial) =>

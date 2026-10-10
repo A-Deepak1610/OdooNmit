@@ -81,3 +81,41 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
 }
+
+/* Landing Page Marquee Vertical Scrolling Animations */
+@keyframes scrollUp {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes scrollDown {
+  0% {
+    transform: translateY(-50%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-marquee-up {
+  animation: scrollUp 25s linear infinite;
+}
+
+.animate-marquee-down {
+  animation: scrollDown 30s linear infinite;
+}
+
+.animate-marquee-up-slow {
+  animation: scrollUp 35s linear infinite;
+}
+
+/* Pauses smooth vertical scrolling on mouse hover */
+.marquee-wrapper:hover .animate-marquee-up,
+.marquee-wrapper:hover .animate-marquee-down,
+.marquee-wrapper:hover .animate-marquee-up-slow {
+  animation-play-state: paused;
+}
