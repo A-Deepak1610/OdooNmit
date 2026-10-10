@@ -7,11 +7,8 @@ import {
   Lock,
   X,
   CheckCircle2,
-  Sparkles,
   Building,
-  ArrowRight,
   Loader2,
-  ExternalLink,
 } from 'lucide-react';
 import { PaymentReceipt } from '../../stores/club.store';
 
@@ -641,19 +638,19 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
               </div>
             )}
 
-            {/* Quick Demo Pay / Instant Test Pay Action */}
-            <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {/* Single Payment Action Button */}
+            <div style={{ marginTop: '8px' }}>
               <button
                 type="button"
                 onClick={handleLaunchOfficialRazorpay}
                 style={{
                   width: '100%',
-                  padding: '13px',
+                  padding: '14px',
                   background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '10px',
-                  fontSize: '14px',
+                  fontSize: '15px',
                   fontWeight: 700,
                   cursor: 'pointer',
                   display: 'flex',
@@ -664,54 +661,8 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                   transition: 'opacity 0.2s',
                 }}
               >
-                <ExternalLink style={{ width: '16px', height: '16px' }} />
+                <Lock style={{ width: '16px', height: '16px' }} />
                 <span>Pay ₹{amount.toLocaleString('en-IN')}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleProcessPayment(activeTab)}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  background: '#f1f5f9',
-                  color: '#1e293b',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '10px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                }}
-              >
-                <span>Pay ₹{amount.toLocaleString('en-IN')} (Direct Pay)</span>
-                <ArrowRight style={{ width: '15px', height: '15px' }} />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleProcessPayment('UPI')}
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  background: '#f8fafc',
-                  border: '1px dashed #94a3b8',
-                  borderRadius: '8px',
-                  color: '#475569',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                }}
-              >
-                <Sparkles style={{ width: '14px', height: '14px', color: '#b45309' }} />
-                <span>⚡ Instant One-Click Pay (Demo Mode)</span>
               </button>
             </div>
           </div>
