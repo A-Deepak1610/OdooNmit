@@ -619,43 +619,6 @@ npm test                # Monorepo root shortcut (runs 'npm run test:backend')
 
 # Verify frontend TypeScript compilation & production build
 npm run build           # Monorepo root shortcut (runs 'npm run build:frontend')
-```
-
----
-
-## 11. 24-Hour Hackathon 4-Developer Coordination Plan
-
-To eliminate merge conflicts and maximize velocity across the 4 teammates, work is isolated strictly by module boundaries:
-
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        DEVELOPER PAIRING MATRIX                        │
-├─────────────────┬──────────────────────┬───────────────────────────────┤
-│ Team Member     │ Primary Focus        │ Scope Boundaries              │
-├─────────────────┼──────────────────────┼───────────────────────────────┤
-│ Developer 1     │ Members & Dues +     │ backend/src/modules/members/  │
-│ (Lead Backend)  │ Treasury Ledger      │ backend/src/modules/finance/  │
-│                 │                      │ backend/prisma/schema.prisma  │
-├─────────────────┼──────────────────────┼───────────────────────────────┤
-│ Developer 2     │ Events & Ticketing + │ backend/src/modules/events/   │
-│ (Backend / API) │ QR Door Scanner API  │ backend/src/modules/merch/    │
-│                 │ Merch Store API      │ backend/src/modules/projects/ │
-├─────────────────┼──────────────────────┼───────────────────────────────┤
-│ Developer 3     │ Executive Dashboard, │ frontend/src/modules/members/ │
-│ (Lead Frontend) │ Membership Cards,    │ frontend/src/modules/finance/ │
-│                 │ & Treasury P&L UI    │ frontend/src/config/nav.ts    │
-├─────────────────┼──────────────────────┼───────────────────────────────┤
-│ Developer 4     │ Events Storefront,   │ frontend/src/modules/events/  │
-│ (Frontend / UX) │ Fast Door Check-In,  │ frontend/src/modules/merch/   │
-│                 │ Merch & Kanban Board │ frontend/src/modules/projects/│
-└─────────────────┴──────────────────────┴───────────────────────────────┘
-```
-
-### Team Rules of Engagement:
-1. **API Contracts First:** Before writing module code, pair backend and frontend devs to agree on URL parameters, payload bodies, and JSON responses.
-2. **Never Edit Common Files In The Same Commit:** Feature code stays in `src/modules/<feature>/`. Route registration in `app.js` and `navigation.ts` happens in small, atomic commits.
-3. **Re-use Existing Primitives:** Use existing Tailwind tokens (`brand-*`, `surface-*`), Lucide icons, and Axios `apiClient`. Never create parallel sidebars or separate Axios instances.
-4. **Clean Git Hygiene:** Every team member works on an isolated branch (`feat/events`, `feat/members`, `feat/finance`, `feat/merch`) and merges into `main` only after CI tests pass.
 
 ---
 
