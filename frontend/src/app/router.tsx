@@ -32,14 +32,6 @@ import { ROLES, getDefaultRole, ROLE_DEFAULT_PATHS } from '../config/roles';
 
 import { LandingPage } from '../pages/LandingPage';
 import { AdminUsersPage } from '../pages/admin/AdminUsersPage';
-import { AdminDbAssistantPage } from '../pages/admin/AdminDbAssistantPage';
-import { AdminWinnersPage } from '../pages/admin/AdminWinnersPage';
-import { AdminAnalyticsPage } from '../pages/admin/AdminAnalyticsPage';
-import { AdminReportsPage } from '../pages/admin/AdminReportsPage';
-import { AdminEventsPage } from '../pages/admin/AdminEventsPage';
-import { AdminEventsOverviewPage } from '../pages/admin/AdminEventsOverviewPage';
-import { AdminEventAnalyticsPage } from '../pages/admin/AdminEventAnalyticsPage';
-import { AdminIncomingEventsPage } from '../pages/admin/AdminIncomingEventsPage';
 import { AdminRolesPage } from '../pages/admin/AdminRolesPage';
 import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage';
 import { AdminAuditLogPage } from '../pages/admin/AdminAuditLogPage';
@@ -400,7 +392,13 @@ export const router = createBrowserRouter([
       },
 
       // -----------------------------------------------------------------------
-      // ADMIN ROLE ROUTES (Matches attached UI reference!)
+      // ADMIN ROLE ROUTES (System Administrator)
+      // Manages the platform and access controls:
+      // - Create, edit, deactivate organizations
+      // - Assign club leadership and role permissions
+      // - Manage accounts and access recovery
+      // - View system-wide activity and audit history
+      // - Configure platform-level settings
       // -----------------------------------------------------------------------
       {
         path: 'admin',
@@ -415,48 +413,16 @@ export const router = createBrowserRouter([
             element: <AdminClubsPage />,
           },
           {
-            path: 'events',
-            element: <AdminEventsPage />,
-          },
-          {
-            path: 'incoming-events',
-            element: <AdminIncomingEventsPage />,
-          },
-          {
-            path: 'events-overview',
-            element: <AdminEventsOverviewPage />,
-          },
-          {
-            path: 'event-analytics',
-            element: <AdminEventAnalyticsPage />,
-          },
-          {
-            path: 'analytics',
-            element: <AdminAnalyticsPage />,
-          },
-          {
-            path: 'reports',
-            element: <AdminReportsPage />,
-          },
-          {
-            path: 'db-assistant',
-            element: <AdminDbAssistantPage />,
-          },
-          {
-            path: 'winners',
-            element: <AdminWinnersPage />,
-          },
-          {
             path: 'organizations',
-            element: <AdminDashboardPage />,
-          },
-          {
-            path: 'users',
-            element: <AdminUsersPage />,
+            element: <AdminClubsPage />,
           },
           {
             path: 'roles',
             element: <AdminRolesPage />,
+          },
+          {
+            path: 'users',
+            element: <AdminUsersPage />,
           },
           {
             path: 'audit-log',

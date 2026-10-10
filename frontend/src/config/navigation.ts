@@ -19,7 +19,6 @@ import {
   QrCode,
   Vote,
   HeartHandshake,
-  Trophy,
 } from 'lucide-react';
 
 /**
@@ -364,8 +363,12 @@ export const navigationConfig: NavigationItem[] = [
 
   // ===========================================================================
   // 1. SUPER ADMIN / SYSTEM ADMINISTRATOR NAVIGATION
-  // Create/edit/deactivate orgs; assign leadership & role permissions;
-  // manage accounts & recovery; audit history; platform settings.
+  // Manages the platform and access controls:
+  // - Create, edit, deactivate organizations
+  // - Assign club leadership and role permissions
+  // - Manage accounts and access recovery
+  // - View system-wide activity and audit history
+  // - Configure platform-level settings
   // ===========================================================================
   {
     id: 'admin-dashboard',
@@ -381,31 +384,7 @@ export const navigationConfig: NavigationItem[] = [
     path: '/admin/clubs',
     icon: Building2,
     allowedRoles: [ROLES.ADMIN],
-    group: 'CAMPUS ADMINISTRATION',
-  },
-  {
-    id: 'admin-events',
-    label: 'Events & Schedules',
-    path: '/admin/events',
-    icon: Calendar,
-    allowedRoles: [ROLES.ADMIN],
-    group: 'CAMPUS ADMINISTRATION',
-  },
-  {
-    id: 'admin-analytics',
-    label: 'Campus Analytics',
-    path: '/admin/analytics',
-    icon: PieChart,
-    allowedRoles: [ROLES.ADMIN],
-    group: 'CAMPUS ADMINISTRATION',
-  },
-  {
-    id: 'admin-winners',
-    label: 'Competitions & Winners',
-    path: '/admin/winners',
-    icon: Trophy,
-    allowedRoles: [ROLES.ADMIN],
-    group: 'CAMPUS ADMINISTRATION',
+    group: 'PLATFORM MANAGEMENT',
   },
   {
     id: 'admin-roles',
@@ -417,7 +396,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'admin-users',
-    label: 'Accounts & User Access',
+    label: 'Accounts & Recovery',
     path: '/admin/users',
     icon: Users,
     allowedRoles: [ROLES.ADMIN],

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   CreditCard,
-  QrCode,
   Smartphone,
   ShieldCheck,
   Lock,
@@ -464,13 +463,23 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                       background: '#ffffff',
                       border: '1px solid #cbd5e1',
                       borderRadius: '8px',
-                      padding: '8px',
+                      padding: '6px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <QrCode style={{ width: '80px', height: '80px', color: '#0f172a' }} />
+                    <img
+                      src="/qr-code.png"
+                      alt="UPI Payment QR Code"
+                      style={{
+                        width: '84px',
+                        height: '84px',
+                        objectFit: 'contain',
+                        borderRadius: '4px',
+                        display: 'block',
+                      }}
+                    />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
