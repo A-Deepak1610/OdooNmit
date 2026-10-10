@@ -5,8 +5,11 @@ import {
   Sun,
   Bell,
   Menu,
+
 } from 'lucide-react';
 import { useUiStore } from '../../stores/ui.store';
+import { useNotificationStore } from '../../stores/notification.store';
+import { NotificationDropdown } from './NotificationDropdown';
 
 export const AppHeader: React.FC = () => {
   const { toggleSidebar, toggleMobileSidebar } = useUiStore();
