@@ -6,11 +6,8 @@ import {
   Lock,
   X,
   CheckCircle2,
-  Sparkles,
   Building,
-  ArrowRight,
   Loader2,
-  ExternalLink,
 } from 'lucide-react';
 import { PaymentReceipt } from '../../stores/club.store';
 
@@ -171,13 +168,13 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
         style={{
           width: '100%',
           maxWidth: '520px',
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--card, #ffffff)',
           borderRadius: '16px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--border, #e2e8f0)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--border, #e2e8f0)',
           position: 'relative',
         }}
       >
@@ -213,22 +210,22 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
           </button>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            {/* Razorpay Brand Mark */}
+            {/* Payment Brand Mark */}
             <div
               style={{
-                background: '#3395ff',
+                background: '#2563eb',
                 color: '#ffffff',
-                fontWeight: 900,
-                fontSize: '14px',
+                fontWeight: 800,
+                fontSize: '12px',
                 padding: '2px 8px',
                 borderRadius: '4px',
-                letterSpacing: '-0.5px',
+                letterSpacing: '0.5px',
               }}
             >
-              R
+              PAY
             </div>
             <span style={{ fontSize: '16px', fontWeight: 700, letterSpacing: '-0.3px' }}>
-              Razorpay Checkout
+              Payment Checkout
             </span>
             <span
               style={{
@@ -298,7 +295,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                 fontWeight: 600,
               }}
             >
-              Razorpay Sandbox Simulation Active
+              Secure 256-Bit Payment Gateway
             </div>
           </div>
         ) : paymentStatus === 'SUCCESS' ? (
@@ -372,7 +369,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                 display: 'grid',
                 gridTemplateColumns: 'repeat(3, 1fr)',
                 gap: '8px',
-                background: '#f1f5f9',
+                background: 'var(--secondary, #f1f5f9)',
                 padding: '4px',
                 borderRadius: '8px',
               }}
@@ -388,8 +385,8 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                   padding: '8px 12px',
                   borderRadius: '6px',
                   border: 'none',
-                  background: activeTab === 'UPI' ? '#ffffff' : 'transparent',
-                  color: activeTab === 'UPI' ? '#1e3a8a' : '#64748b',
+                  background: activeTab === 'UPI' ? 'var(--card, #ffffff)' : 'transparent',
+                  color: activeTab === 'UPI' ? 'var(--primary, #1e3a8a)' : 'var(--muted-foreground, #64748b)',
                   fontWeight: activeTab === 'UPI' ? 700 : 500,
                   fontSize: '12px',
                   cursor: 'pointer',
@@ -411,8 +408,8 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                   padding: '8px 12px',
                   borderRadius: '6px',
                   border: 'none',
-                  background: activeTab === 'CARD' ? '#ffffff' : 'transparent',
-                  color: activeTab === 'CARD' ? '#1e3a8a' : '#64748b',
+                  background: activeTab === 'CARD' ? 'var(--card, #ffffff)' : 'transparent',
+                  color: activeTab === 'CARD' ? 'var(--primary, #1e3a8a)' : 'var(--muted-foreground, #64748b)',
                   fontWeight: activeTab === 'CARD' ? 700 : 500,
                   fontSize: '12px',
                   cursor: 'pointer',
@@ -434,8 +431,8 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                   padding: '8px 12px',
                   borderRadius: '6px',
                   border: 'none',
-                  background: activeTab === 'NETBANKING' ? '#ffffff' : 'transparent',
-                  color: activeTab === 'NETBANKING' ? '#1e3a8a' : '#64748b',
+                  background: activeTab === 'NETBANKING' ? 'var(--card, #ffffff)' : 'transparent',
+                  color: activeTab === 'NETBANKING' ? 'var(--primary, #1e3a8a)' : 'var(--muted-foreground, #64748b)',
                   fontWeight: activeTab === 'NETBANKING' ? 700 : 500,
                   fontSize: '12px',
                   cursor: 'pointer',
@@ -650,19 +647,19 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
               </div>
             )}
 
-            {/* Quick Demo Pay / Instant Test Pay Action */}
-            <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {/* Single Payment Action Button */}
+            <div style={{ marginTop: '8px' }}>
               <button
                 type="button"
                 onClick={handleLaunchOfficialRazorpay}
                 style={{
                   width: '100%',
-                  padding: '13px',
+                  padding: '14px',
                   background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '10px',
-                  fontSize: '14px',
+                  fontSize: '15px',
                   fontWeight: 700,
                   cursor: 'pointer',
                   display: 'flex',
@@ -673,54 +670,8 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                   transition: 'opacity 0.2s',
                 }}
               >
-                <ExternalLink style={{ width: '16px', height: '16px' }} />
-                <span>Launch Official Razorpay Dialog Box</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleProcessPayment(activeTab)}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  background: '#f1f5f9',
-                  color: '#1e293b',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '10px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                }}
-              >
-                <span>Process ₹{amount.toLocaleString('en-IN')} with In-App Gateway</span>
-                <ArrowRight style={{ width: '15px', height: '15px' }} />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleProcessPayment('UPI')}
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  background: '#f8fafc',
-                  border: '1px dashed #94a3b8',
-                  borderRadius: '8px',
-                  color: '#475569',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                }}
-              >
-                <Sparkles style={{ width: '14px', height: '14px', color: '#b45309' }} />
-                <span>⚡ Instant One-Click Test Pay (Simulate Successful Checkout)</span>
+                <Lock style={{ width: '16px', height: '16px' }} />
+                <span>Pay ₹{amount.toLocaleString('en-IN')}</span>
               </button>
             </div>
           </div>
@@ -743,7 +694,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
             <ShieldCheck style={{ width: '14px', height: '14px', color: '#15803d' }} />
             <span>PCI-DSS Level 1 Compliant</span>
           </div>
-          <div>Secured by Razorpay Payments India</div>
+          <div>256-bit Encrypted SSL Gateway</div>
         </div>
       </div>
     </div>

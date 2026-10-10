@@ -1,13 +1,10 @@
-/**
- * Centralized lightweight structured logger.
- * Avoids printing sensitive credentials or unhandled tokens.
- */
-
 const formatMessage = (level, message, meta = {}) => {
   const timestamp = new Date().toISOString();
   const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
   return `[${timestamp}] [${level.toUpperCase()}] ${message}${metaStr}`;
 };
+
+
 
 export const logger = {
   info: (message, meta) => {

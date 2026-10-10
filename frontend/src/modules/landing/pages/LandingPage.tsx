@@ -23,11 +23,16 @@ import {
   Layers,
   Award,
   ShieldCheck,
+  Moon,
+  Sun,
 } from 'lucide-react';
+import { useThemeStore } from '../../../stores/theme.store';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, role, setUser } = useAuthStore();
+  const { resolvedTheme, toggleTheme } = useThemeStore();
+  const isDark = resolvedTheme === 'dark';
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [loadingRole, setLoadingRole] = useState<string | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
@@ -131,9 +136,9 @@ export const LandingPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-surface-900 font-sans selection:bg-brand-500 selection:text-white">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-brand-500 selection:text-white">
       {/* 1. STICKY TOP NAVIGATION BAR (Matches sample image 1) */}
-      <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-surface-200/90 shadow-2xs">
+      <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-surface-200/90 dark:border-slate-800 shadow-2xs">
         <div ref={navRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           {/* Left: Brand Logo with Embedded SVG Icon */}
           <Link to="/" className="flex items-center gap-3 group">
@@ -414,8 +419,20 @@ export const LandingPage: React.FC = () => {
             </Link>
           </nav>
 
-          {/* Right: Sign In Button */}
+          {/* Right: Theme Toggle & Sign In Button */}
           <div className="flex items-center gap-3">
+            <button
+              onClick={toggleTheme}
+              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              {isDark ? (
+                <Sun className="h-5 w-5 text-amber-500" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </button>
             {user ? (
               <Button
                 variant="primary"

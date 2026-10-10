@@ -4,18 +4,14 @@ import {
   Moon,
   Sun,
   Bell,
-  Menu,
-
 } from 'lucide-react';
-import { useUiStore } from '../../stores/ui.store';
+import { useThemeStore } from '../../stores/theme.store';
 import { useNotificationStore } from '../../stores/notification.store';
 import { NotificationDropdown } from './NotificationDropdown';
 
 export const AppHeader: React.FC = () => {
-  const { toggleSidebar, toggleMobileSidebar } = useUiStore();
-  const [isDark, setIsDark] = React.useState<boolean>(() => {
-    return document.documentElement.getAttribute('data-theme') === 'dark';
-  });
+  const { resolvedTheme, toggleTheme } = useThemeStore();
+  const isDark = resolvedTheme === 'dark';
   const [isNotificationsOpen, setIsNotificationsOpen] = React.useState(false);
 
   const { unreadCount, fetchNotifications } = useNotificationStore();
@@ -23,21 +19,6 @@ export const AppHeader: React.FC = () => {
   React.useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
-
-  const toggleTheme = () => {
-    const nextTheme = isDark ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', nextTheme);
-    localStorage.setItem('campus_theme', nextTheme);
-    setIsDark(!isDark);
-  };
-
-  const handleHamburgerClick = () => {
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      toggleMobileSidebar();
-    } else {
-      toggleSidebar();
-    }
-  };
 
   return (
     <header
@@ -55,36 +36,8 @@ export const AppHeader: React.FC = () => {
         zIndex: 30,
       }}
     >
-      {/* 1. Header Left: Hamburger Toggle + Search Bar */}
+      {/* 1. Header Left: Search Bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0, marginRight: '16px' }}>
-        <button
-          type="button"
-          onClick={handleHamburgerClick}
-          aria-label="Toggle Navigation Menu"
-          title="Toggle Navigation Menu"
-          style={{
-            background: 'transparent',
-            border: 'none',
-            outline: 'none',
-            cursor: 'pointer',
-            color: 'var(--foreground)',
-            padding: '6px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'color 0.2s, opacity 0.2s',
-            flexShrink: 0,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '0.7';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '1';
-          }}
-        >
-          <Menu style={{ width: '20px', height: '20px' }} />
-        </button>
-
         <div style={{ position: 'relative', maxWidth: '340px', width: '100%', minWidth: '140px' }}>
           <Search
             style={{
@@ -123,21 +76,22 @@ export const AppHeader: React.FC = () => {
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           style={{
             background: 'none',
             border: 'none',
             cursor: 'pointer',
             color: 'var(--muted-foreground)',
-            padding: '6px',
+            padding: '7px',
             borderRadius: 'var(--radius-md)',
             transition: 'color 0.2s, background 0.2s',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}
-          title="Toggle Light/Dark Theme"
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--muted)';
+            e.currentTarget.style.backgroundColor = 'var(--secondary)';
             e.currentTarget.style.color = 'var(--foreground)';
           }}
           onMouseLeave={(e) => {
@@ -146,7 +100,7 @@ export const AppHeader: React.FC = () => {
           }}
         >
           {isDark ? (
-            <Sun style={{ width: '20px', height: '20px' }} />
+            <Sun style={{ width: '20px', height: '20px', color: '#f59e0b' }} />
           ) : (
             <Moon style={{ width: '20px', height: '20px' }} />
           )}

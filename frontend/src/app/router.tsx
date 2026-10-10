@@ -13,14 +13,16 @@ import { MerchandiseTaskModule } from '../components/modules/merchandise/Merchan
 import { FinanceLedgerModule } from '../components/modules/finance/FinanceLedgerModule';
 import { AnnouncementBoardModule } from '../components/modules/announcements/AnnouncementBoardModule';
 import { ElectionsVotingModule } from '../components/modules/elections/ElectionsVotingModule';
+import { StudentOrganizationsModule } from '../components/modules/organizations/StudentOrganizationsModule';
+import { StudentMembershipModule } from '../components/modules/memberships/StudentMembershipModule';
+import { StudentTicketsModule } from '../components/modules/tickets/StudentTicketsModule';
+import { StudentOrdersModule } from '../components/modules/orders/StudentOrdersModule';
 import {
   VolunteerDashboard,
   VolunteerTasks,
   VolunteerScanner,
-  VolunteerProjects,
   VolunteerEvents,
   VolunteerExpenses,
-  VolunteerAnnouncements,
   VolunteerProfile,
 } from '../features/volunteer';
 import { useAuthStore } from '../stores/auth.store';
@@ -32,6 +34,16 @@ import { AdminRolesPage } from '../pages/admin/AdminRolesPage';
 import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage';
 import { AdminAuditLogPage } from '../pages/admin/AdminAuditLogPage';
 import { AdminClubsPage } from '../pages/admin/AdminClubsPage';
+import { AdminElectionsPage } from '../pages/admin/AdminElectionsPage';
+import { PresidentEventsFundraisersPage } from '../pages/president/PresidentEventsFundraisersPage';
+import { AdminEventsPage } from '@/pages/admin/AdminEventsPage';
+import { AdminIncomingEventsPage } from '@/pages/admin/AdminIncomingEventsPage';
+import { AdminEventsOverviewPage } from '@/pages/admin/AdminEventsOverviewPage';
+import { AdminAnalyticsPage } from '@/pages/admin/AdminAnalyticsPage';
+import { AdminDbAssistantPage } from '@/pages/admin/AdminDbAssistantPage';
+import { AdminEventAnalyticsPage } from '@/pages/admin/AdminEventAnalyticsPage';
+import { AdminReportsPage } from '@/pages/admin/AdminReportsPage';
+import { AdminWinnersPage } from '@/pages/admin/AdminWinnersPage';
 
 /**
  * Root Landing Page:
@@ -156,7 +168,7 @@ export const router = createBrowserRouter([
     children: [
 
       // -----------------------------------------------------------------------
-      // STUDENT ROLE ROUTES
+      // STUDENT ROLE ROUTES (Strictly per user specification)
       // -----------------------------------------------------------------------
       {
         path: 'student',
@@ -167,6 +179,10 @@ export const router = createBrowserRouter([
             element: <RoleDashboardPage role={ROLES.STUDENT} />,
           },
           {
+            path: 'organizations',
+            element: <StudentOrganizationsModule />,
+          },
+          {
             path: 'events',
             element: <EventsTicketingModule />,
           },
@@ -175,20 +191,24 @@ export const router = createBrowserRouter([
             element: <AnnouncementBoardModule />,
           },
           {
+            path: 'merchandise',
+            element: <MerchandiseTaskModule />,
+          },
+          {
+            path: 'membership',
+            element: <StudentMembershipModule />,
+          },
+          {
             path: 'apply-membership',
-            element: <MembershipModule />,
+            element: <StudentMembershipModule />,
           },
           {
-            path: 'applications',
-            element: <MembershipModule />,
+            path: 'tickets',
+            element: <StudentTicketsModule />,
           },
           {
-            path: 'elections',
-            element: <ElectionsVotingModule />,
-          },
-          {
-            path: 'voting',
-            element: <ElectionsVotingModule />,
+            path: 'orders',
+            element: <StudentOrdersModule />,
           },
         ],
       },
@@ -260,7 +280,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'projects',
-            element: <VolunteerProjects />,
+            element: <Navigate to="/volunteer/tasks" replace />,
           },
           {
             path: 'events',
@@ -272,7 +292,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'announcements',
-            element: <VolunteerAnnouncements />,
+            element: <Navigate to="/volunteer/dashboard" replace />,
           },
           {
             path: 'submit-expense',
@@ -358,7 +378,11 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: <EventsTicketingModule />,
+            element: <PresidentEventsFundraisersPage />,
+          },
+          {
+            path: 'fundraisers',
+            element: <PresidentEventsFundraisersPage />,
           },
           {
             path: 'announcements',
@@ -399,6 +423,42 @@ export const router = createBrowserRouter([
           {
             path: 'clubs',
             element: <AdminClubsPage />,
+          },
+          {
+            path: 'events',
+            element: <AdminEventsPage />,
+          },
+          {
+            path: 'incoming-events',
+            element: <AdminIncomingEventsPage />,
+          },
+          {
+            path: 'events-overview',
+            element: <AdminEventsOverviewPage />,
+          },
+          {
+            path: 'event-analytics',
+            element: <AdminEventAnalyticsPage />,
+          },
+          {
+            path: 'analytics',
+            element: <AdminAnalyticsPage />,
+          },
+          {
+            path: 'reports',
+            element: <AdminReportsPage />,
+          },
+          {
+            path: 'db-assistant',
+            element: <AdminDbAssistantPage />,
+          },
+          {
+            path: 'winners',
+            element: <AdminWinnersPage />,
+          },
+          {
+            path: 'elections',
+            element: <AdminElectionsPage />,
           },
           {
             path: 'organizations',

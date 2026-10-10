@@ -3,7 +3,6 @@ import { ROLES, UserRole } from './roles';
 import {
   LayoutDashboard,
   Calendar,
-  Compass,
   Megaphone,
   UserCheck,
   Ticket,
@@ -19,7 +18,6 @@ import {
   ShieldCheck,
   QrCode,
   Vote,
-  HeartHandshake,
 } from 'lucide-react';
 
 /**
@@ -28,49 +26,80 @@ import {
  */
 export const navigationConfig: NavigationItem[] = [
   // ===========================================================================
-  // 6. STUDENT / MEMBER NAVIGATION
-  // Browse orgs, events, announcements, merch; register & pay dues;
-  // view expiry/benefits; renew; buy tickets (QR passes); order status.
+  // 6. STUDENT ROLE NAVIGATION
+  // Strictly scoped to user specification:
+  // - Browse organizations, events, announcements, and merchandise.
+  // - Register for an organization and pay membership dues.
+  // - View membership status, expiry date, and benefits.
+  // - Renew membership.
+  // - Buy event tickets and merchandise.
+  // - Access ticket confirmations or QR codes.
+  // - View order and payment status.
+  // - View member-only announcements and applicable discounts.
   // ===========================================================================
   {
     id: 'student-dashboard',
-    label: 'Services Hub',
+    label: 'Student Services Hub',
     path: '/student/dashboard',
     icon: LayoutDashboard,
     allowedRoles: [ROLES.STUDENT],
     group: 'MAIN',
   },
   {
-    id: 'student-explore-events',
+    id: 'student-organizations',
+    label: 'Browse Organizations',
+    path: '/student/organizations',
+    icon: Building2,
+    allowedRoles: [ROLES.STUDENT],
+    group: 'DISCOVER & BROWSE',
+  },
+  {
+    id: 'student-events',
     label: 'Browse Events & Tickets',
     path: '/student/events',
-    icon: Compass,
+    icon: Calendar,
     allowedRoles: [ROLES.STUDENT],
-    group: 'CAMPUS SERVICES',
+    group: 'DISCOVER & BROWSE',
   },
   {
     id: 'student-announcements',
-    label: 'Club Announcements',
+    label: 'Announcements & Discounts',
     path: '/student/announcements',
     icon: Megaphone,
     allowedRoles: [ROLES.STUDENT],
-    group: 'CAMPUS SERVICES',
+    group: 'DISCOVER & BROWSE',
   },
   {
-    id: 'student-apply-membership',
-    label: 'Join Organization & Dues',
-    path: '/student/apply-membership',
+    id: 'student-merchandise',
+    label: 'Merchandise Store',
+    path: '/student/merchandise',
+    icon: ShoppingBag,
+    allowedRoles: [ROLES.STUDENT],
+    group: 'DISCOVER & BROWSE',
+  },
+  {
+    id: 'student-membership',
+    label: 'Membership, Expiry & Renewal',
+    path: '/student/membership',
     icon: UserCheck,
     allowedRoles: [ROLES.STUDENT],
-    group: 'MEMBERSHIP',
+    group: 'MEMBERSHIP & PERKS',
   },
   {
-    id: 'student-elections',
-    label: 'Officer Elections & Voting',
-    path: '/student/elections',
-    icon: Vote,
+    id: 'student-tickets',
+    label: 'Ticket Confirmations & QR Passes',
+    path: '/student/tickets',
+    icon: Ticket,
     allowedRoles: [ROLES.STUDENT],
-    group: 'CAMPUS SERVICES',
+    group: 'MY ACTIVITY',
+  },
+  {
+    id: 'student-orders',
+    label: 'Order & Payment Status',
+    path: '/student/orders',
+    icon: Receipt,
+    allowedRoles: [ROLES.STUDENT],
+    group: 'MY ACTIVITY',
   },
 
   // Member Hub
@@ -145,24 +174,8 @@ export const navigationConfig: NavigationItem[] = [
     group: 'VOLUNTEER OPERATIONS',
   },
   {
-    id: 'volunteer-scanner',
-    label: 'Door Ticket Scanner',
-    path: '/volunteer/scanner',
-    icon: QrCode,
-    allowedRoles: [ROLES.VOLUNTEER],
-    group: 'VOLUNTEER OPERATIONS',
-  },
-  {
-    id: 'volunteer-projects',
-    label: 'Charity Fundraisers',
-    path: '/volunteer/projects',
-    icon: HeartHandshake,
-    allowedRoles: [ROLES.VOLUNTEER],
-    group: 'VOLUNTEER OPERATIONS',
-  },
-  {
     id: 'volunteer-events',
-    label: 'Event Duties & Shifts',
+    label: 'Event Duties & Instructions',
     path: '/volunteer/events',
     icon: Calendar,
     allowedRoles: [ROLES.VOLUNTEER],
@@ -177,10 +190,10 @@ export const navigationConfig: NavigationItem[] = [
     group: 'VOLUNTEER OPERATIONS',
   },
   {
-    id: 'volunteer-announcements',
-    label: 'Shift Briefings',
-    path: '/volunteer/announcements',
-    icon: Megaphone,
+    id: 'volunteer-scanner',
+    label: 'Ticket & Member Check-in',
+    path: '/volunteer/scanner',
+    icon: QrCode,
     allowedRoles: [ROLES.VOLUNTEER],
     group: 'VOLUNTEER OPERATIONS',
   },
@@ -349,12 +362,20 @@ export const navigationConfig: NavigationItem[] = [
     group: 'MAIN',
   },
   {
-    id: 'admin-clubs',
-    label: 'Clubs & Charters',
+    id: 'admin-organizations',
+    label: 'Manage Organizations',
     path: '/admin/clubs',
     icon: Building2,
     allowedRoles: [ROLES.ADMIN],
     group: 'PLATFORM MANAGEMENT',
+  },
+  {
+    id: 'admin-elections',
+    label: 'Annual Elections & Ratification',
+    path: '/admin/elections',
+    icon: Vote,
+    allowedRoles: [ROLES.ADMIN],
+    group: 'SYSTEM ADMINISTRATION',
   },
   {
     id: 'admin-roles',
