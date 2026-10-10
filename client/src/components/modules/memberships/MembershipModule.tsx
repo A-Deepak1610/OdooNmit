@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   UserPlus,
   CheckCircle2,
   Search,
   CreditCard,
   Send,
+  AlertTriangle,
 } from 'lucide-react';
 import { useClubStore } from '../../../stores/club.store';
 import { RazorpayPaymentModal } from '../../shared/RazorpayPaymentModal';
 import { MockMember } from '../../../data/mockClubData';
+import { studentService, MembershipDuesStatus } from '../../../services/student.service';
 
 export const MembershipModule: React.FC = () => {
   const {
@@ -24,6 +26,36 @@ export const MembershipModule: React.FC = () => {
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [isSendingBatch, setIsSendingBatch] = useState(false);
   const [batchNotice, setBatchNotice] = useState<string | null>(null);
+
+  // Backend Membership Dues Status State
+  const [myDuesStatus, setMyDuesStatus] = useState<MembershipDuesStatus | null>(null);
+  const [renewing, setRenewing] = useState<boolean>(false);
+
+  const fetchMyStatus = async () => {
+    try {
+      const res = await studentService.getMyMembershipStatus();
+      setMyDuesStatus(res);
+    } catch (err) {
+      console.error('Failed to load membership status from backend:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchMyStatus();
+  }, []);
+
+  const handleRenewBackendDues = async () => {
+    try {
+      setRenewing(true);
+      const res = await studentService.renewMembership();
+      setRegisteredNotice(res.message);
+      await fetchMyStatus();
+    } catch (err: any) {
+      alert(err.message || 'Renewal failed');
+    } finally {
+      setRenewing(false);
+    }
+  };
 
   // New Student Registration Form State
   const [newStudent, setNewStudent] = useState({
@@ -178,6 +210,134 @@ export const MembershipModule: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* ── HIGH VISIBILITY MEMBER RENEWAL ALERT BANNER (BACKEND-DRIVEN) ── */}
+      {myDuesStatus && myDuesStatus.hasAlert && myDuesStatus.club && (
+        <div
+          style={{
+            background:
+              myDuesStatus.duesStatus === 'OVERDUE'
+                ? 'linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%)'
+                : 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+            border: myDuesStatus.duesStatus === 'OVERDUE' ? '2px solid #f87171' : '2px solid #f59e0b',
+            borderRadius: '16px',
+            padding: '20px 24px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px',
+            boxShadow: '0 4px 12px rgba(245, 158, 11, 0.12)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', maxWidth: '750px' }}>
+            <div
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '12px',
+                background: myDuesStatus.duesStatus === 'OVERDUE' ? '#ef4444' : '#f59e0b',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+              }}
+            >
+              <AlertTriangle style={{ width: '24px', height: '24px' }} />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.6px',
+                    background: myDuesStatus.duesStatus === 'OVERDUE' ? '#fee2e2' : '#fef3c7',
+                    color: myDuesStatus.duesStatus === 'OVERDUE' ? '#b91c1c' : '#92400e',
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    border: `1px solid ${myDuesStatus.duesStatus === 'OVERDUE' ? '#fca5a5' : '#fcd34d'}`,
+                  }}
+                >
+                  {myDuesStatus.duesStatus === 'OVERDUE' ? 'OVERDUE DUES' : 'RENEWAL DUE SOON'}
+                </span>
+
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+                  {myDuesStatus.club.name} • {myDuesStatus.role}
+                </span>
+              </div>
+
+              <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a', margin: '2px 0 0 0' }}>
+                {myDuesStatus.alert?.title || 'Annual Membership Dues Expiring Soon'}
+              </h3>
+
+              <p style={{ fontSize: '13px', color: '#334155', margin: 0, lineHeight: 1.5 }}>
+                {myDuesStatus.alert?.message ||
+                  `Your annual membership expires in ${myDuesStatus.daysRemaining} days. Renew now to retain all voting privileges, event discounts, and official member standing.`}
+              </p>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '4px', fontSize: '12px', color: '#64748b' }}>
+                <span>
+                  Valid Until:{' '}
+                  <strong style={{ color: '#0f172a' }}>
+                    {myDuesStatus.validUntil ? new Date(myDuesStatus.validUntil).toLocaleDateString() : 'N/A'}
+                  </strong>
+                </span>
+                <span>•</span>
+                <span>
+                  Annual Dues:{' '}
+                  <strong style={{ color: '#0f172a' }}>
+                    ₹{myDuesStatus.duesAmountINR ?? myDuesStatus.club.membershipFeeINR ?? 250}
+                  </strong>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              onClick={() => {
+                const fee = myDuesStatus.duesAmountINR ?? myDuesStatus.club?.membershipFeeINR ?? 250;
+                setCheckoutTarget({
+                  type: 'RENEW',
+                  name: 'Club Member',
+                  email: 'member@campusmitra.ac.in',
+                  amount: fee,
+                  title: `Renew Annual Membership - ${myDuesStatus.club?.name}`,
+                  purpose: `Annual Membership Dues (+365 Days) for ${myDuesStatus.club?.name}`,
+                });
+              }}
+              disabled={renewing}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 20px',
+                borderRadius: '10px',
+                border: 'none',
+                background: myDuesStatus.duesStatus === 'OVERDUE' ? '#ef4444' : '#d97706',
+                color: '#ffffff',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                transition: 'all 0.2s',
+              }}
+            >
+              <CreditCard style={{ width: '16px', height: '16px' }} />
+              <span>
+                {renewing
+                  ? 'Renewing...'
+                  : `Renew Now (₹${myDuesStatus.duesAmountINR ?? myDuesStatus.club.membershipFeeINR ?? 250})`}
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {batchNotice && (
         <div
@@ -631,10 +791,13 @@ export const MembershipModule: React.FC = () => {
               );
               setShowRegisterForm(false);
               setSelectedMember(created);
-            } else if (checkoutTarget.type === 'RENEW' && checkoutTarget.memberId) {
-              payMembershipDues(checkoutTarget.memberId, receipt);
+            } else if (checkoutTarget.type === 'RENEW') {
+              if (checkoutTarget.memberId) {
+                payMembershipDues(checkoutTarget.memberId, receipt);
+              }
+              handleRenewBackendDues();
               setRegisteredNotice(
-                `Membership Renewed! Dues paid for ${checkoutTarget.name}. Valid until May 31, 2027.`
+                `Membership Renewed! Dues paid for ${checkoutTarget.name}. Valid for +1 year.`
               );
             }
             setCheckoutTarget(null);

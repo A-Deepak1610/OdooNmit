@@ -162,6 +162,8 @@ model UserRole {
   role           RoleType      @default(STUDENT)
   organizationId String?
   assignedAt     DateTime      @default(now())
+  validUntil     DateTime?
+  duesPaid       Boolean       @default(true)
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)

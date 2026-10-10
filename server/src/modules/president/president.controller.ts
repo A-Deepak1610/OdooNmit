@@ -200,6 +200,28 @@ export class PresidentController {
       res.status(400).json({ success: false, message: err.message });
     }
   }
+
+  // 9. Dues Overview & Alerts
+  async getDuesOverview(req: Request, res: Response) {
+    try {
+      const userId = getUserId(req);
+      const data = await presidentService.getDuesOverview(userId);
+      res.json({ success: true, data });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  // 10. Send Renewal Reminders to Members
+  async sendDuesReminders(req: Request, res: Response) {
+    try {
+      const userId = getUserId(req);
+      const data = await presidentService.sendDuesReminders(userId);
+      res.json({ success: true, ...data });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
 }
 
 export const presidentController = new PresidentController();

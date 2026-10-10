@@ -140,6 +140,60 @@ export class StudentService {
     const res = await apiClient.post(`/student/elections/${electionId}/vote`, { candidateId });
     return res.data;
   }
+
+  /**
+   * 4. Member Dues Status & Renewal Alert
+   */
+  async getMyMembershipStatus(): Promise<MembershipDuesStatus> {
+    const res = await apiClient.get<{ success: boolean; data: MembershipDuesStatus }>('/student/membership/my-status');
+    return res.data.data;
+  }
+
+  async renewMembership(): Promise<{
+    success: boolean;
+    validUntil: string;
+    duesPaid: boolean;
+    amountINR: number;
+    message: string;
+  }> {
+    const res = await apiClient.post<{
+      success: boolean;
+      validUntil: string;
+      duesPaid: boolean;
+      amountINR: number;
+      message: string;
+    }>('/student/membership/renew');
+    return res.data;
+  }
+}
+
+export interface MembershipDuesStatus {
+  hasMembership: boolean;
+  role?: string;
+  assignedAt?: string;
+  validUntil?: string | null;
+  duesPaid?: boolean;
+  daysRemaining?: number | null;
+  duesStatus?: 'ACTIVE' | 'EXPIRING_SOON' | 'UPCOMING' | 'OVERDUE';
+  duesAmountINR?: number;
+  hasAlert?: boolean;
+  club?: {
+    id: string;
+    name: string;
+    slug: string;
+    category?: string;
+    logoUrl?: string;
+    membershipFeeINR: number;
+  };
+  alert?: {
+    hasAlert: boolean;
+    severity: 'success' | 'warning' | 'danger';
+    duesStatus: string;
+    daysRemaining?: number;
+    duesAmountINR: number;
+    title: string;
+    message: string;
+  } | null;
 }
 
 export const studentService = new StudentService();

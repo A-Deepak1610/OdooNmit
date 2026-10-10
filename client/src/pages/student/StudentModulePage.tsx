@@ -15,12 +15,14 @@ import {
   MailCheck,
   ShieldCheck,
   Award,
+  CreditCard,
 } from 'lucide-react';
 import {
   studentService,
   StudentNotificationItem,
   StudentClubItem,
   StudentElectionItem,
+  MembershipDuesStatus,
 } from '../../services/student.service';
 
 export const StudentModulePage: React.FC = () => {
@@ -48,6 +50,8 @@ export const StudentModulePage: React.FC = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [clubs, setClubs] = useState<StudentClubItem[]>([]);
   const [elections, setElections] = useState<StudentElectionItem[]>([]);
+  const [myDuesStatus, setMyDuesStatus] = useState<MembershipDuesStatus | null>(null);
+  const [renewingDues, setRenewingDues] = useState(false);
 
   // Search & Filters
   const [clubSearch, setClubSearch] = useState('');
@@ -85,20 +89,36 @@ export const StudentModulePage: React.FC = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [notifsData, clubsData, electionsData] = await Promise.all([
+      const [notifsData, clubsData, electionsData, duesData] = await Promise.all([
         studentService.getNotifications(),
         studentService.getClubs(),
         studentService.getElections(),
+        studentService.getMyMembershipStatus().catch(() => null),
       ]);
 
       setNotifications(notifsData.notifications);
       setUnreadCount(notifsData.unreadCount);
       setClubs(clubsData);
       setElections(electionsData);
+      setMyDuesStatus(duesData);
     } catch (err: any) {
       showToast(err.message || 'Failed to sync student data', 'error');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRenewDues = async () => {
+    try {
+      setRenewingDues(true);
+      const res = await studentService.renewMembership();
+      showToast(res.message);
+      const updated = await studentService.getMyMembershipStatus();
+      setMyDuesStatus(updated);
+    } catch (err: any) {
+      showToast(err.message || 'Renewal failed', 'error');
+    } finally {
+      setRenewingDues(false);
     }
   };
 
@@ -287,6 +307,86 @@ export const StudentModulePage: React.FC = () => {
       {/* ── 1. STUDENT OVERVIEW HUB ─────────────────────────────────── */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
+          {/* Urgent Membership Renewal Alert Banner */}
+          {myDuesStatus?.hasAlert && myDuesStatus.club && (
+            <div
+              className={`p-5 rounded-2xl border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in ${
+                myDuesStatus.duesStatus === 'OVERDUE'
+                  ? 'bg-rose-50/80 border-rose-200 text-rose-900'
+                  : 'bg-amber-50/80 border-amber-200 text-amber-900'
+              }`}
+            >
+              <div className="flex items-start gap-3.5">
+                <div
+                  className={`p-2.5 rounded-xl text-white shrink-0 shadow-xs ${
+                    myDuesStatus.duesStatus === 'OVERDUE' ? 'bg-rose-600' : 'bg-amber-500'
+                  }`}
+                >
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                        myDuesStatus.duesStatus === 'OVERDUE'
+                          ? 'bg-rose-100 text-rose-800'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}
+                    >
+                      {myDuesStatus.duesStatus === 'OVERDUE' ? 'Dues Overdue' : 'Dues Expiring Soon'}
+                    </span>
+                    <span className="text-xs font-bold text-slate-700">
+                      {myDuesStatus.club.name} • {myDuesStatus.role}
+                    </span>
+                  </div>
+                  <h4 className="text-sm font-extrabold text-slate-900">
+                    {myDuesStatus.alert?.title || 'Annual Membership Renewal Required'}
+                  </h4>
+                  <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
+                    {myDuesStatus.alert?.message ||
+                      `Your annual dues are expiring in ${myDuesStatus.daysRemaining} days. Renew now to retain voting eligibility, member discounts, and good standing.`}
+                  </p>
+                  <div className="flex items-center gap-3 text-xs text-slate-500 pt-0.5">
+                    <span>
+                      Valid Until:{' '}
+                      <strong className="text-slate-800">
+                        {myDuesStatus.validUntil
+                          ? new Date(myDuesStatus.validUntil).toLocaleDateString()
+                          : 'N/A'}
+                      </strong>
+                    </span>
+                    <span>•</span>
+                    <span>
+                      Annual Fee:{' '}
+                      <strong className="text-slate-800">
+                        ₹{myDuesStatus.duesAmountINR ?? myDuesStatus.club.membershipFeeINR ?? 250}
+                      </strong>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={handleRenewDues}
+                  disabled={renewingDues}
+                  className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-white text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50 ${
+                    myDuesStatus.duesStatus === 'OVERDUE'
+                      ? 'bg-rose-600 hover:bg-rose-500'
+                      : 'bg-amber-600 hover:bg-amber-500'
+                  }`}
+                >
+                  <CreditCard className="w-4 h-4" />
+                  <span>
+                    {renewingDues
+                      ? 'Processing...'
+                      : `Renew Membership (₹${myDuesStatus.duesAmountINR ?? myDuesStatus.club.membershipFeeINR ?? 250})`}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* 3 Core Metric Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Notifications Card */}

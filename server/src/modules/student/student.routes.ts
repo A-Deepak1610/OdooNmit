@@ -20,3 +20,7 @@ studentRouter.post('/clubs/:id/apply', (req, res) => studentController.applyMemb
 studentRouter.get('/elections', (req, res) => studentController.getElections(req, res));
 studentRouter.post('/elections/:id/nominate', (req, res) => studentController.applyNomination(req, res));
 studentRouter.post('/elections/:id/vote', (req, res) => studentController.castVote(req, res));
+
+// 4. Member Dues Status & Renewal
+studentRouter.get('/membership/my-status', (req, res) => studentController.getMyMembershipStatus(req, res));
+studentRouter.post('/membership/renew', (req, res) => studentController.renewMembership(req, res));
