@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   QrCode,
   Vote,
+  Database,
 } from 'lucide-react';
 
 /**
@@ -346,68 +347,56 @@ export const navigationConfig: NavigationItem[] = [
 
   // ===========================================================================
   // 1. SUPER ADMIN / SYSTEM ADMINISTRATOR NAVIGATION
-  // Manages the platform and access controls:
-  // - Create, edit, deactivate organizations
-  // - Assign club leadership and role permissions
-  // - Manage accounts and access recovery
-  // - View system-wide activity and audit history
-  // - Configure platform-level settings
+  // Strictly scoped to user specification:
+  // - Quick Overview
+  // - Club Management (12)
+  // - Ticket Support (4 Open)
+  // - Annual Elections (3)
+  // - DB Query Assistant (NLP)
   // ===========================================================================
   {
-    id: 'admin-dashboard',
-    label: 'Platform Console',
+    id: 'admin-overview',
+    label: 'Quick Overview',
     path: '/admin/dashboard',
     icon: LayoutDashboard,
     allowedRoles: [ROLES.ADMIN],
-    group: 'MAIN',
+    group: 'SUPER ADMIN',
   },
   {
     id: 'admin-clubs',
-    label: 'Clubs & Charters',
+    label: 'Club Management',
     path: '/admin/clubs',
     icon: Building2,
     allowedRoles: [ROLES.ADMIN],
-    group: 'PLATFORM MANAGEMENT',
+    group: 'SUPER ADMIN',
+    badge: '12',
+  },
+  {
+    id: 'admin-tickets',
+    label: 'Ticket Support',
+    path: '/admin/tickets',
+    icon: Ticket,
+    allowedRoles: [ROLES.ADMIN],
+    group: 'SUPER ADMIN',
+    badge: '4 Open',
   },
   {
     id: 'admin-elections',
-    label: 'Annual Elections & Ratification',
+    label: 'Annual Elections',
     path: '/admin/elections',
     icon: Vote,
     allowedRoles: [ROLES.ADMIN],
-    group: 'SYSTEM ADMINISTRATION',
+    group: 'SUPER ADMIN',
+    badge: '3',
   },
   {
-    id: 'admin-roles',
-    label: 'Leadership & Permissions',
-    path: '/admin/roles',
-    icon: ShieldCheck,
+    id: 'admin-assistant',
+    label: 'DB Query Assistant',
+    path: '/admin/assistant',
+    icon: Database,
     allowedRoles: [ROLES.ADMIN],
-    group: 'ACCESS CONTROL',
-  },
-  {
-    id: 'admin-users',
-    label: 'Accounts & Recovery',
-    path: '/admin/users',
-    icon: Users,
-    allowedRoles: [ROLES.ADMIN],
-    group: 'ACCESS CONTROL',
-  },
-  {
-    id: 'admin-audit-log',
-    label: 'System Audit History',
-    path: '/admin/audit-log',
-    icon: History,
-    allowedRoles: [ROLES.ADMIN],
-    group: 'SECURITY & AUDIT',
-  },
-  {
-    id: 'admin-settings',
-    label: 'Platform Settings',
-    path: '/admin/settings',
-    icon: Settings,
-    allowedRoles: [ROLES.ADMIN],
-    group: 'PLATFORM CONFIGURATION',
+    group: 'SUPER ADMIN',
+    badge: 'NLP',
   },
 ];
 

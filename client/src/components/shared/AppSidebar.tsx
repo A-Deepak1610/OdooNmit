@@ -215,15 +215,42 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                 >
                   <Icon style={{ width: '17px', height: '17px', flexShrink: 0 }} />
                   {!isCollapsed && (
-                    <span
-                      style={{
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {item.label}
-                    </span>
+                    <>
+                      <span
+                        style={{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          flex: 1,
+                        }}
+                      >
+                        {item.label}
+                      </span>
+                      {item.badge && (
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '1px 7px',
+                            borderRadius: '999px',
+                            backgroundColor: item.badge.includes('Open')
+                              ? '#fef3c7'
+                              : item.badge === 'NLP'
+                              ? '#ede9fe'
+                              : '#f1f5f9',
+                            color: item.badge.includes('Open')
+                              ? '#b45309'
+                              : item.badge === 'NLP'
+                              ? '#6d28d9'
+                              : '#475569',
+                            marginLeft: 'auto',
+                            border: '1px solid rgba(0,0,0,0.06)',
+                          }}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </>
                   )}
                 </NavLink>
               );

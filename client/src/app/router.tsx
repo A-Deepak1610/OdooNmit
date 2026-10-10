@@ -415,31 +415,19 @@ export const router = createBrowserRouter([
           },
           {
             path: 'clubs',
-            element: <AdminClubsPage />,
+            element: <AdminDashboardPage />,
           },
           {
-            path: 'organizations',
-            element: <AdminClubsPage />,
+            path: 'tickets',
+            element: <AdminDashboardPage />,
           },
           {
             path: 'elections',
-            element: <AdminElectionsPage />,
+            element: <AdminDashboardPage />,
           },
           {
-            path: 'roles',
-            element: <AdminRolesPage />,
-          },
-          {
-            path: 'users',
-            element: <AdminUsersPage />,
-          },
-          {
-            path: 'audit-log',
-            element: <AdminAuditLogPage />,
-          },
-          {
-            path: 'settings',
-            element: <AdminSettingsPage />,
+            path: 'assistant',
+            element: <AdminDashboardPage />,
           },
         ],
       },

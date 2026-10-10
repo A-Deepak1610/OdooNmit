@@ -29,6 +29,8 @@ export interface NavigationItem {
   allowedRoles?: UserRole[];
   /** Optional grouping category for grouping sidebar links */
   group?: string;
+  /** Optional badge text displayed on the right of the item */
+  badge?: string;
 }
 
 /**
