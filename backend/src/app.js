@@ -7,6 +7,7 @@ import healthRoutes from './modules/health/health.routes.js';
 import authRoutes from './modules/auth/auth.routes.js';
 import userRoutes from './modules/users/user.routes.js';
 import paymentRoutes from './modules/payments/payment.routes.js';
+import notificationRoutes from './modules/notifications/notification.routes.js';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './docs/swagger.js';
 
@@ -37,6 +38,7 @@ app.use('/api/v1/health', healthRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 // Catch-all for undefined routes
 app.use(notFoundMiddleware);

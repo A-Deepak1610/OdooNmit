@@ -11,6 +11,7 @@ import {
   Building,
   ArrowRight,
   Loader2,
+  ExternalLink,
 } from 'lucide-react';
 import { PaymentReceipt } from '../../stores/club.store';
 
@@ -47,6 +48,77 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
   const [generatedReceipt, setGeneratedReceipt] = useState<PaymentReceipt | null>(null);
 
   if (!isOpen) return null;
+
+  const handleLaunchOfficialRazorpay = () => {
+    const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_Tm4KSE4i6vVkvs';
+
+    if (typeof (window as any).Razorpay === 'function') {
+      try {
+        const options = {
+          key: razorpayKey,
+          amount: Math.round(amount * 100), // in paise
+          currency: 'INR',
+          name: 'Skyline Student Association',
+          description: purpose || title || 'Campus Organization Payment',
+          image: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+          prefill: {
+            name: payerName,
+            email: payerEmail,
+            contact: '9876543210',
+          },
+          notes: {
+            purpose: purpose,
+            organization: 'Skyline Student Association',
+            system: 'Campus Mitra Odoo-NMIT',
+          },
+          theme: {
+            color: '#1e3a8a',
+          },
+          handler: function (response: any) {
+            const receipt: PaymentReceipt = {
+              paymentId: response.razorpay_payment_id || `pay_${Date.now()}`,
+              orderId: response.razorpay_order_id || `order_${Date.now()}`,
+              amount,
+              currency: 'INR',
+              purpose,
+              payerName,
+              payerEmail,
+              method: 'RAZORPAY_OFFICIAL_POPUP',
+              timestamp: new Date().toISOString(),
+              signature: response.razorpay_signature || `sig_official_${Date.now()}`,
+            };
+
+            setGeneratedReceipt(receipt);
+            setPaymentStatus('SUCCESS');
+
+            setTimeout(() => {
+              onSuccess(receipt);
+              onClose();
+              setPaymentStatus('IDLE');
+            }, 1400);
+          },
+          modal: {
+            ondismiss: function () {
+              console.log('Official Razorpay dialog closed by user');
+            },
+          },
+        };
+
+        const rzpInstance = new (window as any).Razorpay(options);
+        rzpInstance.on('payment.failed', function (resp: any) {
+          console.error('Razorpay payment failed:', resp.error);
+          alert(`Payment Failed: ${resp.error?.description || 'Gateway error'}`);
+        });
+        rzpInstance.open();
+        return;
+      } catch (err) {
+        console.warn('Failed to open official Razorpay window, using in-modal fallback:', err);
+      }
+    }
+
+    // Fallback if SDK blocked or network offline
+    handleProcessPayment(activeTab);
+  };
 
   const handleProcessPayment = (method: 'UPI' | 'CARD' | 'NETBANKING') => {
     setPaymentStatus('PROCESSING');
@@ -573,11 +645,11 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
             <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <button
                 type="button"
-                onClick={() => handleProcessPayment(activeTab)}
+                onClick={handleLaunchOfficialRazorpay}
                 style={{
                   width: '100%',
-                  padding: '12px',
-                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                  padding: '13px',
+                  background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '10px',
@@ -588,12 +660,35 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.25)',
+                  boxShadow: '0 4px 6px -1px rgba(30, 58, 138, 0.3)',
                   transition: 'opacity 0.2s',
                 }}
               >
-                <span>Pay ₹{amount.toLocaleString('en-IN')} with Razorpay</span>
-                <ArrowRight style={{ width: '16px', height: '16px' }} />
+                <ExternalLink style={{ width: '16px', height: '16px' }} />
+                <span>Launch Official Razorpay Dialog Box</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleProcessPayment(activeTab)}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  background: '#f1f5f9',
+                  color: '#1e293b',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '10px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                }}
+              >
+                <span>Process ₹{amount.toLocaleString('en-IN')} with In-App Gateway</span>
+                <ArrowRight style={{ width: '15px', height: '15px' }} />
               </button>
 
               <button
