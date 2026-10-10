@@ -1,6 +1,5 @@
-
- // Prisma Schema for CampusMitra Student Organization & Platform Management
- // Database: TiDB Cloud MySQL 8.0 Compatible
+// Prisma Schema for CampusMitra Student Organization & Platform Management
+// Database: TiDB Cloud MySQL 8.0 Compatible
 
 generator client {
   provider = "prisma-client-js"
@@ -64,8 +63,6 @@ enum ApplicationStatus {
   REJECTED
 }
 
-// New enums for event booking and payments
-
 enum PaymentStatus {
   CREATED
   PENDING
@@ -91,8 +88,7 @@ enum EventStatus {
   CANCELLED
 }
 
-// Existing models
-
+// User Model
 model User {
   id              String   @id // Populated with UUID v7
   username        String   @unique
@@ -119,6 +115,9 @@ model User {
   membershipApplications MembershipApplication[]
   announcements          Announcement[]
 
+  // Event booking and Razorpay
+  bookings Booking[]
+  payments Payment[]
   // Added for event booking and Razorpay
   bookings       Booking[]
   payments       Payment[]
@@ -128,6 +127,7 @@ model User {
   @@map("users")
 }
 
+// Organization Model
 model Organization {
   id            String   @id
   name          String
@@ -149,6 +149,19 @@ model Organization {
   elections              Election[]
   membershipApplications MembershipApplication[]
   announcements          Announcement[]
+  events                 Event[]
+
+  // Treasurer Relations
+  treasuryLedgers        TreasuryLedger[]
+  treasuryIncomes        TreasuryIncome[]
+  treasuryExpenses       TreasuryExpense[]
+  reimbursementClaims    ReimbursementClaim[]
+  semesterReports        SemesterReport[]
+  treasuryPaymentRecords TreasuryPaymentRecord[]
+  treasuryAuditLogs      TreasuryAuditLog[]
+  duesRecords            DuesRecord[]
+  merchProducts          MerchProduct[]
+  studentMerchOrders     StudentMerchOrder[]
 
   // Added for event & merchandise management
   events             Event[]
@@ -158,12 +171,15 @@ model Organization {
   @@map("organizations")
 }
 
+// User Roles
 model UserRole {
   id             String        @id
   userId         String
   role           RoleType      @default(STUDENT)
   organizationId String?
   assignedAt     DateTime      @default(now())
+  duesPaid       Boolean?      @default(false)
+  validUntil     DateTime?
   validUntil     DateTime?
   duesPaid       Boolean       @default(true)
 
@@ -207,9 +223,9 @@ model SupportTicket {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  createdBy    User          @relation("TicketsCreated", fields: [createdById], references: [id], onDelete: Cascade)
-  assignedTo   User?         @relation("TicketsAssigned", fields: [assignedToId], references: [id], onDelete: SetNull)
+  organization Organization?    @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  createdBy    User             @relation("TicketsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  assignedTo   User?            @relation("TicketsAssigned", fields: [assignedToId], references: [id], onDelete: SetNull)
   messages     SupportMessage[]
 
   @@index([createdById])
@@ -262,17 +278,17 @@ model ElectionCandidate {
   electionId         String
   userId             String
   manifesto          String          @db.Text
-  statementOfPurpose String?         @db.Text // Why are you applying / Leadership vision
-  experience         String?         @db.Text // Relevant experience / Credentials
+  statementOfPurpose String?         @db.Text
+  experience         String?         @db.Text
   status             CandidateStatus @default(PENDING)
   voteCount          Int             @default(0)
   approvedAt         DateTime?
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 
-  election           Election        @relation(fields: [electionId], references: [id], onDelete: Cascade)
-  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  votes              ElectionVote[]
+  election Election       @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  votes    ElectionVote[]
 
   @@unique([electionId, userId])
   @@index([electionId])
@@ -313,19 +329,30 @@ model Notification {
   @@map("notifications")
 }
 
-// New models for event booking and Razorpay payments
-
 model Event {
-  id             String      @id
+  id             String       @id
   organizationId String
   title          String
-  slug           String      @unique
-  description    String      @db.Text
+  slug           String       @unique
+  description    String       @db.Text
   bannerUrl      String?
   venue          String
   startAt        DateTime
   endAt          DateTime
   totalSeats     Int
+  memberPrice    Int          // INR paise
+  nonMemberPrice Int          // INR paise
+  status         EventStatus  @default(DRAFT)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  remainingSeats Int          @default(50)
+  category       String       @default("Hackathon")
+  domain         String       @default("AI/ML")
+  mode           String       @default("offline")
+  teamsCount     Int          @default(0)
+  prizes         String?      @db.Text
+  analyticsData  String?      @db.LongText
+  inchargeId     String?
   remainingSeats Int         @default(50)
   memberPrice    Int         // INR paise
   nonMemberPrice Int         // INR paise
@@ -387,6 +414,8 @@ model Booking {
   otpCode              String?            @db.VarChar(10)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
+  checkedInAt          DateTime?
+  otpCode              String?            @db.VarChar(10)
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Restrict)
   event    Event     @relation(fields: [eventId], references: [id], onDelete: Restrict)
@@ -406,7 +435,6 @@ model Payment {
   amount             Int           // INR paise
   currency           String        @default("INR") @db.VarChar(3)
 
-  // Razorpay identifiers; never store API secrets here
   razorpayOrderId    String?       @unique
   razorpayPaymentId  String?       @unique
   razorpaySignature  String?       @db.VarChar(500)
@@ -472,6 +500,223 @@ model Announcement {
   @@map("announcements")
 }
 
+model EventTask {
+  id           String    @id
+  eventId      String
+  title        String
+  description  String?   @db.Text
+  assignedToId String?
+  priority     String    @default("MEDIUM")
+  status       String    @default("PENDING")
+  deadline     DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now())
+
+  @@index([assignedToId], map: "idx_event_tasks_assignedToId")
+  @@index([eventId], map: "idx_event_tasks_eventId")
+  @@map("event_tasks")
+}
+
+// =============================================================================
+// TREASURER MODULE MODELS
+// =============================================================================
+
+model TreasuryLedger {
+  id             String   @id
+  organizationId String
+  academicYear   String   @default("2025–2026")
+  semester       String   @default("Spring 2026")
+  openingBalance Int      @default(45000)
+  totalIncome    Int      @default(0)
+  totalExpenses  Int      @default(0)
+  netBalance     Int      @default(45000)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, academicYear, semester])
+  @@index([organizationId])
+  @@map("treasury_ledgers")
+}
+
+model TreasuryIncome {
+  id            String   @id
+  organizationId String
+  source        String   // MEMBERSHIP_DUES, TICKET_SALES, MERCHANDISE, FUNDRAISER, SPONSORSHIPS, OTHER
+  title         String
+  payerName     String
+  payerEmail    String?
+  payerRoll     String?
+  amount        Int      // in INR
+  date          DateTime @default(now())
+  paymentMethod String   @default("UPI") // UPI, CARD, NET_BANKING, CASH
+  paymentId     String
+  status        String   @default("VERIFIED") // VERIFIED, SETTLED
+  reference     String
+  categoryTag   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([source])
+  @@map("treasury_incomes")
+}
+
+model TreasuryExpense {
+  id               String   @id
+  organizationId   String
+  title            String
+  category         String   // VENUE, CATERING, EQUIPMENT, SUPPLIES, MERCHANDISE, MARKETING, LOGISTICS, OTHER
+  amount           Int      // in INR
+  date             DateTime @default(now())
+  vendor           String
+  paymentMethod    String   @default("BANK_TRANSFER") // BANK_TRANSFER, UPI, PETTY_CASH, CREDIT_CARD
+  receiptNote      String?
+  receiptInvoiceNo String?
+  receiptUrl       String?
+  recordedBy       String?
+  notes            String?  @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([category])
+  @@map("treasury_expenses")
+}
+
+model ReimbursementClaim {
+  id                  String    @id
+  organizationId      String
+  volunteerName       String
+  volunteerEmail      String
+  volunteerRoll       String
+  volunteerDepartment String
+  projectName         String
+  title               String
+  category            String
+  amount              Int
+  dateSubmitted       DateTime  @default(now())
+  status              String    @default("PENDING") // PENDING, APPROVED, REJECTED, REIMBURSED
+  receiptNote         String?
+  receipt             Json?
+  reviewerNotes       String?   @db.Text
+  reviewedBy          String?
+  approvedAt          DateTime?
+  rejectedAt          DateTime?
+  rejectionReason     String?   @db.Text
+  payoutDetails       Json?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([status])
+  @@map("reimbursement_claims")
+}
+
+model SemesterReport {
+  id                  String   @id
+  organizationId      String
+  semester            String
+  academicYear        String
+  status              String   @default("ACTIVE_INTERIM") // ACTIVE_INTERIM, AUDITED_FINAL
+  openingBalance      Int
+  incomeBreakdown     Json
+  expenseBreakdown    Json
+  netOperatingSurplus Int
+  netClosingBalance   Int
+  auditedBy           String?
+  facultyAdvisor      String?
+  certifiedDate       String?
+  auditHash           String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("semester_reports")
+}
+
+model TreasuryPaymentRecord {
+  id             String   @id
+  organizationId String
+  timestamp      DateTime @default(now())
+  type           String   // INFLOW, OUTFLOW
+  sourceCategory String
+  partyName      String
+  partyDetails   String
+  amount         Int
+  method         String   // UPI, IMPS, NEFT, CARD, NET_BANKING, CASH
+  referenceId    String
+  status         String   @default("SETTLED") // SETTLED, CLEARED, DISBURSED
+  verifiedHash   String
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([type])
+  @@map("treasury_payment_records")
+}
+
+model TreasuryAuditLog {
+  id               String   @id
+  organizationId   String
+  timestamp        DateTime @default(now())
+  action           String   // PAYOUT_RECORDED, CLAIM_APPROVED, CLAIM_REJECTED, EXPENSE_RECORDED, INCOME_LOGGED, REPORT_GENERATED, AUDIT_SEALED
+  actor            String
+  details          String   @db.Text
+  amount           Int?
+  referenceId      String
+  verificationHash String
+  createdAt        DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("treasury_audit_logs")
+}
+
+model DuesRecord {
+  id                 String   @id
+  organizationId     String
+  studentId          String
+  name               String
+  email              String
+  phone              String?
+  rollNumber         String
+  department         String
+  yearOfStudy        String
+  membershipStatus   String   @default("ACTIVE")
+  clubRole           String   @default("MEMBER")
+  academicYear       String   @default("2025–2026")
+  annualFee          Int      @default(250)
+  amountPaid         Int      @default(0)
+  outstandingBalance Int      @default(250)
+  paymentStatus      String   @default("PENDING") // PAID, PARTIAL, PENDING, OVERDUE, WAIVED
+  lastPaymentDate    String?
+  paymentMethod      String?
+  transactionRef     String?
+  dueDate            String?
+  notes              String?  @db.Text
+  paymentHistory     Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([paymentStatus])
+  @@map("dues_records")
+}
+
 model MerchProduct {
   id                String   @id
   organizationId    String
@@ -483,6 +728,7 @@ model MerchProduct {
   costPrice         Int?
   memberPrice       Int?
   sku               String
+  status            String   @default("ACTIVE") // ACTIVE, DRAFT, ARCHIVED
   status            String   @default("ACTIVE")
   lowStockThreshold Int      @default(10)
   variants          Json
@@ -500,6 +746,7 @@ model MerchProduct {
 model StudentMerchOrder {
   id                 String   @id
   organizationId     String
+  orderNumber        String   @unique
   orderNumber        String
   orderDate          String
   studentName        String

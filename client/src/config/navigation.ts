@@ -10,13 +10,17 @@ import {
   CheckSquare,  
   Receipt,
   Users,
-  DollarSign,
   PieChart,
   Building2,
   QrCode,
   Vote,
   Database,
   Bell,
+  TrendingUp,
+  CreditCard,
+  ShieldCheck,
+  Wallet,
+  Package,
 } from 'lucide-react';
 
 /**
@@ -249,40 +253,72 @@ export const navigationConfig: NavigationItem[] = [
 
   // ===========================================================================
   // 3. TREASURER NAVIGATION
-  // Track dues, tickets, merch, fundraisers; categorize expenses;
-  // review receipts; approve/reject reimbursements; closing balance reports.
+  // Responsible for club finances, records, and reimbursements:
+  // - Track membership dues, ticket sales, merchandise income, and fundraiser income.
+  // - Record and categorize expenses.
+  // - Review reimbursement requests and attached receipts.
+  // - Approve or reject reimbursements and record payouts.
+  // - View income, expenses, and current balance.
+  // - Generate semester financial reports.
+  // - Review payment records and financial audit history.
   // ===========================================================================
   {
     id: 'treasurer-dashboard',
-    label: 'Financial Ledger',
+    label: 'Treasury Overview',
     path: '/treasurer/dashboard',
     icon: LayoutDashboard,
     allowedRoles: [ROLES.TREASURER],
-    group: 'MAIN',
   },
   {
-    id: 'treasurer-transactions',
-    label: 'Income & Expense Journal',
-    path: '/treasurer/transactions',
-    icon: DollarSign,
+    id: 'treasurer-dues',
+    label: 'Dues',
+    path: '/treasurer/dues',
+    icon: Wallet,
     allowedRoles: [ROLES.TREASURER],
-    group: 'FINANCE & BUDGET',
+  },
+  {
+    id: 'treasurer-merchandise',
+    label: 'Merchandise',
+    path: '/treasurer/merchandise',
+    icon: Package,
+    allowedRoles: [ROLES.TREASURER],
+  },
+  {
+    id: 'treasurer-income',
+    label: 'Income Tracker',
+    path: '/treasurer/income',
+    icon: TrendingUp,
+    allowedRoles: [ROLES.TREASURER],
+    badge: '4 Streams',
+  },
+  {
+    id: 'treasurer-expenses',
+    label: 'Expense Journal',
+    path: '/treasurer/expenses',
+    icon: CreditCard,
+    allowedRoles: [ROLES.TREASURER],
   },
   {
     id: 'treasurer-reimbursements',
-    label: 'Reimbursement Audit',
+    label: 'Reimbursements & Receipts',
     path: '/treasurer/reimbursements',
     icon: Receipt,
     allowedRoles: [ROLES.TREASURER],
-    group: 'FINANCE & BUDGET',
+    badge: '1 Pending',
   },
   {
     id: 'treasurer-reports',
-    label: 'Semester Closing Reports',
+    label: 'Semester Reports',
     path: '/treasurer/reports',
     icon: PieChart,
     allowedRoles: [ROLES.TREASURER],
-    group: 'FINANCE & BUDGET',
+  },
+  {
+    id: 'treasurer-audit',
+    label: 'Audit & Payment History',
+    path: '/treasurer/audit',
+    icon: ShieldCheck,
+    allowedRoles: [ROLES.TREASURER],
   },
 
   // ===========================================================================

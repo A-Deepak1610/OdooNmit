@@ -60,30 +60,13 @@ export const AppHeader: React.FC = () => {
     >
       {/* 1. Header Left: Hamburger Toggle + Search Bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0, marginRight: '16px' }}>
+        {/* Mobile-only hamburger toggle (Desktop toggle is inside the sidebar) */}
         <button
           type="button"
           onClick={handleHamburgerClick}
           aria-label="Toggle Navigation Menu"
           title="Toggle Navigation Menu"
-          style={{
-            background: 'transparent',
-            border: 'none',
-            outline: 'none',
-            cursor: 'pointer',
-            color: 'var(--foreground)',
-            padding: '6px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'color 0.2s, opacity 0.2s',
-            flexShrink: 0,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '0.7';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '1';
-          }}
+          className="inline-flex lg:hidden items-center justify-center p-1.5 text-[var(--foreground)] hover:opacity-70 transition-opacity shrink-0 bg-transparent border-0 cursor-pointer"
         >
           <Menu style={{ width: '20px', height: '20px' }} />
         </button>
