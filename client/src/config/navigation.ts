@@ -183,7 +183,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'organizer-events',
-    label: 'Events & Tickets Details',
+    label: 'Events & Ticket Details',
     path: '/organizer/events',
     icon: Ticket,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
@@ -191,7 +191,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'organizer-analytics',
-    label: 'Analytics Details',
+    label: 'Demographic & Mapbox Analytics',
     path: '/organizer/analytics',
     icon: PieChart,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
@@ -199,7 +199,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'organizer-revenue',
-    label: 'Revenue & Collections',
+    label: 'Fee Collection & Revenue',
     path: '/organizer/revenue',
     icon: DollarSign,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
@@ -207,7 +207,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'organizer-volunteers',
-    label: 'Volunteer Management',
+    label: 'Volunteer Squad Delegation',
     path: '/organizer/volunteers',
     icon: Users,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
@@ -215,7 +215,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'organizer-checkin',
-    label: 'Event Day Check-in',
+    label: 'Event Day Live Check-in',
     path: '/organizer/checkin',
     icon: UserCheck,
     allowedRoles: [ROLES.EVENT_ORGANIZER],

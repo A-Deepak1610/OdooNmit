@@ -28,7 +28,6 @@ import { ROLES, getDefaultRole, ROLE_DEFAULT_PATHS } from '../config/roles';
 
 import { LandingPage } from '../pages/LandingPage';
 import { PresidentModulePage } from '../pages/president/PresidentModulePage';
-import { PresidentEventsFundraisersPage } from '../pages/president/PresidentEventsFundraisersPage';
 import { EventsModulePage } from '../pages/events/EventsModulePage';
 import { OrganizerSuitePage } from '../pages/organizer/OrganizerSuitePage';
 
@@ -394,11 +393,11 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: <PresidentEventsFundraisersPage />,
+            element: <EventsModulePage roleVariant="PRESIDENT" />,
           },
           {
             path: 'fundraisers',
-            element: <PresidentEventsFundraisersPage />,
+            element: <EventsModulePage roleVariant="PRESIDENT" />,
           },
         ],
       },
