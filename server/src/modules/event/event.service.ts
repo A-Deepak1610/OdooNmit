@@ -924,7 +924,7 @@ export class EventService {
       where: {
         userId,
         organizationId: event.organizationId,
-        role: { in: [RoleType.MEMBER, RoleType.PRESIDENT, RoleType.VICE_PRESIDENT, RoleType.TREASURER, RoleType.SECRETARY, RoleType.VOLUNTEER] },
+        role: { in: [RoleType.MEMBER, RoleType.PRESIDENT, RoleType.TREASURER, RoleType.EVENT_ORGANIZER, RoleType.VOLUNTEER] },
       },
     });
 
