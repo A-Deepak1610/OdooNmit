@@ -22,6 +22,7 @@ import {
 import { AdminDbAssistantPage } from '../AdminDbAssistantPage';
 import { AdminQuickOverview } from './AdminQuickOverview';
 import { AdminClubsView } from './AdminClubsView';
+import { AdminTicketsView, AdminTicketDetailModal } from './AdminTicketsView';
 
 export const AdminDashboardPage: React.FC = () => {
   const location = useLocation();
@@ -52,7 +53,6 @@ export const AdminDashboardPage: React.FC = () => {
 
   // Tickets Data & Drawer
   const [tickets, setTickets] = useState<SupportTicketItem[]>([]);
-  const [ticketStatusFilter, setTicketStatusFilter] = useState('ALL');
   const [activeTicket, setActiveTicket] = useState<(SupportTicketItem & { messages: SupportMessageItem[] }) | null>(null);
   const [replyText, setReplyText] = useState('');
 
@@ -203,9 +203,7 @@ export const AdminDashboardPage: React.FC = () => {
 
 
 
-  const filteredTickets = tickets.filter((t) => {
-    return ticketStatusFilter === 'ALL' || t.status === ticketStatusFilter;
-  });
+
 
   return (
     <div className="text-slate-800 pb-12">
@@ -287,89 +285,21 @@ export const AdminDashboardPage: React.FC = () => {
 
       {/* ── 3. TICKET SUPPORT ────────────────────────────────────────── */}
       {activeTab === 'tickets' && (
-        <div className="space-y-4">
-          {/* Filter Bar */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {['ALL', 'OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'].map((st) => (
-                <button
-                  key={st}
-                  onClick={() => setTicketStatusFilter(st)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    ticketStatusFilter === st ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  {st.replace('_', ' ')}
-                </button>
-              ))}
-            </div>
-
-            <span className="text-xs text-slate-500 font-semibold">{filteredTickets.length} ticket(s) found</span>
-          </div>
-
-          {/* Tickets Table */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
-                <tr>
-                  <th className="py-3 px-4">Ticket</th>
-                  <th className="py-3 px-4">Subject</th>
-                  <th className="py-3 px-4">Category</th>
-                  <th className="py-3 px-4">Priority</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Creator</th>
-                  <th className="py-3 px-4 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                {filteredTickets.map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-3 px-4 font-mono font-bold text-indigo-600">{t.ticketNumber}</td>
-                    <td className="py-3 px-4 max-w-xs truncate font-bold text-slate-900">{t.subject}</td>
-                    <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-semibold">{t.category}</span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                          t.priority === 'URGENT'
-                            ? 'bg-red-100 text-red-800'
-                            : t.priority === 'HIGH'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-blue-100 text-blue-800'
-                        }`}
-                      >
-                        {t.priority}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                          t.status === 'OPEN'
-                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                            : t.status === 'IN_PROGRESS'
-                            ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                            : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        }`}
-                      >
-                        {t.status.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-slate-600">{t.createdBy?.fullName || t.createdBy?.username}</td>
-                    <td className="py-3 px-4 text-right">
-                      <button
-                        onClick={() => handleOpenTicket(t)}
-                        className="px-3 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs cursor-pointer"
-                      >
-                        Resolve / Reply
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <AdminTicketsView
+          tickets={tickets}
+          isLoading={isLoading}
+          onRefresh={fetchAllData}
+          onTicketsUpdated={(updated) => setTickets(updated)}
+          showToast={showToast}
+          activeTicket={activeTicket}
+          setActiveTicket={setActiveTicket}
+          onOpenTicket={handleOpenTicket}
+          replyText={replyText}
+          setReplyText={setReplyText}
+          actionLoading={actionLoading}
+          handleSendTicketReply={handleSendTicketReply}
+          renderModal={false}
+        />
       )}
 
       {/* ── 4. ANNUAL ELECTIONS ──────────────────────────────────────── */}
@@ -546,80 +476,27 @@ export const AdminDashboardPage: React.FC = () => {
       {/* ── MODALS ─────────────────────────────────────────────────── */}
       {/* 1. Ticket Conversation Drawer */}
       {activeTicket && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95">
-            <div className="p-5 border-b border-slate-200 flex items-start justify-between gap-4 bg-slate-50">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-mono font-bold text-indigo-600">{activeTicket.ticketNumber}</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800">{activeTicket.status}</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-200 text-slate-700">{activeTicket.priority}</span>
-                </div>
-                <h3 className="text-sm font-bold text-slate-900">{activeTicket.subject}</h3>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Opened by {activeTicket.createdBy.fullName} • {activeTicket.organization?.name || 'General Inquiry'}
-                </p>
-              </div>
-              <button onClick={() => setActiveTicket(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-5 overflow-y-auto space-y-4 flex-1 bg-slate-50/40">
-              <div className="p-3.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
-                <div className="text-[10px] font-bold text-slate-400 uppercase mb-1">Original Issue Description</div>
-                <p className="text-xs text-slate-700 leading-relaxed">{activeTicket.description}</p>
-              </div>
-
-              {activeTicket.messages?.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`p-3.5 rounded-xl max-w-[85%] text-xs leading-relaxed ${
-                    msg.isAdminReply
-                      ? 'ml-auto bg-indigo-600 text-white shadow-xs'
-                      : 'mr-auto bg-white border border-slate-200 text-slate-800 shadow-2xs'
-                  }`}
-                >
-                  <div className={`text-[10px] font-bold mb-1 ${msg.isAdminReply ? 'text-indigo-200' : 'text-slate-400'}`}>
-                    {msg.sender.fullName || msg.sender.username} {msg.isAdminReply && '• System Admin'}
-                  </div>
-                  <p>{msg.message}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="p-4 border-t border-slate-200 bg-white space-y-3">
-              <textarea
-                rows={3}
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                placeholder="Type resolution message or response to the student..."
-                className="w-full p-3 rounded-xl border border-slate-300 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-
-              <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => handleSendTicketReply(false)}
-                  disabled={actionLoading || !replyText.trim()}
-                  className="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold cursor-pointer disabled:opacity-50"
-                >
-                  Send Reply (Keep Open)
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleSendTicketReply(true)}
-                  disabled={actionLoading || !replyText.trim()}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold cursor-pointer shadow-xs disabled:opacity-50 flex items-center gap-1.5"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Send & Mark Resolved</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AdminTicketDetailModal
+          activeTicket={activeTicket}
+          onClose={() => setActiveTicket(null)}
+          replyText={replyText}
+          setReplyText={setReplyText}
+          actionLoading={actionLoading}
+          onSendReply={handleSendTicketReply}
+          onDirectStatusChange={async (ticketId, status) => {
+            setActionLoading(true);
+            try {
+              await adminService.updateTicketStatus(ticketId, status);
+              showToast(`Ticket status updated to ${status.replace('_', ' ')}.`);
+              setTickets((prev) => prev.map((t) => (t.id === ticketId ? { ...t, status } : t)));
+              setActiveTicket((prev) => (prev && prev.id === ticketId ? { ...prev, status } : prev));
+            } catch (err: any) {
+              showToast(err.message || 'Failed to update ticket status', 'error');
+            } finally {
+              setActionLoading(false);
+            }
+          }}
+        />
       )}
 
 
