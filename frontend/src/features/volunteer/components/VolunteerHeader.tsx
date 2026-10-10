@@ -1,6 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
 import {
-  Menu,
   Moon,
   Sun,
   HeartHandshake,
@@ -11,10 +11,10 @@ import { useNotificationStore } from '../../../stores/notification.store';
 import { useThemeStore } from '../../../stores/theme.store';
 
 interface VolunteerHeaderProps {
-  onToggleMobileMenu: () => void;
+  onToggleMobileMenu?: () => void;
 }
 
-export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({ onToggleMobileMenu }) => {
+export const VolunteerHeader: React.FC<VolunteerHeaderProps> = () => {
   const { resolvedTheme, toggleTheme } = useThemeStore();
   const isDark = resolvedTheme === 'dark';
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -41,18 +41,8 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({ onToggleMobile
         zIndex: 30,
       }}
     >
-      {/* ── Left Side: Mobile Hamburger Menu ───────── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {/* Mobile menu trigger */}
-        <button
-          onClick={onToggleMobileMenu}
-          className="md:hidden p-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
-          aria-label="Toggle navigation drawer"
-          style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex' }}
-        >
-          <Menu style={{ width: '20px', height: '20px' }} />
-        </button>
-      </div>
+      {/* ── Left Side ───────── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} />
 
       {/* ── Right Side: Volunteer Desk Badge & Theme Toggle ────────── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

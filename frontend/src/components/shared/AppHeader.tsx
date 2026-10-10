@@ -4,16 +4,12 @@ import {
   Moon,
   Sun,
   Bell,
-  Menu,
-
 } from 'lucide-react';
-import { useUiStore } from '../../stores/ui.store';
 import { useThemeStore } from '../../stores/theme.store';
 import { useNotificationStore } from '../../stores/notification.store';
 import { NotificationDropdown } from './NotificationDropdown';
 
 export const AppHeader: React.FC = () => {
-  const { toggleSidebar, toggleMobileSidebar } = useUiStore();
   const { resolvedTheme, toggleTheme } = useThemeStore();
   const isDark = resolvedTheme === 'dark';
   const [isNotificationsOpen, setIsNotificationsOpen] = React.useState(false);
@@ -23,14 +19,6 @@ export const AppHeader: React.FC = () => {
   React.useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
-
-  const handleHamburgerClick = () => {
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      toggleMobileSidebar();
-    } else {
-      toggleSidebar();
-    }
-  };
 
   return (
     <header
@@ -48,37 +36,8 @@ export const AppHeader: React.FC = () => {
         zIndex: 30,
       }}
     >
-      {/* 1. Header Left: Hamburger Toggle + Search Bar */}
+      {/* 1. Header Left: Search Bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0, marginRight: '16px' }}>
-        <button
-          type="button"
-          onClick={handleHamburgerClick}
-          aria-label="Toggle Navigation Menu"
-          title="Toggle Navigation Menu"
-          className="lg:hidden"
-          style={{
-            background: 'transparent',
-            border: 'none',
-            outline: 'none',
-            cursor: 'pointer',
-            color: 'var(--foreground)',
-            padding: '6px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'color 0.2s, opacity 0.2s',
-            flexShrink: 0,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '0.7';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '1';
-          }}
-        >
-          <Menu style={{ width: '20px', height: '20px' }} />
-        </button>
-
         <div style={{ position: 'relative', maxWidth: '340px', width: '100%', minWidth: '140px' }}>
           <Search
             style={{
