@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Shield,
   Crown,
@@ -175,6 +175,15 @@ export const LoginPage: React.FC = () => {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center px-4">
         {/* App Branding */}
+        <div className="flex justify-center mb-3">
+          <Link to="/" className="inline-block group transition-transform duration-200 hover:scale-105" title="CampusMitra Home">
+            <img
+              src="/logo.png"
+              alt="CampusMitra Logo"
+              className="w-16 h-16 object-contain drop-shadow-md mx-auto"
+            />
+          </Link>
+        </div>
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-400/20 text-indigo-300 text-xs font-semibold mb-4 backdrop-blur-md">
           <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
           <span>CampusMitra • Student Organization Platform</span>

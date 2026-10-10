@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   UserPlus,
   CheckCircle2,
-  Award,
   Search,
   CreditCard,
   Send,
@@ -504,8 +503,8 @@ export const MembershipModule: React.FC = () => {
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#1e3a8a', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Award style={{ width: '16px', height: '16px' }} />
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#1e3a8a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <img src="/logo.png" alt="CampusMitra Logo" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
                 Digital Membership ID Card
               </span>
               <span

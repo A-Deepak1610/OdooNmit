@@ -76,6 +76,13 @@ export const AuthCallbackPage: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
       <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center shadow-2xl">
+        <div className="flex justify-center mb-6">
+          <img
+            src="/logo.png"
+            alt="CampusMitra Logo"
+            className="w-16 h-16 object-contain drop-shadow-md mx-auto"
+          />
+        </div>
         {status === 'verifying' && (
           <div className="space-y-4">
             <Loader2 className="h-10 w-10 text-blue-500 animate-spin mx-auto" />

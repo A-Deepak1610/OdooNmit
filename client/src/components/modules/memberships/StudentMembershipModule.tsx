@@ -209,15 +209,29 @@ export const StudentMembershipModule: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                  <div style={{ fontSize: '11px', color: '#93c5fd', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>
-                    CAMPUS MITRA • CHARTERED CLUB
-                  </div>
-                  <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '4px 0 2px 0' }}>
-                    Skyline Student Association
-                  </h3>
-                  <div style={{ fontSize: '12px', color: '#cbd5e1' }}>
-                    Annual Member Identification
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <img
+                    src="/logo.png"
+                    alt="CampusMitra Logo"
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      objectFit: 'contain',
+                      borderRadius: '8px',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      padding: '4px',
+                    }}
+                  />
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#93c5fd', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                      CAMPUS MITRA • CHARTERED CLUB
+                    </div>
+                    <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '4px 0 2px 0' }}>
+                      Skyline Student Association
+                    </h3>
+                    <div style={{ fontSize: '12px', color: '#cbd5e1' }}>
+                      Annual Member Identification
+                    </div>
                   </div>
                 </div>
 

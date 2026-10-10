@@ -56,7 +56,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
           currency: 'INR',
           name: 'Skyline Student Association',
           description: purpose || title || 'Campus Organization Payment',
-          image: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+          image: window.location.origin + '/logo.png',
           prefill: {
             name: payerName,
             email: payerEmail,
@@ -211,21 +211,17 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             {/* Payment Brand Mark */}
-            <div
+            <img
+              src="/logo.png"
+              alt="CampusMitra"
               style={{
-                background: '#2563eb',
-                color: '#ffffff',
-                fontWeight: 800,
-                fontSize: '12px',
-                padding: '2px 8px',
-                borderRadius: '4px',
-                letterSpacing: '0.5px',
+                width: '26px',
+                height: '26px',
+                objectFit: 'contain',
               }}
-            >
-              PAY
-            </div>
+            />
             <span style={{ fontSize: '16px', fontWeight: 700, letterSpacing: '-0.3px' }}>
-              Payment Checkout
+              CampusMitra Checkout
             </span>
             <span
               style={{

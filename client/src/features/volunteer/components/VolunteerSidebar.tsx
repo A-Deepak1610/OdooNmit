@@ -8,7 +8,6 @@ import {
   Calendar,
   Receipt,
   User,
-  GraduationCap,
   LogOut,
   X,
 } from 'lucide-react';
@@ -101,21 +100,17 @@ export const VolunteerSidebar: React.FC<VolunteerSidebarProps> = ({ onCloseMobil
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div
+          <img
+            src="/logo.png"
+            alt="CampusMitra Logo"
             style={{
-              width: '26px',
-              height: '26px',
-              background: 'var(--primary)',
-              borderRadius: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
+              width: '30px',
+              height: '30px',
+              objectFit: 'contain',
               flexShrink: 0,
             }}
-          >
-            <GraduationCap style={{ width: '16px', height: '16px' }} />
-          </div>
+            title="CampusMitra"
+          />
           <div>
             <div
               style={{

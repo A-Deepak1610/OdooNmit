@@ -4,7 +4,7 @@ import { useAuthStore } from '../../stores/auth.store';
 import { useUiStore } from '../../stores/ui.store';
 import { getPermittedNavigationItems } from '../../config/navigation';
 import { ROLE_DISPLAY_NAMES } from '../../config/roles';
-import { GraduationCap, LogOut, X } from 'lucide-react';
+import { LogOut, X } from 'lucide-react';
 
 export interface AppSidebarProps {
   onCloseMobile?: () => void;
@@ -68,22 +68,17 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-          <div
+          <img
+            src="/logo.png"
+            alt="CampusMitra Logo"
             style={{
-              width: '28px',
-              height: '28px',
-              background: 'var(--primary)',
-              borderRadius: '7px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
+              width: '30px',
+              height: '30px',
+              objectFit: 'contain',
               flexShrink: 0,
             }}
             title="CampusMitra"
-          >
-            <GraduationCap style={{ width: '18px', height: '18px' }} />
-          </div>
+          />
           {!isCollapsed && (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span

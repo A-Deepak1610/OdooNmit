@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  Shield,
   Building2,
   Ticket,
   Vote,
@@ -16,7 +15,6 @@ import {
   Loader2,
   X,
   ChevronRight,
-  Database,
   Users,
   Code2,
 } from 'lucide-react';

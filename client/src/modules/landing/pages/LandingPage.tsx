@@ -23,12 +23,16 @@ import {
   Layers,
   Award,
   ShieldCheck,
+  Menu,
+  X,
 } from "lucide-react";
+import { Colors } from "../../../assets/Colors";
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, role, setUser } = useAuthStore();
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [loadingRole, setLoadingRole] = useState<string | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
 
@@ -132,85 +136,63 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white text-surface-900 font-sans selection:bg-brand-500 selection:text-white">
-      {/* 1. STICKY TOP NAVIGATION BAR (Matches sample image 1) */}
-      <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-surface-200/90 shadow-2xs">
+      {/* 1. FLOATING PILL NAVIGATION BAR (Matches UI Reference: Clean Capsule, Without Gradient) */}
+      <header className="sticky top-3 sm:top-5 z-50 w-full px-4 sm:px-8 lg:px-12 xl:px-14 pointer-events-none">
         <div
           ref={navRef}
-          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between"
+          className="max-w-[1540px] mx-auto rounded-full bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-lg shadow-purple-950/5 px-6 sm:px-9 h-[68px] sm:h-[72px] flex items-center justify-between pointer-events-auto transition-all"
         >
-          {/* Left: Brand Logo with Embedded SVG Icon */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <svg
-              className="h-10 w-10 shrink-0 drop-shadow-sm group-hover:scale-105 transition-transform"
-              viewBox="0 0 48 48"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M24 4L42 16L34 44H14L6 16L24 4Z"
-                fill="url(#gemGradient)"
-              />
-              <path
-                d="M24 4L34 44M24 4L14 44M6 16H42M14 44L24 16L34 44"
-                stroke="#FFFFFF"
-                strokeWidth="1.5"
-                strokeOpacity="0.4"
-              />
-              {/* Golden 4-point star in top-left */}
-              <path
-                d="M11 6L12.8 11.2L18 13L12.8 14.8L11 20L9.2 14.8L4 13L9.2 11.2L11 6Z"
-                fill="#FBBF24"
-              />
-              <defs>
-                <linearGradient
-                  id="gemGradient"
-                  x1="6"
-                  y1="4"
-                  x2="42"
-                  y2="44"
-                  gradientUnits="userSpaceOnUse"
-                >
-                  <stop stopColor="#6366F1" />
-                  <stop offset="0.5" stopColor="#4F46E5" />
-                  <stop offset="1" stopColor="#3730A3" />
-                </linearGradient>
-              </defs>
-            </svg>
+          {/* Left: Brand Logo with Official App Logo */}
+          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+            <img
+              src="/logo.png"
+              alt="CampusMitra Logo"
+              className="h-9 w-9 sm:h-10 sm:w-10 object-contain drop-shadow-xs group-hover:scale-105 transition-transform"
+            />
             <div className="flex flex-col">
-              <span className="text-xl font-extrabold tracking-tight text-surface-900 leading-none">
+              <span
+                className="text-lg sm:text-xl font-black tracking-tight leading-none"
+                style={{ color: Colors.deepprimary }}
+              >
                 CampusMitra
               </span>
-              <span className="text-[10px] font-semibold text-brand-600 tracking-wider mt-0.5">
+              <span
+                className="text-[10px] font-bold tracking-wider mt-0.5"
+                style={{ color: Colors.primary }}
+              >
                 Be the true you. Be found.
               </span>
             </div>
           </Link>
 
-          {/* Center: Interactive Dropdown Menus */}
-          <nav className="hidden lg:flex items-center gap-7 text-sm font-medium text-surface-700">
+          {/* Center: Navigation Links matching Reference Layout */}
+          <nav className="hidden lg:flex items-center gap-8 xl:gap-10 text-[15px] font-semibold text-slate-700">
             {/* 1. Users Dropdown */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => toggleDropdown("users")}
-                className={`flex items-center gap-1 transition-colors py-2 ${
-                  activeDropdown === "users"
-                    ? "text-brand-600 font-semibold"
-                    : "hover:text-brand-600"
-                }`}
+                className="flex items-center gap-1.5 transition-colors py-2 hover:text-[#6C35DC]"
+                style={{
+                  color: activeDropdown === "users" ? Colors.primary : undefined,
+                }}
               >
                 <span>Users</span>
                 <ChevronDown
                   className={`h-4 w-4 transition-transform duration-200 ${
-                    activeDropdown === "users"
-                      ? "rotate-180 text-brand-600"
-                      : "text-surface-400"
+                    activeDropdown === "users" ? "rotate-180" : ""
                   }`}
+                  style={{
+                    color: activeDropdown === "users" ? Colors.primary : Colors.textSecondary,
+                  }}
                 />
               </button>
               {activeDropdown === "users" && (
-                <div className="absolute top-full left-0 w-64 rounded-2xl bg-white shadow-2xl border border-surface-200 p-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  <div className="text-[10px] font-bold text-surface-400 uppercase tracking-wider px-2 py-1">
+                <div className="absolute top-full left-0 mt-3 w-64 rounded-2xl bg-white shadow-2xl border border-slate-200 p-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div
+                    className="text-[10px] font-bold uppercase tracking-wider px-2 py-1"
+                    style={{ color: Colors.textSecondary }}
+                  >
                     Direct Persona Portals
                   </div>
                   <button
@@ -220,13 +202,13 @@ export const LandingPage: React.FC = () => {
                         "MEMBER",
                       )
                     }
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 flex items-center justify-between font-medium transition-colors"
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-purple-50 hover:text-[#6C35DC] flex items-center justify-between font-medium transition-colors"
                   >
                     <span className="flex items-center gap-2">
-                      <Users className="h-3.5 w-3.5 text-brand-600" /> Student /
+                      <Users className="h-3.5 w-3.5" style={{ color: Colors.primary }} /> Student /
                       Member
                     </span>
-                    <Badge variant="outline" className="text-[9px] py-0 px-1">
+                    <Badge variant="outline" className="text-[9px] py-0 px-1 border-purple-200 text-[#6C35DC]">
                       MEMBER
                     </Badge>
                   </button>
@@ -237,7 +219,7 @@ export const LandingPage: React.FC = () => {
                         "VOLUNTEER",
                       )
                     }
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 flex items-center justify-between font-medium transition-colors"
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-purple-50 hover:text-[#6C35DC] flex items-center justify-between font-medium transition-colors"
                   >
                     <span className="flex items-center gap-2">
                       <CheckSquare className="h-3.5 w-3.5 text-blue-600" />{" "}
@@ -254,7 +236,7 @@ export const LandingPage: React.FC = () => {
                         "EVENT_ORGANIZER",
                       )
                     }
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 flex items-center justify-between font-medium transition-colors"
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-purple-50 hover:text-[#6C35DC] flex items-center justify-between font-medium transition-colors"
                   >
                     <span className="flex items-center gap-2">
                       <Calendar className="h-3.5 w-3.5 text-amber-600" /> Event
@@ -271,7 +253,7 @@ export const LandingPage: React.FC = () => {
                         "TREASURER",
                       )
                     }
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 flex items-center justify-between font-medium transition-colors"
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-purple-50 hover:text-[#6C35DC] flex items-center justify-between font-medium transition-colors"
                   >
                     <span className="flex items-center gap-2">
                       <DollarSign className="h-3.5 w-3.5 text-emerald-600" />{" "}
@@ -288,10 +270,10 @@ export const LandingPage: React.FC = () => {
                         "PRESIDENT",
                       )
                     }
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 flex items-center justify-between font-medium transition-colors"
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-purple-50 hover:text-[#6C35DC] flex items-center justify-between font-medium transition-colors"
                   >
                     <span className="flex items-center gap-2">
-                      <UserCheck className="h-3.5 w-3.5 text-purple-600" /> Club
+                      <UserCheck className="h-3.5 w-3.5" style={{ color: Colors.primary }} /> Club
                       President
                     </span>
                     <Badge variant="outline" className="text-[9px] py-0 px-1">
@@ -302,7 +284,7 @@ export const LandingPage: React.FC = () => {
                     onClick={() =>
                       handleInstantRoleLaunch("admin@CampusMitra.test", "ADMIN")
                     }
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 flex items-center justify-between font-medium transition-colors"
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-purple-50 hover:text-[#6C35DC] flex items-center justify-between font-medium transition-colors"
                   >
                     <span className="flex items-center gap-2">
                       <Shield className="h-3.5 w-3.5 text-rose-600" /> System
@@ -321,44 +303,47 @@ export const LandingPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => toggleDropdown("organization")}
-                className={`flex items-center gap-1 transition-colors py-2 ${
-                  activeDropdown === "organization"
-                    ? "text-brand-600 font-semibold"
-                    : "hover:text-brand-600"
-                }`}
+                className="flex items-center gap-1.5 transition-colors py-2 hover:text-[#6C35DC]"
+                style={{
+                  color: activeDropdown === "organization" ? Colors.primary : undefined,
+                }}
               >
                 <span>Organization</span>
                 <ChevronDown
                   className={`h-4 w-4 transition-transform duration-200 ${
-                    activeDropdown === "organization"
-                      ? "rotate-180 text-brand-600"
-                      : "text-surface-400"
+                    activeDropdown === "organization" ? "rotate-180" : ""
                   }`}
+                  style={{
+                    color: activeDropdown === "organization" ? Colors.primary : Colors.textSecondary,
+                  }}
                 />
               </button>
               {activeDropdown === "organization" && (
-                <div className="absolute top-full left-0 w-64 rounded-2xl bg-white shadow-2xl border border-surface-200 p-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  <div className="text-[10px] font-bold text-surface-400 uppercase tracking-wider px-2 py-1">
+                <div className="absolute top-full left-0 mt-3 w-64 rounded-2xl bg-white shadow-2xl border border-slate-200 p-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div
+                    className="text-[10px] font-bold uppercase tracking-wider px-2 py-1"
+                    style={{ color: Colors.textSecondary }}
+                  >
                     Club Governance
                   </div>
                   <Link
                     to="/memberships"
                     onClick={() => setActiveDropdown(null)}
-                    className="block px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 font-medium"
+                    className="block px-3 py-2 rounded-xl text-xs hover:bg-purple-50 hover:text-[#6C35DC] font-medium"
                   >
                     Student Roster & Leadership Roles
                   </Link>
                   <Link
                     to="/tasks"
                     onClick={() => setActiveDropdown(null)}
-                    className="block px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 font-medium"
+                    className="block px-3 py-2 rounded-xl text-xs hover:bg-purple-50 hover:text-[#6C35DC] font-medium"
                   >
                     Volunteer Duties & Deadlines
                   </Link>
                   <Link
                     to="/finance"
                     onClick={() => setActiveDropdown(null)}
-                    className="block px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 font-medium"
+                    className="block px-3 py-2 rounded-xl text-xs hover:bg-purple-50 hover:text-[#6C35DC] font-medium"
                   >
                     Financial Balance & Semester Reports
                   </Link>
@@ -371,34 +356,34 @@ export const LandingPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => toggleDropdown("solutions")}
-                className={`flex items-center gap-1 transition-colors py-2 ${
-                  activeDropdown === "solutions"
-                    ? "text-brand-600 font-semibold"
-                    : "hover:text-brand-600"
-                }`}
+                className="flex items-center gap-1.5 transition-colors py-2 hover:text-[#6C35DC]"
+                style={{
+                  color: activeDropdown === "solutions" ? Colors.primary : undefined,
+                }}
               >
                 <span>Our Solutions</span>
                 <ChevronDown
                   className={`h-4 w-4 transition-transform duration-200 ${
-                    activeDropdown === "solutions"
-                      ? "rotate-180 text-brand-600"
-                      : "text-surface-400"
+                    activeDropdown === "solutions" ? "rotate-180" : ""
                   }`}
+                  style={{
+                    color: activeDropdown === "solutions" ? Colors.primary : Colors.textSecondary,
+                  }}
                 />
               </button>
               {activeDropdown === "solutions" && (
-                <div className="absolute top-full left-0 w-72 rounded-2xl bg-white shadow-2xl border border-surface-200 p-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150 space-y-1">
+                <div className="absolute top-full left-0 mt-3 w-72 rounded-2xl bg-white shadow-2xl border border-slate-200 p-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150 space-y-1">
                   <Link
                     to="/events"
                     onClick={() => setActiveDropdown(null)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 font-medium"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs hover:bg-purple-50 hover:text-[#6C35DC] font-medium"
                   >
-                    <Calendar className="h-4 w-4 text-indigo-600 shrink-0" />
+                    <Calendar className="h-4 w-4 shrink-0" style={{ color: Colors.primary }} />
                     <div>
-                      <div className="font-semibold text-surface-900">
+                      <div className="font-semibold text-slate-900">
                         Event & Ticketing Platform
                       </div>
-                      <div className="text-[11px] text-surface-500">
+                      <div className="text-[11px] text-slate-500">
                         Tier pricing & single-use QR passes
                       </div>
                     </div>
@@ -406,14 +391,14 @@ export const LandingPage: React.FC = () => {
                   <Link
                     to="/memberships"
                     onClick={() => setActiveDropdown(null)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 font-medium"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs hover:bg-purple-50 hover:text-[#6C35DC] font-medium"
                   >
                     <Users className="h-4 w-4 text-emerald-600 shrink-0" />
                     <div>
-                      <div className="font-semibold text-surface-900">
+                      <div className="font-semibold text-slate-900">
                         Membership & Dues Settlement
                       </div>
-                      <div className="text-[11px] text-surface-500">
+                      <div className="text-[11px] text-slate-500">
                         Validity windows & door lookup
                       </div>
                     </div>
@@ -421,14 +406,14 @@ export const LandingPage: React.FC = () => {
                   <Link
                     to="/merchandise"
                     onClick={() => setActiveDropdown(null)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 font-medium"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs hover:bg-purple-50 hover:text-[#6C35DC] font-medium"
                   >
                     <Package className="h-4 w-4 text-amber-600 shrink-0" />
                     <div>
-                      <div className="font-semibold text-surface-900">
+                      <div className="font-semibold text-slate-900">
                         Merchandise & Store
                       </div>
-                      <div className="text-[11px] text-surface-500">
+                      <div className="text-[11px] text-slate-500">
                         Apparel stock & member discounts
                       </div>
                     </div>
@@ -436,14 +421,14 @@ export const LandingPage: React.FC = () => {
                   <Link
                     to="/reimbursements"
                     onClick={() => setActiveDropdown(null)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 font-medium"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs hover:bg-purple-50 hover:text-[#6C35DC] font-medium"
                   >
                     <Receipt className="h-4 w-4 text-rose-600 shrink-0" />
                     <div>
-                      <div className="font-semibold text-surface-900">
+                      <div className="font-semibold text-slate-900">
                         Expense Reimbursements
                       </div>
-                      <div className="text-[11px] text-surface-500">
+                      <div className="text-[11px] text-slate-500">
                         Receipt upload & officer payouts
                       </div>
                     </div>
@@ -457,41 +442,41 @@ export const LandingPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => toggleDropdown("about")}
-                className={`flex items-center gap-1 transition-colors py-2 ${
-                  activeDropdown === "about"
-                    ? "text-brand-600 font-semibold"
-                    : "hover:text-brand-600"
-                }`}
+                className="flex items-center gap-1.5 transition-colors py-2 hover:text-[#6C35DC]"
+                style={{
+                  color: activeDropdown === "about" ? Colors.primary : undefined,
+                }}
               >
                 <span>About</span>
                 <ChevronDown
                   className={`h-4 w-4 transition-transform duration-200 ${
-                    activeDropdown === "about"
-                      ? "rotate-180 text-brand-600"
-                      : "text-surface-400"
+                    activeDropdown === "about" ? "rotate-180" : ""
                   }`}
+                  style={{
+                    color: activeDropdown === "about" ? Colors.primary : Colors.textSecondary,
+                  }}
                 />
               </button>
               {activeDropdown === "about" && (
-                <div className="absolute top-full left-0 w-60 rounded-2xl bg-white shadow-2xl border border-surface-200 p-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute top-full left-0 mt-3 w-60 rounded-2xl bg-white shadow-2xl border border-slate-200 p-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                   <a
                     href="#why-CampusMitra"
                     onClick={() => setActiveDropdown(null)}
-                    className="block px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 font-medium"
+                    className="block px-3 py-2 rounded-xl text-xs hover:bg-purple-50 hover:text-[#6C35DC] font-medium"
                   >
                     Why CampusMitra?
                   </a>
                   <a
                     href="#whom-we-serve"
                     onClick={() => setActiveDropdown(null)}
-                    className="block px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 font-medium"
+                    className="block px-3 py-2 rounded-xl text-xs hover:bg-purple-50 hover:text-[#6C35DC] font-medium"
                   >
                     Whom We Serve
                   </a>
                   <a
                     href="#network"
                     onClick={() => setActiveDropdown(null)}
-                    className="block px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 font-medium"
+                    className="block px-3 py-2 rounded-xl text-xs hover:bg-purple-50 hover:text-[#6C35DC] font-medium"
                   >
                     Purposeful Social Network
                   </a>
@@ -501,19 +486,20 @@ export const LandingPage: React.FC = () => {
 
             <Link
               to="/announcements"
-              className="hover:text-brand-600 transition-colors"
+              className="hover:text-[#6C35DC] transition-colors py-2"
             >
               Contact Us
             </Link>
           </nav>
 
-          {/* Right: Sign In Button */}
-          <div className="flex items-center gap-3">
+          {/* Right: Pill Sign In Button matching Reference */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {user ? (
               <Button
                 variant="primary"
                 onClick={() => navigate("/dashboard")}
-                className="bg-[#4F46E5] hover:bg-[#4338CA] text-white px-5 h-10 rounded-xl text-sm font-semibold shadow-xs"
+                className="text-white px-5 sm:px-6 h-9 sm:h-10 rounded-full text-xs sm:text-sm font-bold shadow-sm transition-all hover:scale-105"
+                style={{ backgroundColor: Colors.primary }}
               >
                 Go to Workspace ({role})
               </Button>
@@ -521,28 +507,135 @@ export const LandingPage: React.FC = () => {
               <Link to="/login">
                 <Button
                   variant="primary"
-                  className="bg-[#4F46E5] hover:bg-[#4338CA] text-white px-7 h-10 rounded-xl text-sm font-semibold shadow-xs transition-all hover:scale-[1.02]"
+                  className="text-white px-5 sm:px-7 h-9 sm:h-10 rounded-full text-xs sm:text-sm font-bold shadow-md shadow-purple-600/20 transition-all hover:scale-105"
+                  style={{ backgroundColor: Colors.primary }}
                 >
                   Sign In
                 </Button>
               </Link>
             )}
+
+            {/* Mobile Hamburger Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="lg:hidden p-2 rounded-full text-slate-700 hover:bg-slate-100 transition-colors pointer-events-auto"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Dropdown Panel */}
+        {mobileOpen && (
+          <div className="lg:hidden max-w-[1540px] mx-auto mt-2 rounded-3xl bg-white/98 backdrop-blur-xl border border-slate-200/90 shadow-2xl p-4 pointer-events-auto animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="space-y-3">
+              <div
+                className="text-[11px] font-bold uppercase tracking-wider px-2"
+                style={{ color: Colors.textSecondary }}
+              >
+                Quick Navigation
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  to="/events"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-3 py-2.5 rounded-xl bg-slate-50 hover:bg-purple-50 text-xs font-semibold text-slate-800 flex items-center gap-2 transition-colors"
+                >
+                  <Calendar className="h-3.5 w-3.5" style={{ color: Colors.primary }} /> Events
+                </Link>
+                <Link
+                  to="/memberships"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-3 py-2.5 rounded-xl bg-slate-50 hover:bg-purple-50 text-xs font-semibold text-slate-800 flex items-center gap-2 transition-colors"
+                >
+                  <Users className="h-3.5 w-3.5 text-emerald-600" /> Memberships
+                </Link>
+                <Link
+                  to="/merchandise"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-3 py-2.5 rounded-xl bg-slate-50 hover:bg-purple-50 text-xs font-semibold text-slate-800 flex items-center gap-2 transition-colors"
+                >
+                  <Package className="h-3.5 w-3.5 text-amber-600" /> Merchandise
+                </Link>
+                <a
+                  href="#why-CampusMitra"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-3 py-2.5 rounded-xl bg-slate-50 hover:bg-purple-50 text-xs font-semibold text-slate-800 flex items-center gap-2 transition-colors"
+                >
+                  <Award className="h-3.5 w-3.5" style={{ color: Colors.primary }} /> About Platform
+                </a>
+              </div>
+
+              <div
+                className="text-[11px] font-bold uppercase tracking-wider px-2 pt-2 border-t border-slate-100"
+                style={{ color: Colors.textSecondary }}
+              >
+                Direct Persona Login
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    handleInstantRoleLaunch("member@CampusMitra.test", "MEMBER");
+                  }}
+                  className="px-3 py-2 rounded-xl bg-purple-50 text-[#6C35DC] text-xs font-bold text-left hover:bg-purple-100 transition-colors"
+                >
+                  Member Portal →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    handleInstantRoleLaunch("president@CampusMitra.test", "PRESIDENT");
+                  }}
+                  className="px-3 py-2 rounded-xl bg-purple-50 text-[#6C35DC] text-xs font-bold text-left hover:bg-purple-100 transition-colors"
+                >
+                  President Portal →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    handleInstantRoleLaunch("admin@CampusMitra.test", "ADMIN");
+                  }}
+                  className="px-3 py-2 rounded-xl bg-purple-50 text-[#6C35DC] text-xs font-bold text-left hover:bg-purple-100 transition-colors"
+                >
+                  Admin Portal →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    handleInstantRoleLaunch("volunteer@CampusMitra.test", "VOLUNTEER");
+                  }}
+                  className="px-3 py-2 rounded-xl bg-purple-50 text-[#6C35DC] text-xs font-bold text-left hover:bg-purple-100 transition-colors"
+                >
+                  Volunteer Portal →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* 2. HERO SECTION WITH VERTICAL CONTINUOUS AUTO-SCROLLING IMAGES (Matches sample image 1) */}
-      <section className="relative overflow-hidden pt-10 pb-16 lg:pt-14 lg:pb-20 bg-linear-to-r from-[#EFF1FC] via-[#F4F2FC] to-[#FDF5FD] border-b border-surface-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+      <section
+        className="relative overflow-hidden pt-8 pb-16 lg:pt-12 lg:pb-20 border-b border-surface-200"
+        style={{ backgroundColor: Colors.background }}
+      >
+        <div className="max-w-[1540px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-14">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 xl:gap-16 items-center">
             {/* Left Column: Heading & Value Proposition */}
-            <div className="lg:col-span-6 space-y-6">
-              <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-black text-surface-900 tracking-tight leading-[1.12]">
+            <div className="lg:col-span-5 xl:col-span-5 space-y-7">
+              <h1 className="text-4xl sm:text-5xl lg:text-[52px] xl:text-[58px] font-black tracking-tight leading-[1.12]" style={{ color: Colors.text }}>
                 Build Your Community <br />
-                <span className="text-surface-900">All in One Place</span>
+                <span style={{ color: Colors.primary }}>All in One Place</span>
               </h1>
 
-              <p className="text-base sm:text-lg text-surface-600 leading-relaxed font-normal">
+              <p className="text-base sm:text-lg leading-relaxed font-normal" style={{ color: Colors.textSecondary }}>
                 CampusMitra connects events, clubs, memberships, fees,
                 fundraising, volunteering, and extracurricular activities—then
                 turns participation into verifiable digital credentials and
@@ -550,7 +643,7 @@ export const LandingPage: React.FC = () => {
                 and fundraising.
               </p>
 
-              {/* Two CTA Buttons matching Screenshot 1 */}
+              {/* Two CTA Buttons matching Reference styling with Colors palette */}
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Button
                   onClick={() =>
@@ -560,7 +653,8 @@ export const LandingPage: React.FC = () => {
                     )
                   }
                   isLoading={loadingRole === "PRESIDENT"}
-                  className="bg-[#5B51D8] hover:bg-[#4B41C5] text-white px-7 h-12 rounded-xl text-sm font-bold shadow-md shadow-indigo-500/20 transition-all hover:scale-[1.02]"
+                  className="text-white px-7 h-12 rounded-full text-sm font-bold shadow-md shadow-purple-600/25 transition-all hover:scale-[1.02]"
+                  style={{ backgroundColor: Colors.primary }}
                 >
                   Start as an Organizer
                 </Button>
@@ -570,7 +664,12 @@ export const LandingPage: React.FC = () => {
                     handleInstantRoleLaunch("member@CampusMitra.test", "MEMBER")
                   }
                   isLoading={loadingRole === "MEMBER"}
-                  className="bg-[#F9C04D] hover:bg-[#EFAF3D] text-surface-900 px-7 h-12 rounded-xl text-sm font-bold shadow-md transition-all hover:scale-[1.02]"
+                  className="px-7 h-12 rounded-full text-sm font-bold shadow-xs transition-all hover:scale-[1.02] border-2"
+                  style={{
+                    backgroundColor: Colors.surface,
+                    color: Colors.deepprimary,
+                    borderColor: `${Colors.primary}30`,
+                  }}
                 >
                   Join as a User
                 </Button>
@@ -633,14 +732,24 @@ export const LandingPage: React.FC = () => {
             </div>
 
             {/* Right Column: 3-COLUMN CONTINUOUS VERTICALLY SCROLLING MARQUEE GALLERY */}
-            <div className="lg:col-span-6 relative marquee-wrapper h-[520px] sm:h-[580px] overflow-hidden rounded-3xl p-1">
+            <div className="lg:col-span-7 xl:col-span-7 relative marquee-wrapper h-[560px] sm:h-[620px] xl:h-[650px] overflow-hidden rounded-3xl p-1">
               {/* Subtle top & bottom gradient fade overlays for smooth scrolling transition */}
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-linear-to-b from-[#EFF1FC] to-transparent z-20" />
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-[#EFF1FC] to-transparent z-20" />
+              <div
+                className="pointer-events-none absolute inset-x-0 top-0 h-16 z-20"
+                style={{
+                  background: `linear-gradient(to bottom, ${Colors.background}, transparent)`,
+                }}
+              />
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-16 z-20"
+                style={{
+                  background: `linear-gradient(to top, ${Colors.background}, transparent)`,
+                }}
+              />
 
-              <div className="grid grid-cols-3 gap-3.5 h-full">
+              <div className="grid grid-cols-3 gap-4 xl:gap-5 h-full">
                 {/* Column 1: Scrolling UP */}
-                <div className="space-y-3.5 animate-marquee-up">
+                <div className="space-y-4 animate-marquee-up">
                   {[...column1Images, ...column1Images].map((img, idx) => (
                     <div
                       key={`col1-${idx}`}
@@ -649,7 +758,7 @@ export const LandingPage: React.FC = () => {
                       <img
                         src={img.url}
                         alt={img.title}
-                        className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-44 sm:h-48 xl:h-52 object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
                       />
                       <div className="p-2.5 bg-white text-left">
@@ -665,7 +774,7 @@ export const LandingPage: React.FC = () => {
                 </div>
 
                 {/* Column 2: Scrolling DOWN */}
-                <div className="space-y-3.5 animate-marquee-down">
+                <div className="space-y-4 animate-marquee-down">
                   {[...column2Images, ...column2Images].map((img, idx) => (
                     <div
                       key={`col2-${idx}`}
@@ -674,7 +783,7 @@ export const LandingPage: React.FC = () => {
                       <img
                         src={img.url}
                         alt={img.title}
-                        className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-44 sm:h-48 xl:h-52 object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
                       />
                       <div className="p-2.5 bg-white text-left">
@@ -690,7 +799,7 @@ export const LandingPage: React.FC = () => {
                 </div>
 
                 {/* Column 3: Scrolling UP (Slow) */}
-                <div className="space-y-3.5 animate-marquee-up-slow">
+                <div className="space-y-4 animate-marquee-up-slow">
                   {[...column3Images, ...column3Images].map((img, idx) => (
                     <div
                       key={`col3-${idx}`}
@@ -699,7 +808,7 @@ export const LandingPage: React.FC = () => {
                       <img
                         src={img.url}
                         alt={img.title}
-                        className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-44 sm:h-48 xl:h-52 object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
                       />
                       <div className="p-2.5 bg-white text-left">
@@ -724,23 +833,23 @@ export const LandingPage: React.FC = () => {
         id="why-CampusMitra"
         className="py-20 lg:py-28 bg-white border-b border-surface-200"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1540px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-14">
           {/* Header */}
           <div className="text-center max-w-3xl mx-auto space-y-3 mb-16">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-surface-900 tracking-tight">
-              Why <span className="text-[#4F46E5]">CampusMitra</span>?
+              Why <span style={{ color: Colors.primary }}>CampusMitra</span>?
             </h2>
-            <p className="text-lg sm:text-xl font-semibold text-[#4F46E5]">
+            <p className="text-lg sm:text-xl font-bold" style={{ color: Colors.deepprimary }}>
               One Platform. Multiple Solutions. Real Results.
             </p>
             <p className="text-sm sm:text-base text-surface-500">
-              <span className="text-[#4F46E5] font-semibold">Cut costs</span>{" "}
+              <span style={{ color: Colors.primary }} className="font-semibold">Cut costs</span>{" "}
               and operate efficiently. Build your{" "}
-              <span className="text-[#4F46E5] font-semibold">
+              <span style={{ color: Colors.primary }} className="font-semibold">
                 authentic brand
               </span>{" "}
               and deepen engagement—
-              <span className="text-[#4F46E5] font-semibold">
+              <span style={{ color: Colors.primary }} className="font-semibold">
                 all in one place
               </span>
               .
@@ -1021,7 +1130,7 @@ export const LandingPage: React.FC = () => {
         id="whom-we-serve"
         className="py-20 lg:py-28 bg-[#FDF6E9] border-b border-amber-200/60"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1540px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-14">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-16">
             {/* Left: Heading & Description */}
             <div className="lg:col-span-7 space-y-4">
@@ -1129,7 +1238,7 @@ export const LandingPage: React.FC = () => {
         {/* Subtle decorative radial background blur */}
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-linear-to-tr from-amber-200/20 via-orange-100/30 to-yellow-100/20 blur-3xl rounded-full pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <div className="max-w-[1540px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-14 text-center relative z-10">
           {/* Section Header */}
           <div className="max-w-4xl mx-auto space-y-3 mb-10">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-surface-900 tracking-tight leading-tight">
@@ -1238,7 +1347,8 @@ export const LandingPage: React.FC = () => {
             <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
               <Link
                 to="/register"
-                className="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+                className="px-7 py-3 rounded-full text-white font-bold text-sm shadow-md hover:shadow-lg transition-all hover:scale-105 flex items-center gap-2"
+                style={{ backgroundColor: Colors.primary }}
               >
                 <span>Join Campus Network</span>
                 <ArrowRight className="h-4 w-4" />
@@ -1262,24 +1372,31 @@ export const LandingPage: React.FC = () => {
 
       {/* 6. CLEAN FOOTER (Directly following the network section, as requested) */}
       <footer className="bg-white border-t border-surface-200 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-surface-500">
-          <div className="flex items-center gap-2">
+        <div className="max-w-[1540px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-14 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-surface-500">
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/logo.png"
+              alt="CampusMitra Logo"
+              className="h-7 w-7 object-contain"
+            />
             <span className="font-bold text-surface-900">CampusMitra</span>
+            <span className="text-surface-300">|</span>
             <span>© 2026. Student Organization Management System.</span>
           </div>
           <div className="flex items-center gap-6">
-            <Link to="/events" className="hover:text-brand-600">
+            <Link to="/events" className="hover:text-[#6C35DC] transition-colors">
               Events
             </Link>
-            <Link to="/memberships" className="hover:text-brand-600">
+            <Link to="/memberships" className="hover:text-[#6C35DC] transition-colors">
               Memberships
             </Link>
-            <Link to="/merchandise" className="hover:text-brand-600">
+            <Link to="/merchandise" className="hover:text-[#6C35DC] transition-colors">
               Merchandise
             </Link>
             <Link
               to="/login"
-              className="hover:text-brand-600 font-semibold text-brand-600"
+              className="font-bold transition-colors hover:text-[#713CE8]"
+              style={{ color: Colors.primary }}
             >
               Sign In
             </Link>
