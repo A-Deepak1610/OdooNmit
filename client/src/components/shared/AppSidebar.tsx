@@ -144,7 +144,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
         {Object.entries(groupedItems).map(([groupTitle, items]) => (
           <div key={groupTitle} style={{ marginBottom: isCollapsed ? '12px' : '8px' }}>
             {/* Section Header */}
-            {!isCollapsed ? (
+            {!isCollapsed && groupTitle !== 'MAIN' && (
               <div
                 style={{
                   fontSize: '10px',
@@ -160,7 +160,8 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               >
                 {groupTitle}
               </div>
-            ) : (
+            )}
+            {isCollapsed && groupTitle !== 'MAIN' && (
               <div
                 style={{
                   height: '1px',

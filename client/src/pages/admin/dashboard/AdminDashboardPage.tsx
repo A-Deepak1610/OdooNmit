@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  Building2,
   Ticket,
   Vote,
   Sparkles,
@@ -357,18 +356,20 @@ export const AdminDashboardPage: React.FC = () => {
       {/* ── 1. QUICK OVERVIEW ────────────────────────────────────────── */}
       {activeTab === 'overview' && overviewData && (
         <div className="space-y-6">
-          {/* Focused 3 Key Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Clubs KPI */}
+          {/* 4 Focused Metric Cards Matching Sidebar Modules */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* 1. Clubs KPI */}
             <div
               onClick={() => navigate('/admin/clubs')}
-              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 transition-all cursor-pointer"
+              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider">Campus Clubs</span>
-                <Building2 className="w-4 h-4 text-indigo-600" />
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Club Management</span>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-slate-100 text-slate-700">12</span>
               </div>
-              <div className="text-3xl font-black text-slate-900">{overviewData.kpis.totalClubs}</div>
+              <div className="text-3xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                {overviewData.kpis.totalClubs}
+              </div>
               <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-emerald-600">
                 <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
                 <span>{overviewData.kpis.activeClubs} Active</span>
@@ -377,69 +378,60 @@ export const AdminDashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Tickets KPI */}
+            {/* 2. Tickets KPI */}
             <div
               onClick={() => navigate('/admin/tickets')}
-              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 transition-all cursor-pointer"
+              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider">Support Queries</span>
-                <Ticket className="w-4 h-4 text-purple-600" />
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Ticket Support</span>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-800">4 Open</span>
               </div>
-              <div className="text-3xl font-black text-slate-900">{overviewData.kpis.totalTickets}</div>
+              <div className="text-3xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                {overviewData.kpis.totalTickets}
+              </div>
               <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-amber-600">
                 <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />
-                <span>{overviewData.kpis.openTickets} Open</span>
+                <span>{overviewData.kpis.openTickets} Open Queries</span>
                 <span className="text-slate-400">•</span>
                 <span className="text-indigo-600">{overviewData.kpis.inProgressTickets} In Progress</span>
               </div>
             </div>
 
-            {/* Elections KPI */}
+            {/* 3. Elections KPI */}
             <div
               onClick={() => navigate('/admin/elections')}
-              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 transition-all cursor-pointer"
+              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider">Annual Elections</span>
-                <Vote className="w-4 h-4 text-blue-600" />
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Annual Elections</span>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-slate-100 text-slate-700">3</span>
               </div>
-              <div className="text-3xl font-black text-slate-900">{overviewData.kpis.totalElections}</div>
+              <div className="text-3xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                {overviewData.kpis.totalElections}
+              </div>
               <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-blue-600">
                 <span className="inline-block w-2 h-2 rounded-full bg-blue-500" />
-                <span>{overviewData.kpis.activeElections} Active Voting / Nominations</span>
+                <span>{overviewData.kpis.activeElections} Active Elections</span>
               </div>
             </div>
-          </div>
 
-          {/* Quick Triggers */}
-          <div className="bg-slate-900 rounded-2xl p-4 text-white flex flex-wrap items-center justify-between gap-3 shadow-md">
-            <div>
-              <h3 className="text-sm font-bold">Executive Actions</h3>
-              <p className="text-xs text-slate-400">Charter clubs, broadcast annual elections, or reply to support queries.</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setShowCreateClubModal(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100 text-xs font-bold cursor-pointer transition-all shadow-xs"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Create Club</span>
-              </button>
-              <button
-                onClick={() => setShowCreateElectionModal(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold cursor-pointer transition-all shadow-xs"
-              >
-                <Vote className="w-3.5 h-3.5" />
-                <span>Announce Election</span>
-              </button>
-              <button
-                onClick={() => navigate('/admin/tickets')}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold cursor-pointer transition-all"
-              >
-                <Ticket className="w-3.5 h-3.5" />
-                <span>Open Tickets ({overviewData.kpis.openTickets})</span>
-              </button>
+            {/* 4. DB Query Assistant KPI */}
+            <div
+              onClick={() => navigate('/admin/assistant')}
+              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between text-slate-500 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">DB Assistant</span>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-purple-100 text-purple-800">NLP</span>
+              </div>
+              <div className="text-2xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                Natural Query
+              </div>
+              <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-purple-600">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Ask DB in plain English</span>
+              </div>
             </div>
           </div>
 
@@ -812,7 +804,20 @@ export const AdminDashboardPage: React.FC = () => {
                             </span>
                           </div>
 
+                          {cand.statementOfPurpose && (
+                            <div className="text-[11px] text-slate-700 bg-white p-2 rounded-lg border border-slate-200/60 mb-2">
+                              <span className="font-bold text-slate-500 uppercase text-[9px] block">Why Applying:</span>
+                              {cand.statementOfPurpose}
+                            </div>
+                          )}
+                          {cand.experience && (
+                            <div className="text-[11px] text-slate-700 bg-white p-2 rounded-lg border border-slate-200/60 mb-2">
+                              <span className="font-bold text-slate-500 uppercase text-[9px] block">Leadership Experience:</span>
+                              {cand.experience}
+                            </div>
+                          )}
                           <div className="text-xs text-slate-600 line-clamp-3 bg-white p-2.5 rounded-lg border border-slate-200/60 leading-relaxed mb-3">
+                            <span className="font-bold text-slate-500 uppercase text-[9px] block">Manifesto:</span>
                             "{cand.manifesto}"
                           </div>
                         </div>

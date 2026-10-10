@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Search,
   Moon,
@@ -12,6 +13,8 @@ import { useNotificationStore } from '../../stores/notification.store';
 import { NotificationDropdown } from './NotificationDropdown';
 
 export const AppHeader: React.FC = () => {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
   const { toggleSidebar, toggleMobileSidebar } = useUiStore();
   const [isDark, setIsDark] = React.useState<boolean>(() => {
     return document.documentElement.getAttribute('data-theme') === 'dark';
@@ -85,37 +88,39 @@ export const AppHeader: React.FC = () => {
           <Menu style={{ width: '20px', height: '20px' }} />
         </button>
 
-        <div style={{ position: 'relative', maxWidth: '340px', width: '100%', minWidth: '140px' }}>
-          <Search
-            style={{
-              position: 'absolute',
-              left: '10px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: '16px',
-              height: '16px',
-              color: 'var(--muted-foreground)',
-              pointerEvents: 'none',
-            }}
-          />
-          <input
-            type="text"
-            placeholder="Search events, members, ledger..."
-            style={{
-              width: '100%',
-              height: '36px',
-              paddingLeft: '36px',
-              paddingRight: '12px',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-md)',
-              fontSize: '13px',
-              backgroundColor: 'var(--muted)',
-              color: 'var(--foreground)',
-              outline: 'none',
-              fontFamily: 'var(--font-family-body)',
-            }}
-          />
-        </div>
+        {!isAdminRoute && (
+          <div style={{ position: 'relative', maxWidth: '340px', width: '100%', minWidth: '140px' }}>
+            <Search
+              style={{
+                position: 'absolute',
+                left: '10px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '16px',
+                height: '16px',
+                color: 'var(--muted-foreground)',
+                pointerEvents: 'none',
+              }}
+            />
+            <input
+              type="text"
+              placeholder="Search..."
+              style={{
+                width: '100%',
+                height: '36px',
+                paddingLeft: '36px',
+                paddingRight: '12px',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '13px',
+                backgroundColor: 'var(--muted)',
+                color: 'var(--foreground)',
+                outline: 'none',
+                fontFamily: 'var(--font-family-body)',
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* 2. Navbar Right — Actions (Theme toggle + Bell with red dot) */}

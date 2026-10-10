@@ -58,6 +58,12 @@ enum CandidateStatus {
   REJECTED
 }
 
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 // New enums for event booking and payments
 
 enum PaymentStatus {
@@ -102,14 +108,16 @@ model User {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  roles           UserRole[]
-  refreshTokens   RefreshToken[]
-  ticketsCreated  SupportTicket[] @relation("TicketsCreated")
-  ticketsAssigned SupportTicket[] @relation("TicketsAssigned")
-  supportMessages SupportMessage[]
-  nominations     ElectionCandidate[]
-  votesCast       ElectionVote[]
-  notifications   Notification[]
+  roles                  UserRole[]
+  refreshTokens          RefreshToken[]
+  ticketsCreated         SupportTicket[]          @relation("TicketsCreated")
+  ticketsAssigned        SupportTicket[]          @relation("TicketsAssigned")
+  supportMessages        SupportMessage[]
+  nominations            ElectionCandidate[]
+  votesCast              ElectionVote[]
+  notifications          Notification[]
+  membershipApplications MembershipApplication[]
+  announcements          Announcement[]
 
   // Added for event booking and Razorpay
   bookings Booking[]
@@ -119,20 +127,26 @@ model User {
 }
 
 model Organization {
-  id          String   @id
-  name        String
-  slug        String   @unique
-  description String?  @db.Text
-  category    String?
-  logoUrl     String?
-  coverUrl    String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id
+  name          String
+  slug          String   @unique
+  description   String?  @db.Text
+  category      String?
+  logoUrl       String?
+  coverUrl      String?
+  websiteUrl    String?
+  instagramUrl  String?
+  linkedinUrl   String?
+  membershipFee Int      @default(50000)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  userRoles      UserRole[]
-  supportTickets SupportTicket[]
-  elections      Election[]
+  userRoles              UserRole[]
+  supportTickets         SupportTicket[]
+  elections              Election[]
+  membershipApplications MembershipApplication[]
+  announcements          Announcement[]
 
   // Added for event management
   events Event[]
@@ -238,19 +252,21 @@ model Election {
 }
 
 model ElectionCandidate {
-  id          String          @id
-  electionId  String
-  userId      String
-  manifesto   String          @db.Text
-  status      CandidateStatus @default(PENDING)
-  voteCount   Int             @default(0)
-  approvedAt  DateTime?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id                 String          @id // Populated with UUID v7
+  electionId         String
+  userId             String
+  manifesto          String          @db.Text
+  statementOfPurpose String?         @db.Text // Why are you applying / Leadership vision
+  experience         String?         @db.Text // Relevant experience / Credentials
+  status             CandidateStatus @default(PENDING)
+  voteCount          Int             @default(0)
+  approvedAt         DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
 
-  election Election        @relation(fields: [electionId], references: [id], onDelete: Cascade)
-  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  votes    ElectionVote[]
+  election           Election        @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  votes              ElectionVote[]
 
   @@unique([electionId, userId])
   @@index([electionId])
@@ -371,3 +387,49 @@ model Payment {
   @@index([status])
   @@map("payments")
 }
+
+model MembershipApplication {
+  id                 String            @id
+  organizationId     String
+  userId             String
+  statementOfPurpose String?           @db.Text
+  experience         String?           @db.Text
+  department         String?
+  semester           String?
+  status             ApplicationStatus @default(PENDING)
+  reviewedAt         DateTime?
+  reviewedById       String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([status])
+  @@map("membership_applications")
+}
+
+model Announcement {
+  id             String       @id
+  organizationId String
+  authorId       String
+  title          String
+  content        String       @db.Text
+  category       String       @default("GENERAL")
+  isPinned       Boolean      @default(false)
+  isMemberOnly   Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  author       User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("announcements")
+}
+

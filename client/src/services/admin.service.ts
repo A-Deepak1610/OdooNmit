@@ -81,6 +81,8 @@ export interface ElectionCandidateItem {
   electionId: string;
   userId: string;
   manifesto: string;
+  statementOfPurpose?: string | null;
+  experience?: string | null;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   voteCount: number;
   approvedAt: string | null;
