@@ -23,6 +23,7 @@ import {
   Database,
   CalendarClock,
   Layers,
+  Building2,
 } from 'lucide-react';
 
 /**
@@ -312,6 +313,14 @@ export const navigationConfig: NavigationItem[] = [
     icon: LayoutDashboard,
     allowedRoles: [ROLES.ADMIN],
     group: 'MAIN',
+  },
+  {
+    id: 'admin-clubs',
+    label: 'Clubs',
+    path: '/admin/clubs',
+    icon: Building2,
+    allowedRoles: [ROLES.ADMIN],
+    group: 'CLUB MANAGEMENT',
   },
   {
     id: 'admin-my-events',

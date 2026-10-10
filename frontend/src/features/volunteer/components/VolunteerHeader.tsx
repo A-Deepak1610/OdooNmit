@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../../stores/auth.store';
-import { ROLE_DEFAULT_PATHS, UserRole } from '../../../config/roles';
 import {
   Menu,
   Moon,
   Sun,
-  Shield,
-  Building2,
   HeartHandshake,
 } from 'lucide-react';
 
@@ -16,8 +11,6 @@ interface VolunteerHeaderProps {
 }
 
 export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({ onToggleMobileMenu }) => {
-  const navigate = useNavigate();
-  const { role, roles, switchRole, collegeName } = useAuthStore();
   const [isDark, setIsDark] = useState<boolean>(() => {
     return document.documentElement.getAttribute('data-theme') === 'dark';
   });
@@ -27,17 +20,6 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({ onToggleMobile
     document.documentElement.setAttribute('data-theme', nextTheme);
     localStorage.setItem('campus_theme', nextTheme);
     setIsDark(!isDark);
-  };
-
-  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const targetRole = e.target.value as UserRole;
-    if (targetRole && roles.includes(targetRole)) {
-      switchRole(targetRole);
-      const defaultPath = ROLE_DEFAULT_PATHS[targetRole];
-      if (defaultPath) {
-        navigate(defaultPath);
-      }
-    }
   };
 
   return (
@@ -56,7 +38,7 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({ onToggleMobile
         zIndex: 30,
       }}
     >
-      {/* ── Left Side: Mobile Hamburger + Institution Context ───────── */}
+      {/* ── Left Side: Mobile Hamburger Menu ───────── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         {/* Mobile menu trigger */}
         <button
@@ -67,65 +49,6 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({ onToggleMobile
         >
           <Menu style={{ width: '20px', height: '20px' }} />
         </button>
-
-        {/* Institution Context Badge */}
-        <div
-          style={{
-            fontSize: '14px',
-            fontWeight: 500,
-            padding: '6px 12px',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-md)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            backgroundColor: 'var(--background)',
-            color: 'var(--foreground)',
-          }}
-        >
-          <Building2 style={{ width: '16px', height: '16px', color: 'var(--muted-foreground)' }} />
-          <span>{collegeName || 'Dr.SNS Rajalakshmi College'} — Skyline Student Association</span>
-        </div>
-
-        {/* Multi-role Workspace Switcher */}
-        {roles.length > 1 && (
-          <div
-            style={{
-              fontSize: '12px',
-              fontWeight: 500,
-              padding: '4px 10px',
-              border: '1px solid #bfdbfe',
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: '#eff6ff',
-              color: '#1e3a8a',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <Shield style={{ width: '14px', height: '14px', color: '#2563eb' }} />
-            <span style={{ fontWeight: 600 }}>Active Role:</span>
-            <select
-              value={role || ''}
-              onChange={handleRoleChange}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#1e3a8a',
-                fontSize: '12px',
-                fontWeight: 600,
-                outline: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              {roles.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
       </div>
 
       {/* ── Right Side: Volunteer Desk Badge & Theme Toggle ────────── */}

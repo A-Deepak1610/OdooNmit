@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Calendar,
   Users,
@@ -17,6 +18,7 @@ import { FinanceLedgerModule } from '../../components/modules/finance/FinanceLed
 import { AnnouncementBoardModule } from '../../components/modules/announcements/AnnouncementBoardModule';
 
 export const AdminDashboardPage: React.FC = () => {
+  const navigate = useNavigate();
   const [activeStream, setActiveStream] = useState<WorkstreamId>('all');
 
   const statsCards = [
@@ -27,7 +29,7 @@ export const AdminDashboardPage: React.FC = () => {
   ];
 
   const quickActions = [
-    { label: 'Register Club Tenant', description: 'Onboard new campus chapter with dues settings', color: '#1e3a8a', bg: '#eff6ff', icon: Building2, targetStream: 'all' as WorkstreamId },
+    { label: 'Register Club Tenant', description: 'Onboard new campus chapter with dues settings', color: '#1e3a8a', bg: '#eff6ff', icon: Building2, targetPath: '/admin/clubs' },
     { label: 'Audit Treasury Ledger', description: 'Inspect end-of-semester income & closing balances', color: '#15803d', bg: '#dcfce7', icon: IndianRupee, targetStream: 'finance_announcements' as WorkstreamId },
     { label: 'Manage All Events', description: 'Monitor Spring Gala quotas and door check-in rates', color: '#b45309', bg: '#fef3c7', icon: Calendar, targetStream: 'events' as WorkstreamId },
   ];
@@ -82,6 +84,7 @@ export const AdminDashboardPage: React.FC = () => {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <button
+                onClick={() => navigate('/admin/clubs')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -181,7 +184,13 @@ export const AdminDashboardPage: React.FC = () => {
                 return (
                   <div
                     key={i}
-                    onClick={() => action.targetStream && setActiveStream(action.targetStream)}
+                    onClick={() => {
+                      if ('targetPath' in action && action.targetPath) {
+                        navigate(action.targetPath as string);
+                      } else if (action.targetStream) {
+                        setActiveStream(action.targetStream);
+                      }
+                    }}
                     style={{
                       background: 'white',
                       borderRadius: '12px',
@@ -269,18 +278,35 @@ export const AdminDashboardPage: React.FC = () => {
                   <ShieldCheck style={{ width: '16px', height: '16px', color: '#1e3a8a' }} />
                   Multi-Tenant Club Directory
                 </h3>
-                <span
-                  style={{
-                    color: '#15803d',
-                    background: '#dcfce7',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    fontWeight: 600,
-                    fontSize: '11px',
-                  }}
-                >
-                  Active Isolation
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span
+                    style={{
+                      color: '#15803d',
+                      background: '#dcfce7',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontWeight: 600,
+                      fontSize: '11px',
+                    }}
+                  >
+                    Active Isolation
+                  </span>
+                  <button
+                    onClick={() => navigate('/admin/clubs')}
+                    style={{
+                      background: '#eff6ff',
+                      color: '#1e3a8a',
+                      border: '1px solid #bfdbfe',
+                      borderRadius: '6px',
+                      padding: '4px 10px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Manage All Clubs →
+                  </button>
+                </div>
               </div>
 
               <div style={{ overflowX: 'auto' }}>
@@ -353,16 +379,19 @@ export const AdminDashboardPage: React.FC = () => {
                       </td>
                       <td style={{ padding: '12px', textAlign: 'right' }}>
                         <button
+                          onClick={() => navigate('/admin/clubs')}
                           style={{
-                            color: '#64748b',
-                            background: 'none',
-                            border: 'none',
+                            color: '#1e3a8a',
+                            background: '#eff6ff',
+                            border: '1px solid #bfdbfe',
+                            borderRadius: '4px',
+                            padding: '4px 8px',
                             cursor: 'pointer',
                             fontSize: '12px',
-                            fontWeight: 500,
+                            fontWeight: 600,
                           }}
                         >
-                          Details
+                          Details →
                         </button>
                       </td>
                     </tr>
