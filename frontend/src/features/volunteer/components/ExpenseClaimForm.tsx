@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ExpenseCategory, VolunteerExpenseClaim } from '../types/volunteer.types';
-import { Receipt, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Receipt, AlertCircle, CheckCircle2, Loader2, X } from 'lucide-react';
 
 interface ExpenseClaimFormProps {
   submitting: boolean;
@@ -27,18 +27,18 @@ export const ExpenseClaimForm: React.FC<ExpenseClaimFormProps> = ({
 
     // Client-side validation
     if (!title.trim()) {
-      setValidationError('Please provide a descriptive title for this expense.');
+      setValidationError('Please provide a descriptive title for this expense item.');
       return;
     }
 
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount) || numAmount <= 0) {
-      setValidationError('Please enter a valid expense amount greater than ₹0.');
+      setValidationError('Please enter a valid expense amount in INR greater than ₹0.');
       return;
     }
 
     if (!receiptNote.trim()) {
-      setValidationError('Please include a receipt reference, tax invoice number, or store details.');
+      setValidationError('Please provide an invoice number, cash memo reference, or vendor store details.');
       return;
     }
 
@@ -64,32 +64,123 @@ export const ExpenseClaimForm: React.FC<ExpenseClaimFormProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 shadow-sm space-y-4"
+      style={{
+        background: 'var(--card-bg, #ffffff)',
+        borderRadius: '14px',
+        border: '1px solid var(--border-color, #e2e8f0)',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+        padding: '28px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+      }}
+      className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
     >
-      <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-        <Receipt className="w-5 h-5 text-blue-600" />
-        <div>
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-            Submit New Reimbursement Claim
-          </h3>
-          <p className="text-xs text-slate-500">
-            Claims are verified by the Skyline Club Treasurer against uploaded bills before payout.
-          </p>
+      {/* Form Header */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingBottom: '16px',
+          borderBottom: '1px solid var(--border-color, #f1f5f9)',
+        }}
+        className="border-slate-100 dark:border-slate-800"
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
+              background: '#eff6ff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+            className="dark:bg-blue-950"
+          >
+            <Receipt style={{ width: '22px', height: '22px', color: '#1e3a8a' }} className="dark:text-blue-400" />
+          </div>
+          <div>
+            <h3
+              style={{
+                fontSize: '18px',
+                fontWeight: 700,
+                color: 'var(--foreground, #1e293b)',
+                margin: '0 0 2px 0',
+              }}
+              className="text-slate-900 dark:text-slate-100"
+            >
+              Submit New Reimbursement Claim
+            </h3>
+            <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+              Submitted claims are verified by the Skyline Club Treasurer against tax bills before bank disbursement.
+            </p>
+          </div>
         </div>
+
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#94a3b8',
+              padding: '6px',
+              borderRadius: '6px',
+            }}
+            className="hover:text-slate-700 dark:hover:text-slate-300"
+          >
+            <X style={{ width: '20px', height: '20px' }} />
+          </button>
+        )}
       </div>
 
       {validationError && (
-        <div className="p-3 rounded-md bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-400 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
+        <div
+          style={{
+            padding: '12px 16px',
+            borderRadius: '8px',
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}
+          className="dark:bg-rose-950/40 dark:border-rose-900 dark:text-rose-400"
+        >
+          <AlertCircle style={{ width: '18px', height: '18px', flexShrink: 0 }} />
           <span>{validationError}</span>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Form Fields Grid */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '20px',
+        }}
+      >
         {/* Title */}
-        <div className="md:col-span-2">
-          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Expense Title / Item Description *
+        <div style={{ gridColumn: '1 / -1' }}>
+          <label
+            style={{
+              display: 'block',
+              fontSize: '13px',
+              fontWeight: 600,
+              color: 'var(--foreground, #334155)',
+              marginBottom: '6px',
+            }}
+            className="text-slate-700 dark:text-slate-300"
+          >
+            Expense Description / Item Name *
           </label>
           <input
             type="text"
@@ -97,17 +188,46 @@ export const ExpenseClaimForm: React.FC<ExpenseClaimFormProps> = ({
             placeholder="e.g. Bake sale butter, baking trays & food packaging"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            style={{
+              width: '100%',
+              padding: '10px 14px',
+              fontSize: '14px',
+              borderRadius: '8px',
+              border: '1px solid var(--border-color, #cbd5e1)',
+              background: 'var(--input-bg, #ffffff)',
+              color: 'var(--foreground, #1e293b)',
+              outline: 'none',
+            }}
+            className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100"
           />
         </div>
 
         {/* Amount */}
         <div>
-          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Amount (₹ INR) *
+          <label
+            style={{
+              display: 'block',
+              fontSize: '13px',
+              fontWeight: 600,
+              color: 'var(--foreground, #334155)',
+              marginBottom: '6px',
+            }}
+            className="text-slate-700 dark:text-slate-300"
+          >
+            Claim Amount (₹ INR) *
           </label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-semibold">
+          <div style={{ position: 'relative' }}>
+            <span
+              style={{
+                position: 'absolute',
+                left: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: '14px',
+                fontWeight: 700,
+                color: '#64748b',
+              }}
+            >
               ₹
             </span>
             <input
@@ -118,20 +238,50 @@ export const ExpenseClaimForm: React.FC<ExpenseClaimFormProps> = ({
               placeholder="e.g. 1450"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full pl-7 pr-3 py-2 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+              style={{
+                width: '100%',
+                padding: '10px 14px 10px 30px',
+                fontSize: '14px',
+                fontWeight: 600,
+                borderRadius: '8px',
+                border: '1px solid var(--border-color, #cbd5e1)',
+                background: 'var(--input-bg, #ffffff)',
+                color: 'var(--foreground, #1e293b)',
+                outline: 'none',
+              }}
+              className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100"
             />
           </div>
         </div>
 
         {/* Category */}
         <div>
-          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Expense Category *
+          <label
+            style={{
+              display: 'block',
+              fontSize: '13px',
+              fontWeight: 600,
+              color: 'var(--foreground, #334155)',
+              marginBottom: '6px',
+            }}
+            className="text-slate-700 dark:text-slate-300"
+          >
+            Budget Category *
           </label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as ExpenseCategory)}
-            className="w-full px-3 py-2 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            style={{
+              width: '100%',
+              padding: '10px 14px',
+              fontSize: '14px',
+              borderRadius: '8px',
+              border: '1px solid var(--border-color, #cbd5e1)',
+              background: 'var(--input-bg, #ffffff)',
+              color: 'var(--foreground, #1e293b)',
+              outline: 'none',
+            }}
+            className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100"
           >
             <option value="SUPPLIES">Supplies & Consumables</option>
             <option value="FOOD">Food & Baking Ingredients</option>
@@ -143,15 +293,34 @@ export const ExpenseClaimForm: React.FC<ExpenseClaimFormProps> = ({
           </select>
         </div>
 
-        {/* Project association */}
+        {/* Project Association */}
         <div>
-          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Related Project or Event
+          <label
+            style={{
+              display: 'block',
+              fontSize: '13px',
+              fontWeight: 600,
+              color: 'var(--foreground, #334155)',
+              marginBottom: '6px',
+            }}
+            className="text-slate-700 dark:text-slate-300"
+          >
+            Associated Club Project / Activity
           </label>
           <select
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
-            className="w-full px-3 py-2 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            style={{
+              width: '100%',
+              padding: '10px 14px',
+              fontSize: '14px',
+              borderRadius: '8px',
+              border: '1px solid var(--border-color, #cbd5e1)',
+              background: 'var(--input-bg, #ffffff)',
+              color: 'var(--foreground, #1e293b)',
+              outline: 'none',
+            }}
+            className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100"
           >
             <option value="Spring Charity Bake Sale & Fundraiser">Spring Charity Bake Sale & Fundraiser</option>
             <option value="Skyline Annual Spring Gala 2026">Skyline Annual Spring Gala 2026</option>
@@ -162,43 +331,102 @@ export const ExpenseClaimForm: React.FC<ExpenseClaimFormProps> = ({
 
         {/* Date of Purchase */}
         <div>
-          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Date of Purchase *
+          <label
+            style={{
+              display: 'block',
+              fontSize: '13px',
+              fontWeight: 600,
+              color: 'var(--foreground, #334155)',
+              marginBottom: '6px',
+            }}
+            className="text-slate-700 dark:text-slate-300"
+          >
+            Purchase / Invoice Date *
           </label>
           <input
             type="date"
             required
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full px-3 py-2 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            style={{
+              width: '100%',
+              padding: '10px 14px',
+              fontSize: '14px',
+              borderRadius: '8px',
+              border: '1px solid var(--border-color, #cbd5e1)',
+              background: 'var(--input-bg, #ffffff)',
+              color: 'var(--foreground, #1e293b)',
+              outline: 'none',
+            }}
+            className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100"
           />
         </div>
 
         {/* Receipt / Invoice Details */}
-        <div className="md:col-span-2">
-          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Receipt / Bill Reference *
+        <div style={{ gridColumn: '1 / -1' }}>
+          <label
+            style={{
+              display: 'block',
+              fontSize: '13px',
+              fontWeight: 600,
+              color: 'var(--foreground, #334155)',
+              marginBottom: '6px',
+            }}
+            className="text-slate-700 dark:text-slate-300"
+          >
+            Receipt Reference / Store Cash Memo *
           </label>
           <input
             type="text"
             required
-            placeholder="e.g. Supermarket Bill #9482 / Store Cash Memo #301"
+            placeholder="e.g. Supermarket Bill #9482 / Metro Cash & Carry Memo #301"
             value={receiptNote}
             onChange={(e) => setReceiptNote(e.target.value)}
-            className="w-full px-3 py-2 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            style={{
+              width: '100%',
+              padding: '10px 14px',
+              fontSize: '14px',
+              borderRadius: '8px',
+              border: '1px solid var(--border-color, #cbd5e1)',
+              background: 'var(--input-bg, #ffffff)',
+              color: 'var(--foreground, #1e293b)',
+              outline: 'none',
+            }}
+            className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100"
           />
-          <p className="text-[11px] text-slate-400 mt-1">
-            Keep physical or digital receipts safe for handover during audit verification.
+          <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
+            Retain paper or digital copies for semester audit reconciliation with the Treasurer Office.
           </p>
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+      {/* Action Buttons */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          gap: '12px',
+          paddingTop: '16px',
+          borderTop: '1px solid var(--border-color, #f1f5f9)',
+        }}
+        className="border-slate-100 dark:border-slate-800"
+      >
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            style={{
+              padding: '10px 18px',
+              fontSize: '13px',
+              fontWeight: 600,
+              borderRadius: '8px',
+              border: '1px solid var(--border-color, #e2e8f0)',
+              background: 'transparent',
+              color: 'var(--foreground, #64748b)',
+              cursor: 'pointer',
+            }}
+            className="hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             Cancel
           </button>
@@ -206,16 +434,30 @@ export const ExpenseClaimForm: React.FC<ExpenseClaimFormProps> = ({
         <button
           type="submit"
           disabled={submitting}
-          className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-sm"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 20px',
+            fontSize: '13px',
+            fontWeight: 600,
+            borderRadius: '8px',
+            border: 'none',
+            background: '#1e3a8a',
+            color: 'white',
+            cursor: submitting ? 'not-allowed' : 'pointer',
+            opacity: submitting ? 0.7 : 1,
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+          }}
         >
           {submitting ? (
             <>
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader2 style={{ width: '16px', height: '16px' }} className="animate-spin" />
               <span>Submitting Claim...</span>
             </>
           ) : (
             <>
-              <CheckCircle2 className="w-3.5 h-3.5" />
+              <CheckCircle2 style={{ width: '16px', height: '16px' }} />
               <span>Submit Reimbursement Claim</span>
             </>
           )}

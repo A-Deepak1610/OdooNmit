@@ -41,39 +41,85 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({ onToggleMobile
   };
 
   return (
-    <header className="h-16 px-4 md:px-8 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 z-30 shrink-0">
-      {/* ── Left Side: Mobile Menu + Campus Context ─────────────── */}
-      <div className="flex items-center gap-3">
+    <header
+      style={{
+        height: '60px',
+        backgroundColor: 'var(--background)',
+        borderBottom: '1px solid var(--border)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 24px',
+        flexShrink: 0,
+        position: 'sticky',
+        top: 0,
+        zIndex: 30,
+      }}
+    >
+      {/* ── Left Side: Mobile Hamburger + Institution Context ───────── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         {/* Mobile menu trigger */}
         <button
           onClick={onToggleMobileMenu}
-          className="md:hidden p-2 text-slate-500 hover:text-slate-800 dark:text-slate-400 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="md:hidden p-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
           aria-label="Toggle navigation drawer"
+          style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex' }}
         >
-          <Menu className="w-5 h-5" />
+          <Menu style={{ width: '20px', height: '20px' }} />
         </button>
 
-        {/* Club tenant info */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300">
-          <Building2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-          <span className="hidden sm:inline">{collegeName || 'Dr.SNS Rajalakshmi College'} —</span>
-          <span className="font-semibold text-slate-900 dark:text-slate-100">
-            Skyline Student Association
-          </span>
+        {/* Institution Context Badge */}
+        <div
+          style={{
+            fontSize: '14px',
+            fontWeight: 500,
+            padding: '6px 12px',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-md)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: 'var(--background)',
+            color: 'var(--foreground)',
+          }}
+        >
+          <Building2 style={{ width: '16px', height: '16px', color: 'var(--muted-foreground)' }} />
+          <span>{collegeName || 'Dr.SNS Rajalakshmi College'} — Skyline Student Association</span>
         </div>
 
-        {/* Role Workspace Switcher for multi-role users */}
+        {/* Multi-role Workspace Switcher */}
         {roles.length > 1 && (
-          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300">
-            <Shield className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-            <span className="text-[11px] font-semibold">Active Role:</span>
+          <div
+            style={{
+              fontSize: '12px',
+              fontWeight: 500,
+              padding: '4px 10px',
+              border: '1px solid #bfdbfe',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: '#eff6ff',
+              color: '#1e3a8a',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <Shield style={{ width: '14px', height: '14px', color: '#2563eb' }} />
+            <span style={{ fontWeight: 600 }}>Active Role:</span>
             <select
               value={role || ''}
               onChange={handleRoleChange}
-              className="bg-transparent border-none text-xs font-bold text-blue-900 dark:text-blue-200 focus:outline-none cursor-pointer"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#1e3a8a',
+                fontSize: '12px',
+                fontWeight: 600,
+                outline: 'none',
+                cursor: 'pointer',
+              }}
             >
               {roles.map((r) => (
-                <option key={r} value={r} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">
+                <option key={r} value={r}>
                   {r}
                 </option>
               ))}
@@ -82,20 +128,50 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({ onToggleMobile
         )}
       </div>
 
-      {/* ── Right Side: Volunteer Badge & Theme Toggle ─────────── */}
-      <div className="flex items-center gap-2.5">
-        <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-          <HeartHandshake className="w-3.5 h-3.5" />
-          <span>Volunteer Portal</span>
-        </span>
+      {/* ── Right Side: Volunteer Desk Badge & Theme Toggle ────────── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '5px 12px',
+            borderRadius: '20px',
+            backgroundColor: '#dcfce7',
+            color: '#15803d',
+            border: '1px solid #bbf7d0',
+            fontSize: '12px',
+            fontWeight: 600,
+          }}
+        >
+          <HeartHandshake style={{ width: '15px', height: '15px' }} />
+          <span>Volunteer Operations Desk</span>
+        </div>
 
-        {/* Theme Toggle */}
+        {/* Theme Toggle Button */}
         <button
           onClick={toggleTheme}
           title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          className="p-2 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--muted-foreground)',
+            cursor: 'pointer',
+            padding: '8px',
+            borderRadius: 'var(--radius-md)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'color 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--foreground)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--muted-foreground)';
+          }}
         >
-          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          {isDark ? <Sun style={{ width: '18px', height: '18px' }} /> : <Moon style={{ width: '18px', height: '18px' }} />}
         </button>
       </div>
     </header>

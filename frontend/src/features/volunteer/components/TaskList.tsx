@@ -1,8 +1,5 @@
 import React from 'react';
 import { VolunteerTask, TaskStatus } from '../types/volunteer.types';
-import { TaskStatusBadge } from './TaskStatusBadge';
-import { TaskPriorityBadge } from './TaskPriorityBadge';
-import { TaskCard } from './TaskCard';
 import {
   Search,
   AlertCircle,
@@ -12,6 +9,7 @@ import {
   Loader2,
   CheckSquare,
   RefreshCw,
+  Clock,
 } from 'lucide-react';
 
 interface TaskListProps {
@@ -56,29 +54,63 @@ export const TaskList: React.FC<TaskListProps> = ({
   stats,
 }) => {
   return (
-    <div className="space-y-4">
-      {/* ── 1. FILTERS & SEARCH TOOLBAR ────────────────────────────── */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3.5 shadow-sm">
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-          {/* Search Bar */}
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* ── 1. SEARCH & FILTERS BAR (Master Anatomy) ───────────────── */}
+      <div
+        style={{
+          background: 'white',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          padding: '18px 20px',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+        }}
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '14px' }}>
+          {/* Search Input */}
+          <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
+            <Search
+              style={{
+                width: '16px',
+                height: '16px',
+                color: '#94a3b8',
+                position: 'absolute',
+                left: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+              }}
+            />
             <input
               type="text"
-              placeholder="Search tasks by title, project, or description..."
+              placeholder="Search tasks by duty, project or description..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              style={{
+                width: '100%',
+                padding: '9px 12px 9px 36px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                fontSize: '13px',
+                outline: 'none',
+                backgroundColor: '#f8fafc',
+              }}
             />
           </div>
 
-          {/* Filter Selects */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Status Tabs / Dropdown */}
+          {/* Filter Dropdowns */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-2.5 py-1.5 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              style={{
+                padding: '9px 12px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                fontSize: '13px',
+                backgroundColor: 'white',
+                color: '#1e293b',
+                outline: 'none',
+                cursor: 'pointer',
+              }}
             >
               <option value="ALL">All Statuses {stats ? `(${stats.total})` : ''}</option>
               <option value="TODO">To Do {stats ? `(${stats.todo})` : ''}</option>
@@ -86,11 +118,19 @@ export const TaskList: React.FC<TaskListProps> = ({
               <option value="COMPLETED">Completed {stats ? `(${stats.completed})` : ''}</option>
             </select>
 
-            {/* Priority Dropdown */}
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              className="px-2.5 py-1.5 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              style={{
+                padding: '9px 12px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                fontSize: '13px',
+                backgroundColor: 'white',
+                color: '#1e293b',
+                outline: 'none',
+                cursor: 'pointer',
+              }}
             >
               <option value="ALL">All Priorities</option>
               <option value="URGENT">Urgent</option>
@@ -99,11 +139,19 @@ export const TaskList: React.FC<TaskListProps> = ({
               <option value="LOW">Low</option>
             </select>
 
-            {/* Category Dropdown */}
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-2.5 py-1.5 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              style={{
+                padding: '9px 12px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                fontSize: '13px',
+                backgroundColor: 'white',
+                color: '#1e293b',
+                outline: 'none',
+                cursor: 'pointer',
+              }}
             >
               <option value="ALL">All Categories</option>
               <option value="Baking">Baking</option>
@@ -111,40 +159,60 @@ export const TaskList: React.FC<TaskListProps> = ({
               <option value="Table Staffing">Table Staffing</option>
               <option value="Promotion">Promotion</option>
               <option value="Logistics">Logistics</option>
-              <option value="General">General</option>
             </select>
 
-            {/* Refresh Button */}
             <button
               onClick={onRefresh}
-              className="p-1.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              title="Refresh Tasks"
+              title="Refresh Task Board"
+              style={{
+                padding: '9px 12px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#ffffff',
+                color: '#64748b',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '13px',
+              }}
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw style={{ width: '14px', height: '14px' }} />
+              <span>Refresh</span>
             </button>
           </div>
         </div>
 
-        {/* Status Pill Indicator Row */}
+        {/* Quick Count Pills */}
         {stats && (
-          <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
-            <span className="text-slate-500 font-medium">Quick Stats:</span>
-            <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: '8px',
+              marginTop: '14px',
+              paddingTop: '12px',
+              borderTop: '1px solid #f1f5f9',
+              fontSize: '12px',
+            }}
+          >
+            <span style={{ color: '#64748b', fontWeight: 600 }}>Summary:</span>
+            <span style={{ padding: '3px 10px', borderRadius: '12px', backgroundColor: '#f1f5f9', color: '#475569', fontWeight: 600 }}>
               Total: {stats.total}
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400">
+            <span style={{ padding: '3px 10px', borderRadius: '12px', backgroundColor: '#fef3c7', color: '#92400e', fontWeight: 600 }}>
               To Do: {stats.todo}
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400">
+            <span style={{ padding: '3px 10px', borderRadius: '12px', backgroundColor: '#eff6ff', color: '#1e3a8a', fontWeight: 600 }}>
               In Progress: {stats.inProgress}
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400">
+            <span style={{ padding: '3px 10px', borderRadius: '12px', backgroundColor: '#dcfce7', color: '#15803d', fontWeight: 600 }}>
               Completed: {stats.completed}
             </span>
             {stats.overdue > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 font-semibold flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" />
-                Overdue: {stats.overdue}
+              <span style={{ padding: '3px 10px', borderRadius: '12px', backgroundColor: '#fef2f2', color: '#dc2626', fontWeight: 700 }}>
+                ⚠ Overdue: {stats.overdue}
               </span>
             )}
           </div>
@@ -153,126 +221,241 @@ export const TaskList: React.FC<TaskListProps> = ({
 
       {/* ── 2. ERROR STATE ────────────────────────────────────────── */}
       {error && (
-        <div className="p-4 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-400 text-xs flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4" />
+        <div
+          style={{
+            padding: '14px 18px',
+            borderRadius: '8px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertCircle style={{ width: '16px', height: '16px' }} />
             <span>{error}</span>
           </div>
           <button
             onClick={onRefresh}
-            className="font-medium underline hover:text-rose-800 dark:hover:text-rose-300"
+            style={{ fontWeight: 600, textDecoration: 'underline', background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer' }}
           >
             Retry
           </button>
         </div>
       )}
 
-      {/* ── 3. LOADING SKELETON ────────────────────────────────────── */}
+      {/* ── 3. LOADING STATE ──────────────────────────────────────── */}
       {loading && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-8 flex flex-col items-center justify-center gap-3">
-          <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-          <p className="text-xs text-slate-500 font-medium">Loading volunteer tasks...</p>
+        <div
+          style={{
+            background: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            padding: '40px',
+            textAlign: 'center',
+            color: '#64748b',
+          }}
+        >
+          <Loader2 style={{ width: '28px', height: '28px', color: '#1e3a8a', margin: '0 auto 12px auto' }} className="animate-spin" />
+          <div style={{ fontSize: '14px', fontWeight: 500 }}>Loading volunteer task assignments...</div>
         </div>
       )}
 
       {/* ── 4. EMPTY STATE ────────────────────────────────────────── */}
       {!loading && tasks.length === 0 && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-12 text-center">
-          <CheckSquare className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+        <div
+          style={{
+            background: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            padding: '48px 24px',
+            textAlign: 'center',
+          }}
+        >
+          <CheckSquare style={{ width: '36px', height: '36px', color: '#cbd5e1', margin: '0 auto 12px auto' }} />
+          <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
             No Tasks Matching Criteria
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-            {searchQuery || statusFilter !== 'ALL' || priorityFilter !== 'ALL' || categoryFilter !== 'ALL'
-              ? 'Try resetting the search filters above to view all tasks.'
-              : 'You have no volunteer tasks currently assigned. Check back when coordinators allocate new duties.'}
+          <p style={{ fontSize: '13px', color: '#64748b', marginTop: '6px' }}>
+            Try resetting your search query or filter dropdowns above to view all volunteer duties.
           </p>
         </div>
       )}
 
-      {/* ── 5. DESKTOP TABLE VIEW (Hidden on small mobile screens) ─── */}
+      {/* ── 5. DESKTOP & TABLE VIEW (Master Table Anatomy) ────────── */}
       {!loading && tasks.length > 0 && (
-        <>
-          <div className="hidden md:block bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden shadow-sm">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 uppercase tracking-wider font-semibold">
-                <tr>
-                  <th className="py-3 px-4">Task Details</th>
-                  <th className="py-3 px-3">Category</th>
-                  <th className="py-3 px-3">Priority</th>
-                  <th className="py-3 px-3">Due Date</th>
-                  <th className="py-3 px-3">Status</th>
-                  <th className="py-3 px-4 text-right">Action</th>
+        <div
+          style={{
+            background: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            overflow: 'hidden',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+          }}
+        >
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  <th style={{ padding: '14px 20px' }}>Task Duty</th>
+                  <th style={{ padding: '14px 16px' }}>Category</th>
+                  <th style={{ padding: '14px 16px' }}>Priority</th>
+                  <th style={{ padding: '14px 16px' }}>Due Date</th>
+                  <th style={{ padding: '14px 16px' }}>Execution Status</th>
+                  <th style={{ padding: '14px 20px', textAlign: 'right' }}>Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody>
                 {tasks.map((task) => {
                   const isUpdating = updatingTaskId === task.id;
+                  const isCompleted = task.status === 'COMPLETED';
+
                   return (
                     <tr
                       key={task.id}
-                      className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
+                      style={{
+                        borderBottom: '1px solid #f1f5f9',
+                        transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f8fafc';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
                     >
-                      {/* Title & Project */}
-                      <td className="py-3.5 px-4 max-w-xs">
-                        <div className="font-medium text-slate-900 dark:text-slate-100">
+                      {/* Task details */}
+                      <td style={{ padding: '16px 20px', maxWidth: '340px' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>
                           {task.title}
                         </div>
                         {task.projectName && (
-                          <div className="text-[11px] text-blue-600 dark:text-blue-400 mt-0.5">
+                          <div style={{ fontSize: '12px', color: '#2563eb', marginTop: '2px', fontWeight: 500 }}>
                             📁 {task.projectName}
                           </div>
                         )}
                         {task.description && (
-                          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
+                          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', lineHeight: 1.4 }}>
                             {task.description}
                           </div>
                         )}
                       </td>
 
                       {/* Category */}
-                      <td className="py-3.5 px-3">
-                        <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-[11px]">
+                      <td style={{ padding: '16px 16px', whiteSpace: 'nowrap' }}>
+                        <span
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            backgroundColor: '#eff6ff',
+                            color: '#1e3a8a',
+                            fontWeight: 600,
+                            fontSize: '12px',
+                          }}
+                        >
                           {task.category}
                         </span>
                       </td>
 
                       {/* Priority */}
-                      <td className="py-3.5 px-3">
-                        <TaskPriorityBadge priority={task.priority} />
+                      <td style={{ padding: '16px 16px', whiteSpace: 'nowrap' }}>
+                        <span
+                          style={{
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            fontWeight: 600,
+                            fontSize: '11px',
+                            backgroundColor:
+                              task.priority === 'URGENT'
+                                ? '#fef2f2'
+                                : task.priority === 'HIGH'
+                                ? '#fff7ed'
+                                : '#f1f5f9',
+                            color:
+                              task.priority === 'URGENT'
+                                ? '#dc2626'
+                                : task.priority === 'HIGH'
+                                ? '#c2410c'
+                                : '#475569',
+                          }}
+                        >
+                          {task.priority}
+                        </span>
                       </td>
 
                       {/* Due Date & Overdue */}
-                      <td className="py-3.5 px-3 whitespace-nowrap">
-                        <span className="text-slate-700 dark:text-slate-300 font-medium">
+                      <td style={{ padding: '16px 16px', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontWeight: 500, color: '#334155' }}>
                           {task.dueDate}
-                        </span>
-                        {task.isOverdue && task.status !== 'COMPLETED' && (
-                          <div className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-600 dark:text-rose-400 mt-0.5 block">
-                            <AlertCircle className="w-2.5 h-2.5" />
+                        </div>
+                        {task.isOverdue && !isCompleted && (
+                          <div style={{ fontSize: '11px', color: '#dc2626', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                            <AlertCircle style={{ width: '12px', height: '12px' }} />
                             Overdue
                           </div>
                         )}
                       </td>
 
-                      {/* Status */}
-                      <td className="py-3.5 px-3">
-                        <TaskStatusBadge status={task.status} size="sm" />
+                      {/* Execution Status */}
+                      <td style={{ padding: '16px 16px', whiteSpace: 'nowrap' }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '4px 12px',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            backgroundColor:
+                              task.status === 'COMPLETED'
+                                ? '#dcfce7'
+                                : task.status === 'IN_PROGRESS'
+                                ? '#eff6ff'
+                                : '#fef3c7',
+                            color:
+                              task.status === 'COMPLETED'
+                                ? '#15803d'
+                                : task.status === 'IN_PROGRESS'
+                                ? '#1e3a8a'
+                                : '#92400e',
+                          }}
+                        >
+                          {task.status === 'COMPLETED' ? (
+                            <CheckCircle2 style={{ width: '14px', height: '14px' }} />
+                          ) : task.status === 'IN_PROGRESS' ? (
+                            <Clock style={{ width: '14px', height: '14px' }} />
+                          ) : (
+                            <CheckSquare style={{ width: '14px', height: '14px' }} />
+                          )}
+                          <span>{task.status === 'COMPLETED' ? 'Done' : task.status === 'IN_PROGRESS' ? 'In Progress' : 'To Do'}</span>
+                        </span>
                       </td>
 
-                      {/* Transition Action */}
-                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                      {/* Transition Action Button */}
+                      <td style={{ padding: '16px 20px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                         {task.status === 'TODO' && (
                           <button
                             disabled={isUpdating}
                             onClick={() => onStatusChange(task.id, 'IN_PROGRESS')}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-400 transition-colors disabled:opacity-50"
+                            style={{
+                              padding: '7px 14px',
+                              borderRadius: '6px',
+                              border: 'none',
+                              backgroundColor: '#1e3a8a',
+                              color: '#ffffff',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                            }}
                           >
-                            {isUpdating ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <Play className="w-3 h-3" />
-                            )}
+                            {isUpdating ? <Loader2 style={{ width: '13px', height: '13px' }} className="animate-spin" /> : <Play style={{ width: '13px', height: '13px' }} />}
                             <span>Start Task</span>
                           </button>
                         )}
@@ -281,13 +464,21 @@ export const TaskList: React.FC<TaskListProps> = ({
                           <button
                             disabled={isUpdating}
                             onClick={() => onStatusChange(task.id, 'COMPLETED')}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-400 transition-colors disabled:opacity-50"
+                            style={{
+                              padding: '7px 14px',
+                              borderRadius: '6px',
+                              border: 'none',
+                              backgroundColor: '#15803d',
+                              color: '#ffffff',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                            }}
                           >
-                            {isUpdating ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <CheckCircle2 className="w-3 h-3" />
-                            )}
+                            {isUpdating ? <Loader2 style={{ width: '13px', height: '13px' }} className="animate-spin" /> : <CheckCircle2 style={{ width: '13px', height: '13px' }} />}
                             <span>Mark Done</span>
                           </button>
                         )}
@@ -296,14 +487,21 @@ export const TaskList: React.FC<TaskListProps> = ({
                           <button
                             disabled={isUpdating}
                             onClick={() => onStatusChange(task.id, 'IN_PROGRESS')}
-                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
-                            title="Reopen task"
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              border: '1px solid #cbd5e1',
+                              backgroundColor: '#ffffff',
+                              color: '#64748b',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                            }}
                           >
-                            {isUpdating ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <RotateCcw className="w-3 h-3" />
-                            )}
+                            {isUpdating ? <Loader2 style={{ width: '13px', height: '13px' }} className="animate-spin" /> : <RotateCcw style={{ width: '13px', height: '13px' }} />}
                             <span>Reopen</span>
                           </button>
                         )}
@@ -314,19 +512,7 @@ export const TaskList: React.FC<TaskListProps> = ({
               </tbody>
             </table>
           </div>
-
-          {/* ── 6. MOBILE CARD VIEW (Displayed on mobile/tablet screens) ── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:hidden gap-3">
-            {tasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                isUpdating={updatingTaskId === task.id}
-                onStatusChange={onStatusChange}
-              />
-            ))}
-          </div>
-        </>
+        </div>
       )}
     </div>
   );

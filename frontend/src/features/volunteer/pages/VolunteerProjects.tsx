@@ -1,65 +1,133 @@
 import React from 'react';
 import { useVolunteerProjects } from '../hooks/useVolunteerProjects';
 import { ProjectCard } from '../components/ProjectCard';
-import { Layers, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 
 export const VolunteerProjects: React.FC = () => {
   const { projects, loading, error, refreshProjects } = useVolunteerProjects();
 
   return (
-    <div className="space-y-5">
-      {/* ── Page Header ───────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-200 dark:border-slate-800">
+    <div style={{ fontFamily: 'var(--font-family-body)' }}>
+      {/* ── 1. MASTER PAGE HEADER ─────────────────────────────────── */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: '28px',
+        }}
+      >
         <div>
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-md bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
-              <Layers className="w-5 h-5" />
-            </div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-              Projects & Fundraisers
-            </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                padding: '2px 8px',
+                borderRadius: '4px',
+                backgroundColor: '#eff6ff',
+                color: '#1e3a8a',
+              }}
+            >
+              Initiatives
+            </span>
+            <span style={{ fontSize: '12px', color: '#94a3b8' }}>•</span>
+            <span style={{ fontSize: '13px', color: '#64748b' }}>
+              Fundraiser Campaigns
+            </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Active club initiatives, charity fundraisers, and campus events driven by volunteers.
+          <h1
+            style={{
+              fontSize: '26px',
+              fontWeight: 700,
+              margin: '0 0 6px 0',
+              color: '#1e293b',
+              letterSpacing: '-0.3px',
+            }}
+          >
+            Projects & Fundraiser Campaigns
+          </h1>
+          <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>
+            Active club initiatives, bake sales, and campus events driven by volunteer squads.
           </p>
         </div>
 
         <button
           onClick={refreshProjects}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors self-start sm:self-auto"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '9px 16px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            background: 'white',
+            color: '#1e293b',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
         >
-          <RefreshCw className="w-3.5 h-3.5" />
+          <RefreshCw style={{ width: '14px', height: '14px' }} />
           <span>Refresh</span>
         </button>
       </div>
 
-      {/* ── Error State ───────────────────────────────────────────── */}
+      {/* ── 2. ERROR STATE ────────────────────────────────────────── */}
       {error && (
-        <div className="p-4 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-400 text-xs flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4" />
+        <div
+          style={{
+            padding: '14px 18px',
+            borderRadius: '8px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '20px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertCircle style={{ width: '16px', height: '16px' }} />
             <span>{error}</span>
           </div>
           <button
             onClick={refreshProjects}
-            className="font-medium underline hover:text-rose-800"
+            style={{ fontWeight: 600, textDecoration: 'underline', background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer' }}
           >
             Retry
           </button>
         </div>
       )}
 
-      {/* ── Loading State ─────────────────────────────────────────── */}
+      {/* ── 3. LOADING STATE ──────────────────────────────────────── */}
       {loading && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-12 flex flex-col items-center justify-center gap-3">
-          <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-          <p className="text-xs text-slate-500">Loading projects & fundraisers...</p>
+        <div
+          style={{
+            background: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            padding: '40px',
+            textAlign: 'center',
+            color: '#64748b',
+          }}
+        >
+          <Loader2 style={{ width: '28px', height: '28px', color: '#1e3a8a', margin: '0 auto 12px auto' }} className="animate-spin" />
+          <div style={{ fontSize: '14px', fontWeight: 500 }}>Loading project & campaign data...</div>
         </div>
       )}
 
-      {/* ── Projects Grid ─────────────────────────────────────────── */}
+      {/* ── 4. 3-COLUMN PROJECTS GRID (Master Anatomy) ────────────── */}
       {!loading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+            gap: '20px',
+          }}
+        >
           {projects.map((project) => (
             <ProjectCard key={project.id} project={project} />
           ))}

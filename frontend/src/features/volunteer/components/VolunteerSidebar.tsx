@@ -8,7 +8,7 @@ import {
   Calendar,
   Receipt,
   User,
-  HeartHandshake,
+  GraduationCap,
   LogOut,
   X,
 } from 'lucide-react';
@@ -17,42 +17,52 @@ interface VolunteerSidebarProps {
   onCloseMobile?: () => void;
 }
 
-const NAV_ITEMS = [
+const NAVIGATION_GROUPS = [
   {
-    label: 'Overview',
-    path: '/volunteer/dashboard',
-    icon: LayoutDashboard,
-    badge: null,
+    groupTitle: 'VOLUNTEER OPERATIONS',
+    items: [
+      {
+        id: 'volunteer-dashboard',
+        label: 'Operations Desk',
+        path: '/volunteer/dashboard',
+        icon: LayoutDashboard,
+      },
+      {
+        id: 'volunteer-tasks',
+        label: 'My Task Board',
+        path: '/volunteer/tasks',
+        icon: CheckSquare,
+      },
+      {
+        id: 'volunteer-projects',
+        label: 'Fundraisers & Projects',
+        path: '/volunteer/projects',
+        icon: Layers,
+      },
+      {
+        id: 'volunteer-events',
+        label: 'Event Day Shifts',
+        path: '/volunteer/events',
+        icon: Calendar,
+      },
+      {
+        id: 'volunteer-expenses',
+        label: 'Reimbursement Claims',
+        path: '/volunteer/expenses',
+        icon: Receipt,
+      },
+    ],
   },
   {
-    label: 'My Tasks',
-    path: '/volunteer/tasks',
-    icon: CheckSquare,
-    badge: 'Core',
-  },
-  {
-    label: 'Projects & Fundraisers',
-    path: '/volunteer/projects',
-    icon: Layers,
-    badge: null,
-  },
-  {
-    label: 'Event Assignments',
-    path: '/volunteer/events',
-    icon: Calendar,
-    badge: null,
-  },
-  {
-    label: 'Expense Claims',
-    path: '/volunteer/expenses',
-    icon: Receipt,
-    badge: null,
-  },
-  {
-    label: 'Volunteer Profile',
-    path: '/volunteer/profile',
-    icon: User,
-    badge: null,
+    groupTitle: 'IDENTITY & ACCOUNT',
+    items: [
+      {
+        id: 'volunteer-profile',
+        label: 'Volunteer Credentials',
+        path: '/volunteer/profile',
+        icon: User,
+      },
+    ],
   },
 ];
 
@@ -64,105 +74,247 @@ export const VolunteerSidebar: React.FC<VolunteerSidebarProps> = ({ onCloseMobil
   };
 
   return (
-    <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full select-none shrink-0">
-      {/* ── 1. PORTAL BRANDING HEADER ────────────────────────────── */}
-      <div className="h-16 px-5 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-sm">
-            <HeartHandshake className="w-5 h-5" />
+    <aside
+      style={{
+        width: '260px',
+        backgroundColor: 'var(--background)',
+        borderRight: '1px solid var(--border)',
+        display: 'flex',
+        flexDirection: 'column',
+        flexShrink: 0,
+        height: '100vh',
+        position: 'sticky',
+        top: 0,
+        userSelect: 'none',
+      }}
+    >
+      {/* ── 1. Logo Block (height 60px, padding 0 24px) ─────────────── */}
+      <div
+        style={{
+          height: '60px',
+          padding: '0 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid var(--border)',
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
+            style={{
+              width: '26px',
+              height: '26px',
+              background: 'var(--primary)',
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ffffff',
+              flexShrink: 0,
+            }}
+          >
+            <GraduationCap style={{ width: '16px', height: '16px' }} />
           </div>
           <div>
-            <div className="text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-1.5">
-              <span>CampusMitra</span>
-              <span className="text-[10px] font-semibold uppercase px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                Volunteer
-              </span>
+            <div
+              style={{
+                fontSize: '17px',
+                fontWeight: 700,
+                color: 'var(--primary)',
+                letterSpacing: '-0.3px',
+                lineHeight: 1.1,
+              }}
+            >
+              CampusMitra
             </div>
-            <div className="text-[11px] text-slate-500 truncate max-w-[130px]">
-              Skyline Association
+            <div
+              style={{
+                fontSize: '10px',
+                fontWeight: 600,
+                color: '#15803d',
+                letterSpacing: '0.4px',
+                textTransform: 'uppercase',
+              }}
+            >
+              Volunteer Portal
             </div>
           </div>
         </div>
 
-        {/* Mobile close drawer button */}
         {onCloseMobile && (
           <button
             onClick={onCloseMobile}
-            className="md:hidden p-1.5 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="md:hidden p-1 text-slate-400 hover:text-slate-600 rounded"
           >
-            <X className="w-5 h-5" />
+            <X style={{ width: '18px', height: '18px' }} />
           </button>
         )}
       </div>
 
-      {/* ── 2. VOLUNTEER NAVIGATION LINKS ────────────────────────── */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-1">
-        <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-          Volunteer Workspace
-        </div>
-
-        {NAV_ITEMS.map((item) => {
-          const Icon = item.icon;
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={onCloseMobile}
-              className={({ isActive }) =>
-                `flex items-center justify-between px-3 py-2 text-xs font-medium rounded-md transition-colors ${
-                  isActive
-                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400 font-semibold'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200'
-                }`
-              }
+      {/* ── 2. Navigation Area ─────────────────────────────────────── */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '16px 12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px',
+        }}
+      >
+        {NAVIGATION_GROUPS.map((group) => (
+          <div key={group.groupTitle} style={{ marginBottom: '12px' }}>
+            <div
+              style={{
+                fontSize: '11px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                color: 'var(--muted-foreground)',
+                fontWeight: 600,
+                padding: '8px 12px 6px',
+              }}
             >
-              <div className="flex items-center gap-2.5">
-                <Icon className="w-4 h-4 shrink-0" />
-                <span>{item.label}</span>
-              </div>
-              {item.badge && (
-                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300">
-                  {item.badge}
-                </span>
-              )}
-            </NavLink>
-          );
-        })}
+              {group.groupTitle}
+            </div>
+
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.id}
+                  to={item.path}
+                  onClick={onCloseMobile}
+                  style={({ isActive }) => ({
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '9px 12px',
+                    borderRadius: 'var(--radius-md)',
+                    color: isActive ? 'var(--primary)' : 'var(--foreground)',
+                    backgroundColor: isActive ? 'var(--secondary)' : 'transparent',
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    fontWeight: isActive ? 600 : 500,
+                    transition: 'all 0.15s ease-in-out',
+                    marginBottom: '2px',
+                  })}
+                  onMouseEnter={(e) => {
+                    if (!e.currentTarget.getAttribute('aria-current')) {
+                      e.currentTarget.style.backgroundColor = 'var(--secondary)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!e.currentTarget.getAttribute('aria-current')) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }
+                  }}
+                >
+                  <Icon style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+                  <span>{item.label}</span>
+                </NavLink>
+              );
+            })}
+          </div>
+        ))}
       </div>
 
-      {/* ── 3. USER PROFILE & LOGOUT FOOTER ──────────────────────── */}
-      <div className="p-3 border-t border-slate-200 dark:border-slate-800 shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
-        <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700">
-          <div className="flex items-center gap-2 overflow-hidden">
-            {user?.avatarUrl ? (
-              <img
-                src={user.avatarUrl}
-                alt={user.name || 'Volunteer'}
-                className="w-7 h-7 rounded-full object-cover shrink-0"
-              />
-            ) : (
-              <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
-                {user?.name ? user.name[0].toUpperCase() : 'V'}
-              </div>
-            )}
-            <div className="overflow-hidden">
-              <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
-                {user?.name || 'Volunteer User'}
-              </div>
-              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate">
-                Role: Active Volunteer
-              </div>
+      {/* ── 3. Sidebar User Footer ─────────────────────────────────── */}
+      <div
+        style={{
+          padding: '14px 16px',
+          borderTop: '1px solid var(--border)',
+          backgroundColor: 'var(--background)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '10px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+          {user?.avatarUrl ? (
+            <img
+              src={user.avatarUrl}
+              alt={user.name || 'Volunteer'}
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                flexShrink: 0,
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                backgroundColor: '#15803d',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '13px',
+                fontWeight: 700,
+                flexShrink: 0,
+              }}
+            >
+              {user?.name ? user.name[0].toUpperCase() : 'V'}
+            </div>
+          )}
+          <div style={{ overflow: 'hidden' }}>
+            <div
+              style={{
+                fontSize: '13px',
+                fontWeight: 600,
+                color: 'var(--foreground)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {user?.name || 'Volunteer'}
+            </div>
+            <div
+              style={{
+                fontSize: '11px',
+                color: '#15803d',
+                fontWeight: 500,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              Role: VOLUNTEER
             </div>
           </div>
-
-          <button
-            onClick={handleSignOut}
-            title="Log Out"
-            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
         </div>
+
+        <button
+          onClick={handleSignOut}
+          title="Sign Out"
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--muted-foreground)',
+            cursor: 'pointer',
+            padding: '6px',
+            borderRadius: '6px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'color 0.15s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = '#ef4444';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--muted-foreground)';
+          }}
+        >
+          <LogOut style={{ width: '16px', height: '16px' }} />
+        </button>
       </div>
     </aside>
   );

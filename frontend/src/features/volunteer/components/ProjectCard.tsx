@@ -16,94 +16,179 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
     : 0;
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between gap-4">
+    <div
+      style={{
+        background: 'white',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0',
+        padding: '24px',
+        boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        gap: '20px',
+        transition: 'all 0.2s',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = '#cbd5e1';
+        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = '#e2e8f0';
+        e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.03)';
+      }}
+    >
       <div>
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <span className="text-xs font-medium px-2 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <span
+            style={{
+              fontSize: '12px',
+              fontWeight: 600,
+              padding: '3px 10px',
+              borderRadius: '4px',
+              backgroundColor: '#eff6ff',
+              color: '#1e3a8a',
+            }}
+          >
             {project.category}
           </span>
 
           <span
-            className={`text-xs font-semibold px-2 py-0.5 rounded ${
-              project.status === 'ACTIVE'
-                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-            }`}
+            style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              padding: '3px 8px',
+              borderRadius: '20px',
+              backgroundColor: project.status === 'ACTIVE' ? '#dcfce7' : '#f1f5f9',
+              color: project.status === 'ACTIVE' ? '#15803d' : '#64748b',
+              textTransform: 'uppercase',
+            }}
           >
             {project.status}
           </span>
         </div>
 
-        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+        <h3
+          style={{
+            fontSize: '17px',
+            fontWeight: 700,
+            color: '#1e293b',
+            margin: '0 0 8px 0',
+            lineHeight: 1.3,
+          }}
+        >
           {project.name}
         </h3>
 
-        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed line-clamp-3">
+        <p
+          style={{
+            fontSize: '13px',
+            color: '#64748b',
+            lineHeight: 1.5,
+            margin: 0,
+          }}
+        >
           {project.description}
         </p>
 
-        {/* Coordinator & Deadline info */}
-        <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
-          <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-            <User className="w-3.5 h-3.5 text-slate-400" />
-            <span className="truncate">
+        {/* Coordinator & Deadline */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '8px',
+            marginTop: '16px',
+            paddingTop: '14px',
+            borderTop: '1px solid #f1f5f9',
+            fontSize: '12px',
+            color: '#64748b',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <User style={{ width: '14px', height: '14px', color: '#94a3b8' }} />
+            <span style={{ fontWeight: 500, color: '#334155' }}>
               {project.coordinatorName} ({project.coordinatorRole})
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 justify-end">
-            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
+            <Calendar style={{ width: '14px', height: '14px', color: '#94a3b8' }} />
             <span>Target: {project.deadline}</span>
           </div>
         </div>
       </div>
 
-      <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-        {/* Task Completion Progress */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', paddingTop: '14px', borderTop: '1px solid #f1f5f9' }}>
+        {/* Task progress */}
         <div>
-          <div className="flex items-center justify-between text-xs mb-1">
-            <span className="text-slate-600 dark:text-slate-400 flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
+            <span style={{ color: '#64748b', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <CheckCircle2 style={{ width: '14px', height: '14px', color: '#15803d' }} />
               Task Execution
             </span>
-            <span className="font-semibold text-slate-800 dark:text-slate-200">
-              {project.completedTasks} / {project.totalTasks} ({taskProgress}%)
+            <span style={{ fontWeight: 700, color: '#1e293b' }}>
+              {project.completedTasks} / {project.totalTasks} Done ({taskProgress}%)
             </span>
           </div>
-          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+          <div style={{ height: '7px', backgroundColor: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
             <div
-              className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${taskProgress}%` }}
+              style={{
+                width: `${taskProgress}%`,
+                height: '100%',
+                backgroundColor: '#15803d',
+                borderRadius: '4px',
+                transition: 'width 0.3s ease',
+              }}
             />
           </div>
         </div>
 
-        {/* Fundraiser Progress if applicable */}
+        {/* Fundraising goal */}
         {project.targetFund && (
           <div>
-            <div className="flex items-center justify-between text-xs mb-1">
-              <span className="text-slate-600 dark:text-slate-400 flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5 text-blue-600" />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
+              <span style={{ color: '#64748b', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <TrendingUp style={{ width: '14px', height: '14px', color: '#1e3a8a' }} />
                 Fundraising Goal
               </span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">
-                ₹{project.raisedFund?.toLocaleString()} / ₹{project.targetFund.toLocaleString()} ({fundProgress}%)
+              <span style={{ fontWeight: 700, color: '#1e293b' }}>
+                ₹{project.raisedFund?.toLocaleString()} / ₹{project.targetFund?.toLocaleString()} ({fundProgress}%)
               </span>
             </div>
-            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+            <div style={{ height: '7px', backgroundColor: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min(fundProgress, 100)}%` }}
+                style={{
+                  width: `${Math.min(fundProgress, 100)}%`,
+                  height: '100%',
+                  backgroundColor: '#1e3a8a',
+                  borderRadius: '4px',
+                  transition: 'width 0.3s ease',
+                }}
               />
             </div>
           </div>
         )}
 
-        {/* My Responsibility Tag */}
-        <div className="flex items-center justify-between text-xs pt-1">
-          <span className="text-slate-500">My Assigned Tasks:</span>
-          <span className="font-semibold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded">
-            {project.myTasksCount > 0 ? `${project.myTasksCount} Active Duties` : 'None Currently'}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '12px',
+            paddingTop: '6px',
+          }}
+        >
+          <span style={{ color: '#64748b' }}>My Assigned Duties:</span>
+          <span
+            style={{
+              padding: '3px 10px',
+              borderRadius: '12px',
+              backgroundColor: project.myTasksCount > 0 ? '#eff6ff' : '#f8fafc',
+              color: project.myTasksCount > 0 ? '#1e3a8a' : '#94a3b8',
+              fontWeight: 600,
+            }}
+          >
+            {project.myTasksCount > 0 ? `${project.myTasksCount} Duties Active` : 'None Allocated'}
           </span>
         </div>
       </div>
