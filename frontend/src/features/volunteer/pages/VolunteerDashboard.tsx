@@ -66,36 +66,36 @@ export const VolunteerDashboard: React.FC = () => {
   // Quick Action cards for core volunteer roles
   const actions = [
     {
-      label: 'Bake Sale Squad Board',
-      description: 'Track who is baking, buying supplies, and managing the booth',
+      label: 'Fundraiser Tasks & Squad Board',
+      description: 'View assigned fundraiser tasks, deadlines, and update progress (To do, In progress, Done)',
       color: '#1e3a8a',
       bg: '#eff6ff',
       icon: CheckSquare,
       onClick: () => navigate('/volunteer/tasks'),
     },
     {
-      label: 'Door Ticket Scanner',
-      description: 'Admit Spring Gala attendees in seconds without printed sheets',
-      color: '#15803d',
-      bg: '#dcfce7',
-      icon: QrCode,
-      onClick: () => navigate('/volunteer/scanner'),
-    },
-    {
-      label: 'Event Shift Roster',
-      description: 'Review East Gate check-in desk timing and duty protocols',
+      label: 'Event Duties & Instructions',
+      description: 'Review confirmed event shifts, station locations, shift windows, and briefing protocols',
       color: '#b45309',
       bg: '#fef3c7',
       icon: Calendar,
       onClick: () => navigate('/volunteer/events'),
     },
     {
-      label: 'Submit Expense Claim',
-      description: 'Upload out-of-pocket receipts for baking supplies & decor',
+      label: 'Submit Reimbursement Claim',
+      description: 'Upload out-of-pocket receipts and track pending, approved, rejected, or paid status',
       color: '#7c3aed',
       bg: '#f3e8ff',
       icon: Receipt,
       onClick: () => navigate('/volunteer/expenses'),
+    },
+    {
+      label: 'Door Check-in & Verification',
+      description: 'Verify memberships or check tickets only if explicitly granted event-day permissions',
+      color: '#15803d',
+      bg: '#dcfce7',
+      icon: QrCode,
+      onClick: () => navigate('/volunteer/scanner'),
     },
   ];
 
@@ -867,7 +867,7 @@ export const VolunteerDashboard: React.FC = () => {
             </p>
 
             <button
-              onClick={() => navigate('/volunteer/announcements')}
+              onClick={() => navigate('/volunteer/expenses')}
               style={{
                 background: 'none',
                 border: 'none',
@@ -882,7 +882,7 @@ export const VolunteerDashboard: React.FC = () => {
               }}
               className="dark:text-blue-400"
             >
-              <span>Read all official announcements</span>
+              <span>Submit out-of-pocket reimbursement</span>
               <ArrowRight style={{ width: '13px', height: '13px' }} />
             </button>
           </div>

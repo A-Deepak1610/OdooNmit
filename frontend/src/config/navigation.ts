@@ -18,7 +18,6 @@ import {
   ShieldCheck,
   QrCode,
   Vote,
-  HeartHandshake,
 } from 'lucide-react';
 
 /**
@@ -175,24 +174,8 @@ export const navigationConfig: NavigationItem[] = [
     group: 'VOLUNTEER OPERATIONS',
   },
   {
-    id: 'volunteer-scanner',
-    label: 'Door Ticket Scanner',
-    path: '/volunteer/scanner',
-    icon: QrCode,
-    allowedRoles: [ROLES.VOLUNTEER],
-    group: 'VOLUNTEER OPERATIONS',
-  },
-  {
-    id: 'volunteer-projects',
-    label: 'Charity Fundraisers',
-    path: '/volunteer/projects',
-    icon: HeartHandshake,
-    allowedRoles: [ROLES.VOLUNTEER],
-    group: 'VOLUNTEER OPERATIONS',
-  },
-  {
     id: 'volunteer-events',
-    label: 'Event Duties & Shifts',
+    label: 'Event Duties & Instructions',
     path: '/volunteer/events',
     icon: Calendar,
     allowedRoles: [ROLES.VOLUNTEER],
@@ -207,10 +190,10 @@ export const navigationConfig: NavigationItem[] = [
     group: 'VOLUNTEER OPERATIONS',
   },
   {
-    id: 'volunteer-announcements',
-    label: 'Shift Briefings',
-    path: '/volunteer/announcements',
-    icon: Megaphone,
+    id: 'volunteer-scanner',
+    label: 'Ticket & Member Check-in',
+    path: '/volunteer/scanner',
+    icon: QrCode,
     allowedRoles: [ROLES.VOLUNTEER],
     group: 'VOLUNTEER OPERATIONS',
   },

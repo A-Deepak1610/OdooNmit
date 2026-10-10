@@ -183,20 +183,20 @@ const ROLE_CONFIGS: Record<string, RoleConfig> = {
   // =========================================================================
   VOLUNTEER: {
     title: 'Volunteer Operations Desk',
-    subtitle: 'Complete assigned fundraiser tasks, check shift duties, and submit out-of-pocket supply reimbursements.',
+    subtitle: 'Complete assigned fundraiser tasks, review event duty instructions, track reimbursements, and verify tickets with shift permissions.',
     actionLabel: 'Open Volunteer Portal',
     actionPath: '/volunteer/dashboard',
     stats: [
-      { label: 'Assigned Duties', value: '3 Active Tasks', subtitle: 'Baking & quad table shifts', color: '#1e3a8a', bg: '#eff6ff', icon: CheckSquare },
+      { label: 'Assigned Duties', value: '3 Active Tasks', subtitle: 'Fundraiser & quad duties', color: '#1e3a8a', bg: '#eff6ff', icon: CheckSquare },
       { label: 'Next Event Shift', value: 'May 2 (Quad)', subtitle: 'Plaza Booth Table Duty', color: '#15803d', bg: '#dcfce7', icon: Calendar },
-      { label: 'Expense Claims', value: '1 Pending', subtitle: '₹450 receipt under review', color: '#b45309', bg: '#fef3c7', icon: Receipt },
-      { label: 'Volunteer Service', value: '14.5 Hours', subtitle: 'Logged for current semester', color: '#7c3aed', bg: '#f3e8ff', icon: Trophy },
+      { label: 'Reimbursement Claims', value: '1 Pending', subtitle: 'Track: pending, approved, paid', color: '#b45309', bg: '#fef3c7', icon: Receipt },
+      { label: 'Shift Permissions', value: 'Active', subtitle: 'Door verification authorized', color: '#7c3aed', bg: '#f3e8ff', icon: Trophy },
     ],
     actions: [
-      { label: 'Bake Sale Task Board', description: 'Update progress: To do, In progress, or Done', color: '#1e3a8a', bg: '#eff6ff', icon: CheckSquare, path: '/volunteer/tasks' },
-      { label: 'Door Ticket Scanner', description: 'Admit guests at venue entrance with event permissions', color: '#15803d', bg: '#dcfce7', icon: QrCode, path: '/volunteer/scanner' },
-      { label: 'Submit Reimbursement Claim', description: 'Upload receipts for baking ingredients & supplies', color: '#b45309', bg: '#fef3c7', icon: Receipt, path: '/volunteer/expenses' },
-      { label: 'Shift Roster & Briefing', description: 'View station location, timing, and duty instructions', color: '#7c3aed', bg: '#f3e8ff', icon: Calendar, path: '/volunteer/events' },
+      { label: 'Assigned Fundraiser Tasks', description: 'View deadlines and update progress: To do, In progress, or Done', color: '#1e3a8a', bg: '#eff6ff', icon: CheckSquare, path: '/volunteer/tasks' },
+      { label: 'Event Duties & Instructions', description: 'View station location, timing, and relevant duty instructions', color: '#7c3aed', bg: '#f3e8ff', icon: Calendar, path: '/volunteer/events' },
+      { label: 'Submit Reimbursement Requests', description: 'Submit expense claims with receipts & track pending, approved, rejected, or paid', color: '#b45309', bg: '#fef3c7', icon: Receipt, path: '/volunteer/expenses' },
+      { label: 'Verify Memberships & Check Tickets', description: 'Verify memberships or check tickets only if explicitly granted event-day permissions', color: '#15803d', bg: '#dcfce7', icon: QrCode, path: '/volunteer/scanner' },
     ],
   },
 };

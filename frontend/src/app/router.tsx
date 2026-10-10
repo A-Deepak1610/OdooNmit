@@ -21,10 +21,8 @@ import {
   VolunteerDashboard,
   VolunteerTasks,
   VolunteerScanner,
-  VolunteerProjects,
   VolunteerEvents,
   VolunteerExpenses,
-  VolunteerAnnouncements,
   VolunteerProfile,
 } from '../features/volunteer';
 import { useAuthStore } from '../stores/auth.store';
@@ -272,7 +270,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'projects',
-            element: <VolunteerProjects />,
+            element: <Navigate to="/volunteer/tasks" replace />,
           },
           {
             path: 'events',
@@ -284,7 +282,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'announcements',
-            element: <VolunteerAnnouncements />,
+            element: <Navigate to="/volunteer/dashboard" replace />,
           },
           {
             path: 'submit-expense',
