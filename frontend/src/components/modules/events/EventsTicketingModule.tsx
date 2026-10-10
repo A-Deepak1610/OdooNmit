@@ -5,7 +5,6 @@ import {
   Users,
   CheckCircle2,
   Clock,
-  QrCode,
   Search,
   AlertTriangle,
   CreditCard,
@@ -434,7 +433,18 @@ export const EventsTicketingModule: React.FC = () => {
                   textAlign: 'center',
                 }}
               >
-                <QrCode style={{ width: '110px', height: '110px', margin: '0 auto', color: '#1e293b' }} />
+                <img
+                  src="/qr-code.png"
+                  alt="Digital Event Ticket QR Code"
+                  style={{
+                    width: '110px',
+                    height: '110px',
+                    margin: '0 auto',
+                    objectFit: 'contain',
+                    borderRadius: '6px',
+                    display: 'block',
+                  }}
+                />
                 <div
                   style={{
                     fontSize: '12px',

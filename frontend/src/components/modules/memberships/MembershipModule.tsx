@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  QrCode,
   UserPlus,
   CheckCircle2,
   Award,
@@ -540,7 +539,18 @@ export const MembershipModule: React.FC = () => {
                 border: '1px solid var(--border)',
               }}
             >
-              <QrCode style={{ width: '100px', height: '100px', margin: '0 auto', color: '#1e293b' }} />
+              <img
+                src="/qr-code.png"
+                alt="Membership Pass QR Code"
+                style={{
+                  width: '100px',
+                  height: '100px',
+                  margin: '0 auto',
+                  objectFit: 'contain',
+                  borderRadius: '6px',
+                  display: 'block',
+                }}
+              />
               <div style={{ fontSize: '12px', fontFamily: 'monospace', fontWeight: 800, color: '#1e3a8a', marginTop: '8px' }}>
                 {selectedMember.membershipId}
               </div>
