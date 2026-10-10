@@ -18,8 +18,13 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(requestIdMiddleware);
 
-// Infrastructure routes
-app.use('/api/v1/health', healthRoutes);
+app.get("/", (req, res) => {
+  res.json({ message: "Backend is running" });
+});
+
+app.get("/healthz", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
 
 // Catch-all for undefined routes
 app.use(notFoundMiddleware);
