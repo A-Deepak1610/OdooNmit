@@ -18,6 +18,19 @@ export const userRepository = {
             createdAt: true,
           },
         },
+        clubMemberships: {
+          include: {
+            club: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                category: true,
+                collegeName: true,
+              },
+            },
+          },
+        },
       },
     });
   },

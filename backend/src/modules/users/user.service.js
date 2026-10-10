@@ -22,6 +22,17 @@ export const userService = {
       status: user.status,
       roles: user.roles.map((r) => r.role),
       oauthProviders: user.oauthAccounts ? user.oauthAccounts.map((a) => a.provider) : [],
+      clubMemberships: user.clubMemberships ? user.clubMemberships.map((m) => ({
+        id: m.id,
+        clubId: m.clubId,
+        clubName: m.club?.name,
+        clubSlug: m.club?.slug,
+        membershipNumber: m.membershipNumber,
+        tier: m.tier,
+        status: m.status,
+        duesPaid: m.duesPaid,
+        joinedAt: m.joinedAt,
+      })) : [],
       createdAt: user.createdAt,
     };
   },

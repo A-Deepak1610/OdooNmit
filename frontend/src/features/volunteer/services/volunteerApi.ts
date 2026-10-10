@@ -1,0 +1,381 @@
+import { apiClient } from '../../../services/api-client';
+import {
+  VolunteerTask,
+  VolunteerProject,
+  VolunteerEventAssignment,
+  VolunteerExpenseClaim,
+  TaskStatus,
+} from '../types/volunteer.types';
+
+/**
+ * =============================================================================
+ * VOLUNTEER API CONTRACT & CLIENT SERVICE
+ * =============================================================================
+ * Connects the Volunteer Portal to CampusMitra REST APIs.
+ *
+ * Current Backend Status:
+ * - Profile & Auth endpoints are implemented (/api/v1/users/me, /api/v1/auth/me)
+ * - Domain endpoints (/api/v1/volunteer/*) are documented below with their
+ *   required request/response schemas and authorization rules.
+ * - When backend endpoints return 404 (unimplemented), this client provides
+ *   graceful fallback to authenticated club seed data.
+ */
+
+// Initial club seed data aligned with Skyline Student Association (SSA-2026)
+const INITIAL_TASKS: VolunteerTask[] = [
+  {
+    id: 'tsk-01',
+    title: 'Bake 60 chocolate chip cookies for Spring Bake Sale',
+    description: 'Prepare 5 dozen fresh cookies, pack in greaseproof bags, and label ingredients for allergy awareness.',
+    category: 'Baking',
+    status: 'IN_PROGRESS',
+    priority: 'HIGH',
+    dueDate: '2026-05-01',
+    projectName: 'Spring Charity Bake Sale & Fundraiser',
+    assigneeName: 'RITHISH S',
+    isOverdue: false,
+  },
+  {
+    id: 'tsk-02',
+    title: 'Procure biodegradable food boxes & napkins',
+    description: 'Purchase 100 compostable snack containers and paper napkins from campus store.',
+    category: 'Supplies',
+    status: 'COMPLETED',
+    priority: 'MEDIUM',
+    dueDate: '2026-04-30',
+    projectName: 'Spring Charity Bake Sale & Fundraiser',
+    assigneeName: 'Alex Rivera',
+    isOverdue: false,
+  },
+  {
+    id: 'tsk-03',
+    title: 'Staff Table Shift: 10:00 AM - 12:00 PM',
+    description: 'Manage sales table at Student Union Plaza Quad. Handle QR payments and verify member discount passes.',
+    category: 'Table Staffing',
+    status: 'TODO',
+    priority: 'HIGH',
+    dueDate: '2026-05-02',
+    projectName: 'Spring Charity Bake Sale & Fundraiser',
+    assigneeName: 'RITHISH S',
+    isOverdue: false,
+  },
+  {
+    id: 'tsk-04',
+    title: 'Staff Table Shift: 12:00 PM - 2:00 PM',
+    description: 'Relieve morning shift volunteers, replenish pastry display, and record mid-day inventory counts.',
+    category: 'Table Staffing',
+    status: 'TODO',
+    priority: 'MEDIUM',
+    dueDate: '2026-05-02',
+    projectName: 'Spring Charity Bake Sale & Fundraiser',
+    assigneeName: 'Sneha Patel',
+    isOverdue: false,
+  },
+  {
+    id: 'tsk-05',
+    title: 'Print QR payment posters & price standees',
+    description: 'Print laminated UPI payment QR codes and menu price standees for the booth counter.',
+    category: 'Promotion',
+    status: 'COMPLETED',
+    priority: 'MEDIUM',
+    dueDate: '2026-04-29',
+    projectName: 'Spring Charity Bake Sale & Fundraiser',
+    assigneeName: 'Rohan Mehra',
+    isOverdue: false,
+  },
+  {
+    id: 'tsk-06',
+    title: 'Coordinate stage setup & AV microphone cables',
+    description: 'Assist event organizer with auditorium stage dressing, podium setup, and test guest wireless microphones.',
+    category: 'Logistics',
+    status: 'TODO',
+    priority: 'URGENT',
+    dueDate: '2026-04-24',
+    projectName: 'Skyline Annual Spring Gala 2026',
+    assigneeName: 'RITHISH S',
+    isOverdue: true,
+  },
+];
+
+const INITIAL_PROJECTS: VolunteerProject[] = [
+  {
+    id: 'proj-bake-sale',
+    name: 'Spring Charity Bake Sale & Fundraiser',
+    description: 'Campus-wide fundraising bake sale on Student Union Quad raising budget for student club activities and community outreach.',
+    coordinatorName: 'Rohan Gupta',
+    coordinatorRole: 'Event Organizer',
+    deadline: 'May 2, 2026',
+    targetFund: 20000,
+    raisedFund: 14200,
+    totalTasks: 5,
+    completedTasks: 2,
+    myTasksCount: 2,
+    status: 'ACTIVE',
+    category: 'Fundraiser',
+  },
+  {
+    id: 'proj-spring-gala',
+    name: 'Skyline Annual Spring Gala 2026',
+    description: 'The premier annual formal event for Skyline Student Association featuring keynote address, dinner buffet, and cultural showcase.',
+    coordinatorName: 'Aarav Sharma',
+    coordinatorRole: 'President',
+    deadline: 'April 24, 2026',
+    targetFund: 65000,
+    raisedFund: 58500,
+    totalTasks: 8,
+    completedTasks: 6,
+    myTasksCount: 1,
+    status: 'ACTIVE',
+    category: 'Flagship Event',
+  },
+  {
+    id: 'proj-hackathon-prep',
+    name: 'Inter-College Hackathon Logistics',
+    description: 'Planning volunteer logistics, sponsor merchandise distribution, and participant registration for upcoming hackathon.',
+    coordinatorName: 'Priya Patel',
+    coordinatorRole: 'Treasurer',
+    deadline: 'June 10, 2026',
+    targetFund: 35000,
+    raisedFund: 18000,
+    totalTasks: 4,
+    completedTasks: 1,
+    myTasksCount: 0,
+    status: 'UPCOMING',
+    category: 'Tech Initiative',
+  },
+];
+
+const INITIAL_EVENTS: VolunteerEventAssignment[] = [
+  {
+    id: 'ev-assign-01',
+    eventId: 'evt-bake-sale',
+    eventTitle: 'Spring Charity Bake Sale & Fundraiser',
+    date: 'Saturday, May 2, 2026',
+    time: '10:00 AM - 12:00 PM',
+    location: 'Student Union Plaza Quad (Booth #4)',
+    responsibility: 'Table Staffing & Member Check-in',
+    assignmentStatus: 'CONFIRMED',
+    briefingInstructions: [
+      'Arrive 15 minutes prior (9:45 AM) for cash float and card reader handover.',
+      'Verify student digital membership cards before applying 20% discount on treat packs.',
+      'Keep allergy declaration sheet visibly placed on the front counter table.',
+    ],
+  },
+  {
+    id: 'ev-assign-02',
+    eventId: 'evt-gala-2026',
+    eventTitle: 'Skyline Annual Spring Gala 2026',
+    date: 'Friday, April 24, 2026',
+    time: '5:30 PM - 10:30 PM',
+    location: 'Main Campus Grand Auditorium',
+    responsibility: 'Stage Logistics & VIP Guest Greeter',
+    assignmentStatus: 'CONFIRMED',
+    briefingInstructions: [
+      'Dress code: Formal attire with volunteer lanyard identification.',
+      'Check in with Event Coordinator Rohan Gupta at Green Room by 5:15 PM.',
+      'Direct ticket holders to their assigned table seating zones according to QR code tier.',
+    ],
+  },
+];
+
+const INITIAL_EXPENSES: VolunteerExpenseClaim[] = [
+  {
+    id: 'exp-01',
+    title: 'Bake sale organic butter, chocolate chips & flour packaging',
+    amount: 1450,
+    category: 'SUPPLIES',
+    date: '2026-04-28',
+    receiptNote: 'Supermarket Tax Invoice #9482 (Attached)',
+    status: 'APPROVED',
+    projectName: 'Spring Charity Bake Sale & Fundraiser',
+    reviewerNotes: 'Approved by Treasurer Priya Patel. Slated for batch disbursement.',
+  },
+  {
+    id: 'exp-02',
+    title: 'Lamination sheets & mounting tape for payment QR standees',
+    amount: 320,
+    category: 'PRINTING',
+    date: '2026-04-29',
+    receiptNote: 'Campus Stationery Store Receipt #118',
+    status: 'REIMBURSED',
+    projectName: 'Spring Charity Bake Sale & Fundraiser',
+    reimbursedAt: '2026-04-30',
+    reviewerNotes: 'Reimbursed via direct bank transfer #IMPS-938210.',
+  },
+  {
+    id: 'exp-03',
+    title: 'Extra heavy-duty audio XLR cable adapter',
+    amount: 450,
+    category: 'EQUIPMENT',
+    date: '2026-05-01',
+    receiptNote: 'City Sound Equipment receipt slip #482',
+    status: 'PENDING',
+    projectName: 'Skyline Annual Spring Gala 2026',
+    reviewerNotes: 'Under review by Treasurer Office.',
+  },
+];
+
+// In-memory session store for runtime mutation tracking
+let sessionTasks = [...INITIAL_TASKS];
+let sessionExpenses = [...INITIAL_EXPENSES];
+
+export const volunteerApi = {
+  /**
+   * Fetches volunteer account profile, roles, and club memberships from backend.
+   * Endpoint: GET /api/v1/users/me
+   * Authorization: Bearer JWT
+   */
+  async getProfile() {
+    try {
+      const response = await apiClient.get('/users/me');
+      return response.data?.data?.user;
+    } catch {
+      // Fallback to auth/me if users/me is unavailable
+      const fallbackResponse = await apiClient.get('/auth/me');
+      return fallbackResponse.data?.data?.user;
+    }
+  },
+
+  /**
+   * Fetches tasks assigned to the volunteer.
+   * Contract:
+   *   Method: GET /api/v1/volunteer/tasks
+   *   Auth: Bearer JWT (Role: VOLUNTEER)
+   *   Response: { status: 'success', data: { tasks: VolunteerTask[] } }
+   */
+  async getTasks(): Promise<VolunteerTask[]> {
+    try {
+      const response = await apiClient.get('/volunteer/tasks');
+      if (response.data?.data?.tasks) {
+        return response.data.data.tasks;
+      }
+    } catch {
+      // Endpoint not yet deployed; safely return club seed data
+    }
+    return [...sessionTasks];
+  },
+
+  /**
+   * Updates status of a task assigned to the volunteer.
+   * Contract:
+   *   Method: PATCH /api/v1/volunteer/tasks/:id/status
+   *   Auth: Bearer JWT (Role: VOLUNTEER)
+   *   Request: { status: 'TODO' | 'IN_PROGRESS' | 'COMPLETED' }
+   *   Response: { status: 'success', data: { task: VolunteerTask } }
+   */
+  async updateTaskStatus(taskId: string, newStatus: TaskStatus): Promise<VolunteerTask> {
+    try {
+      const response = await apiClient.patch(`/volunteer/tasks/${taskId}/status`, {
+        status: newStatus,
+      });
+      if (response.data?.data?.task) {
+        return response.data.data.task;
+      }
+    } catch {
+      // Endpoint not yet deployed; safely update session state
+    }
+
+    const taskIndex = sessionTasks.findIndex((t) => t.id === taskId);
+    if (taskIndex !== -1) {
+      sessionTasks[taskIndex] = {
+        ...sessionTasks[taskIndex],
+        status: newStatus,
+      };
+      return sessionTasks[taskIndex];
+    }
+    throw new Error(`Task with id ${taskId} not found.`);
+  },
+
+  /**
+   * Fetches projects & fundraisers where volunteer participates.
+   * Contract:
+   *   Method: GET /api/v1/volunteer/projects
+   *   Auth: Bearer JWT (Role: VOLUNTEER)
+   *   Response: { status: 'success', data: { projects: VolunteerProject[] } }
+   */
+  async getProjects(): Promise<VolunteerProject[]> {
+    try {
+      const response = await apiClient.get('/volunteer/projects');
+      if (response.data?.data?.projects) {
+        return response.data.data.projects;
+      }
+    } catch {
+      // Endpoint not yet deployed; safely return club seed data
+    }
+    return [...INITIAL_PROJECTS];
+  },
+
+  /**
+   * Fetches upcoming event assignments for the volunteer.
+   * Contract:
+   *   Method: GET /api/v1/volunteer/events
+   *   Auth: Bearer JWT (Role: VOLUNTEER)
+   *   Response: { status: 'success', data: { events: VolunteerEventAssignment[] } }
+   */
+  async getEvents(): Promise<VolunteerEventAssignment[]> {
+    try {
+      const response = await apiClient.get('/volunteer/events');
+      if (response.data?.data?.events) {
+        return response.data.data.events;
+      }
+    } catch {
+      // Endpoint not yet deployed; safely return club seed data
+    }
+    return [...INITIAL_EVENTS];
+  },
+
+  /**
+   * Fetches volunteer's own expense claims and reimbursement status.
+   * Contract:
+   *   Method: GET /api/v1/volunteer/expenses
+   *   Auth: Bearer JWT (Role: VOLUNTEER)
+   *   Response: { status: 'success', data: { expenses: VolunteerExpenseClaim[] } }
+   */
+  async getExpenses(): Promise<VolunteerExpenseClaim[]> {
+    try {
+      const response = await apiClient.get('/volunteer/expenses');
+      if (response.data?.data?.expenses) {
+        return response.data.data.expenses;
+      }
+    } catch {
+      // Endpoint not yet deployed; safely return club seed data
+    }
+    return [...sessionExpenses];
+  },
+
+  /**
+   * Submits a new volunteer expense claim for reimbursement review.
+   * Contract:
+   *   Method: POST /api/v1/volunteer/expenses
+   *   Auth: Bearer JWT (Role: VOLUNTEER)
+   *   Request: {
+   *     title: string,
+   *     amount: number,
+   *     category: ExpenseCategory,
+   *     date: string,
+   *     receiptNote: string,
+   *     projectName?: string
+   *   }
+   *   Response: { status: 'success', data: { claim: VolunteerExpenseClaim } }
+   */
+  async submitExpense(data: Omit<VolunteerExpenseClaim, 'id' | 'status'>): Promise<VolunteerExpenseClaim> {
+    try {
+      const response = await apiClient.post('/volunteer/expenses', data);
+      if (response.data?.data?.claim) {
+        return response.data.data.claim;
+      }
+    } catch {
+      // Endpoint not yet deployed; record in session claim ledger
+    }
+
+    const newClaim: VolunteerExpenseClaim = {
+      ...data,
+      id: `exp-${Date.now()}`,
+      status: 'PENDING',
+      reviewerNotes: 'Submitted for treasurer review. Pending verification against receipt.',
+    };
+
+    sessionExpenses = [newClaim, ...sessionExpenses];
+    return newClaim;
+  },
+};

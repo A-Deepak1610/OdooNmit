@@ -13,6 +13,15 @@ import { MembershipModule } from '../components/modules/memberships/MembershipMo
 import { MerchandiseTaskModule } from '../components/modules/merchandise/MerchandiseTaskModule';
 import { FinanceLedgerModule } from '../components/modules/finance/FinanceLedgerModule';
 import { AnnouncementBoardModule } from '../components/modules/announcements/AnnouncementBoardModule';
+import {
+  VolunteerLayout,
+  VolunteerDashboard,
+  VolunteerTasks,
+  VolunteerProjects,
+  VolunteerEvents,
+  VolunteerExpenses,
+  VolunteerProfile,
+} from '../features/volunteer';
 import { useAuthStore } from '../stores/auth.store';
 import { ROLES, getDefaultRole, ROLE_DEFAULT_PATHS } from '../config/roles';
 
@@ -49,6 +58,52 @@ export const router = createBrowserRouter([
   {
     path: '/access-denied',
     element: <AccessDeniedPage />,
+  },
+
+  // ---------------------------------------------------------------------------
+  // Dedicated Volunteer Role Portal Shell (Separate Layout & Navigation)
+  // ---------------------------------------------------------------------------
+  {
+    path: '/volunteer',
+    element: (
+      <ProtectedRoute allowedRoles={[ROLES.VOLUNTEER]}>
+        <VolunteerLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/volunteer/dashboard" replace />,
+      },
+      {
+        path: 'dashboard',
+        element: <VolunteerDashboard />,
+      },
+      {
+        path: 'tasks',
+        element: <VolunteerTasks />,
+      },
+      {
+        path: 'projects',
+        element: <VolunteerProjects />,
+      },
+      {
+        path: 'events',
+        element: <VolunteerEvents />,
+      },
+      {
+        path: 'expenses',
+        element: <VolunteerExpenses />,
+      },
+      {
+        path: 'submit-expense',
+        element: <Navigate to="/volunteer/expenses" replace />,
+      },
+      {
+        path: 'profile',
+        element: <VolunteerProfile />,
+      },
+    ],
   },
 
   // ---------------------------------------------------------------------------
@@ -132,29 +187,15 @@ export const router = createBrowserRouter([
       },
 
       // -----------------------------------------------------------------------
-      // VOLUNTEER ROLE ROUTES
+      // VOLUNTEER ROLE REDIRECT (Forward to Dedicated Volunteer Portal)
       // -----------------------------------------------------------------------
       {
         path: 'volunteer',
-        element: <ProtectedRoute allowedRoles={[ROLES.VOLUNTEER]} />,
-        children: [
-          {
-            path: 'dashboard',
-            element: <RoleDashboardPage role={ROLES.VOLUNTEER} />,
-          },
-          {
-            path: 'tasks',
-            element: <MerchandiseTaskModule />,
-          },
-          {
-            path: 'events',
-            element: <EventsTicketingModule />,
-          },
-          {
-            path: 'submit-expense',
-            element: <FinanceLedgerModule />,
-          },
-        ],
+        element: <Navigate to="/volunteer/dashboard" replace />,
+      },
+      {
+        path: 'volunteer/*',
+        element: <Navigate to="/volunteer/dashboard" replace />,
       },
 
       // -----------------------------------------------------------------------
