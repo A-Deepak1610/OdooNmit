@@ -10,8 +10,26 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet" />
     <!-- Official Razorpay Standard Checkout SDK -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem('campus_theme');
+          var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var isDark = stored === 'dark' || (stored === 'system' && systemDark);
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.documentElement.style.colorScheme = 'dark';
+          } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.setAttribute('data-theme', 'light');
+            document.documentElement.style.colorScheme = 'light';
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
-  <body class="h-full bg-surface-50 text-surface-900 font-sans antialiased selection:bg-brand-500 selection:text-white">
+  <body class="h-full font-sans antialiased selection:bg-brand-500 selection:text-white">
     <div id="root" class="h-full"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

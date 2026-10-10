@@ -1,6 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
 import {
-  Menu,
   Moon,
   Sun,
   HeartHandshake,
@@ -8,15 +8,15 @@ import {
 } from 'lucide-react';
 import { NotificationDropdown } from '../../../components/shared/NotificationDropdown';
 import { useNotificationStore } from '../../../stores/notification.store';
+import { useThemeStore } from '../../../stores/theme.store';
 
 interface VolunteerHeaderProps {
-  onToggleMobileMenu: () => void;
+  onToggleMobileMenu?: () => void;
 }
 
-export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({ onToggleMobileMenu }) => {
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    return document.documentElement.getAttribute('data-theme') === 'dark';
-  });
+export const VolunteerHeader: React.FC<VolunteerHeaderProps> = () => {
+  const { resolvedTheme, toggleTheme } = useThemeStore();
+  const isDark = resolvedTheme === 'dark';
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const { unreadCount, fetchNotifications } = useNotificationStore();
@@ -24,13 +24,6 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({ onToggleMobile
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
-
-  const toggleTheme = () => {
-    const nextTheme = isDark ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', nextTheme);
-    localStorage.setItem('campus_theme', nextTheme);
-    setIsDark(!isDark);
-  };
 
   return (
     <header
@@ -48,18 +41,8 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({ onToggleMobile
         zIndex: 30,
       }}
     >
-      {/* ── Left Side: Mobile Hamburger Menu ───────── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {/* Mobile menu trigger */}
-        <button
-          onClick={onToggleMobileMenu}
-          className="md:hidden p-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
-          aria-label="Toggle navigation drawer"
-          style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex' }}
-        >
-          <Menu style={{ width: '20px', height: '20px' }} />
-        </button>
-      </div>
+      {/* ── Left Side ───────── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} />
 
       {/* ── Right Side: Volunteer Desk Badge & Theme Toggle ────────── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -84,27 +67,34 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({ onToggleMobile
         {/* Theme Toggle Button */}
         <button
           onClick={toggleTheme}
+          aria-label={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           style={{
             background: 'transparent',
             border: 'none',
             color: 'var(--muted-foreground)',
             cursor: 'pointer',
-            padding: '8px',
+            padding: '7px',
             borderRadius: 'var(--radius-md)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'color 0.2s',
+            transition: 'color 0.2s, background 0.2s',
           }}
           onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--secondary)';
             e.currentTarget.style.color = 'var(--foreground)';
           }}
           onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
             e.currentTarget.style.color = 'var(--muted-foreground)';
           }}
         >
-          {isDark ? <Sun style={{ width: '18px', height: '18px' }} /> : <Moon style={{ width: '18px', height: '18px' }} />}
+          {isDark ? (
+            <Sun style={{ width: '18px', height: '18px', color: '#f59e0b' }} />
+          ) : (
+            <Moon style={{ width: '18px', height: '18px' }} />
+          )}
         </button>
 
         {/* Notification Bell with Dropdown */}

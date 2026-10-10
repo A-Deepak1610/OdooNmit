@@ -193,7 +193,7 @@ export const ElectionsVotingModule: React.FC = () => {
             }}
           >
             <CreditCard style={{ width: '16px', height: '16px' }} />
-            <span>Pay Dues (₹250) via Razorpay to Vote</span>
+            <span>Pay Dues (₹250) to Vote</span>
           </button>
         )}
       </div>

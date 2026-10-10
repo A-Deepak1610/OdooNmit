@@ -17,7 +17,7 @@ let notifications = [
   {
     id: 'notif-2',
     title: 'Annual Membership Dues Pending',
-    message: 'Renew your annual dues (₹250 via Razorpay) to maintain voter eligibility and event perks.',
+    message: 'Renew your annual dues (₹250) to maintain voter eligibility and event perks.',
     category: 'FINANCE',
     priority: 'HIGH',
     targetUrl: '/student/memberships',

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link ,useNavigate} from 'react-router-dom';
+import { Vote } from 'lucide-react';
 import {
   Building2,
   Users,
@@ -120,7 +121,7 @@ const INITIAL_AUDITS: AuditEntry[] = [
     id: 'aud-04',
     action: 'Platform Dues Configuration',
     performedBy: 'Super Admin',
-    target: 'Global Razorpay Sandbox Mode',
+    target: 'Global Payment Gateway Sandbox Mode',
     timestamp: '2 days ago',
     type: 'SETTINGS',
   },
@@ -166,6 +167,7 @@ const TOP_CLUBS_CAPACITY = [
 ];
 
 export const AdminDashboardPage: React.FC = () => {
+  const navigate = useNavigate();
   const [organizations, setOrganizations] = useState<OrganizationItem[]>(INITIAL_ORGANIZATIONS);
   const [audits] = useState<AuditEntry[]>(INITIAL_AUDITS);
   const [searchQuery, setSearchQuery] = useState('');
@@ -325,7 +327,28 @@ export const AdminDashboardPage: React.FC = () => {
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => navigate('/admin/elections')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 16px',
+              background: '#eff6ff',
+              color: '#1e3a8a',
+              border: '1px solid #bfdbfe',
+              borderRadius: '8px',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+            className="hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800"
+          >
+            <Vote style={{ width: '16px', height: '16px' }} />
+            <span>Annual Elections & Ratification</span>
+          </button>
+
           <button
             onClick={() => setShowRoleModal(true)}
             style={{

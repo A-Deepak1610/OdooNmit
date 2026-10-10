@@ -56,7 +56,7 @@ const INITIAL_NOTIFICATIONS: CampusNotification[] = [
   {
     id: 'notif-2',
     title: 'Annual Membership Dues Pending',
-    message: 'Renew your annual dues (₹250 via Razorpay) to maintain voter eligibility and member discounts.',
+    message: 'Renew your annual dues (₹250) to maintain voter eligibility and member discounts.',
     category: 'FINANCE',
     priority: 'HIGH',
     targetUrl: '/student/memberships',
@@ -66,7 +66,7 @@ const INITIAL_NOTIFICATIONS: CampusNotification[] = [
   {
     id: 'notif-3',
     title: 'Spring Gala 2026 Passes Released',
-    message: 'Early Bird passes are 85% claimed. Digital QR pass delivered upon Razorpay checkout.',
+    message: 'Early Bird passes are 85% claimed. Digital QR pass delivered upon payment checkout.',
     category: 'EVENT',
     priority: 'NORMAL',
     targetUrl: '/student/events',

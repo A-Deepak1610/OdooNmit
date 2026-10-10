@@ -40,12 +40,29 @@ export interface MockEvent {
   soldCount: number;
   checkedInCount: number;
   revenue: number;
+  type?: 'FLAGSHIP_EVENT' | 'FUNDRAISER' | 'WORKSHOP' | 'SOCIAL';
+  description?: string;
+  category?: string;
+  fundraiserTargetGoal?: number;
+  assignedOrganizer?: {
+    name: string;
+    email: string;
+    role: string;
+    avatar: string;
+    assignedAt: string;
+    status: 'ACTIVE' | 'PENDING';
+  };
+  departmentStats?: { department: string; count: number; percentage: number }[];
+  attendanceHourly?: { hour: string; count: number }[];
+  yearStats?: { year: string; count: number; percentage?: number }[];
+  memberVsStudentStats?: { members: number; students: number };
   tiers: {
     name: string;
     memberPrice: number;
     nonMemberPrice: number;
     available: number;
     total: number;
+    perks?: string;
   }[];
 }
 
@@ -56,14 +73,69 @@ export const mockEvents: MockEvent[] = [
     date: 'April 24, 2026',
     time: '6:30 PM - 10:30 PM',
     location: 'Main Campus Grand Auditorium',
+    type: 'FLAGSHIP_EVENT',
+    description: 'Premier campus social gala with keynote speeches, musical banquet, annual leadership awards, and club fellowship.',
+    category: 'Cultural & Honors',
     capacity: 500,
     soldCount: 420,
     checkedInCount: 385,
     revenue: 58500,
+    assignedOrganizer: {
+      name: 'Aarav Patel',
+      email: 'aarav.patel@skyline.edu',
+      role: 'Chief Event Organizer',
+      avatar: 'https://api.dicebear.com/9.x/thumbs/svg?seed=AaravPatel&backgroundColor=ffdfbf',
+      assignedAt: 'March 15, 2026',
+      status: 'ACTIVE',
+    },
+    departmentStats: [
+      { department: 'Computer Science & Engineering', count: 176, percentage: 42 },
+      { department: 'Electronics & Communication', count: 109, percentage: 26 },
+      { department: 'Mechanical Engineering', count: 59, percentage: 14 },
+      { department: 'Information Science', count: 50, percentage: 12 },
+      { department: 'Design, Media & Others', count: 26, percentage: 6 },
+    ],
+    yearStats: [
+      { year: '1st Year Freshmen', count: 68, percentage: 16 },
+      { year: '2nd Year Sophomores', count: 118, percentage: 28 },
+      { year: '3rd Year Juniors', count: 164, percentage: 39 },
+      { year: '4th Year Seniors', count: 70, percentage: 17 },
+    ],
+    memberVsStudentStats: {
+      members: 285,
+      students: 135,
+    },
+    attendanceHourly: [
+      { hour: '5:30 PM - 6:00 PM', count: 45 },
+      { hour: '6:00 PM - 6:30 PM', count: 110 },
+      { hour: '6:30 PM - 7:00 PM', count: 160 },
+      { hour: '7:00 PM - 7:30 PM', count: 70 },
+    ],
     tiers: [
-      { name: 'Club Member Pass', memberPrice: 100, nonMemberPrice: 250, available: 30, total: 300 },
-      { name: 'General Admission', memberPrice: 150, nonMemberPrice: 300, available: 50, total: 150 },
-      { name: 'VIP Table (Per Seat)', memberPrice: 400, nonMemberPrice: 600, available: 0, total: 50 },
+      {
+        name: 'Club Member Pass',
+        memberPrice: 100,
+        nonMemberPrice: 250,
+        available: 30,
+        total: 300,
+        perks: 'Special Member Price (60% Off), Front Section Seating, Deluxe Dinner Buffet & Digital QR Pass',
+      },
+      {
+        name: 'General Student Pass',
+        memberPrice: 150,
+        nonMemberPrice: 300,
+        available: 50,
+        total: 150,
+        perks: 'General Seating, Evening Buffet & Certified Attendance Pass',
+      },
+      {
+        name: 'VIP Executive Table',
+        memberPrice: 400,
+        nonMemberPrice: 600,
+        available: 0,
+        total: 50,
+        perks: 'Reserved Table Seating, Priority VIP Buffet & Exclusive Swag Pack',
+      },
     ],
   },
   {
@@ -72,22 +144,203 @@ export const mockEvents: MockEvent[] = [
     date: 'May 2, 2026',
     time: '10:00 AM - 4:00 PM',
     location: 'Student Union Plaza Quad',
+    type: 'FUNDRAISER',
+    description: 'Charity fundraiser bake sale generating proceeds for campus student hardship grants and lab supplies.',
+    category: 'Fundraiser & Charity',
     capacity: 300,
     soldCount: 180,
     checkedInCount: 154,
-    revenue: 14200,
+    revenue: 28400,
+    fundraiserTargetGoal: 35000,
+    assignedOrganizer: {
+      name: 'Sneha Sundaram',
+      email: 'sneha.s@skyline.edu',
+      role: 'Cultural & Charity Lead',
+      avatar: 'https://api.dicebear.com/9.x/thumbs/svg?seed=SnehaSundaram&backgroundColor=b6e3f4',
+      assignedAt: 'April 02, 2026',
+      status: 'ACTIVE',
+    },
+    departmentStats: [
+      { department: 'Computer Science & Engineering', count: 72, percentage: 40 },
+      { department: 'Electronics & Communication', count: 45, percentage: 25 },
+      { department: 'Business & Management', count: 36, percentage: 20 },
+      { department: 'Design & Media', count: 27, percentage: 15 },
+    ],
+    yearStats: [
+      { year: '1st Year Freshmen', count: 35, percentage: 19 },
+      { year: '2nd Year Sophomores', count: 65, percentage: 36 },
+      { year: '3rd Year Juniors', count: 55, percentage: 31 },
+      { year: '4th Year Seniors', count: 25, percentage: 14 },
+    ],
+    memberVsStudentStats: {
+      members: 120,
+      students: 60,
+    },
+    attendanceHourly: [
+      { hour: '10:00 AM - 11:30 AM', count: 48 },
+      { hour: '11:30 AM - 1:00 PM', count: 62 },
+      { hour: '1:00 PM - 2:30 PM', count: 30 },
+      { hour: '2:30 PM - 4:00 PM', count: 14 },
+    ],
     tiers: [
-      { name: 'Treat Voucher Pack', memberPrice: 80, nonMemberPrice: 100, available: 120, total: 300 },
+      {
+        name: 'Treat Voucher & Charity Pack',
+        memberPrice: 80,
+        nonMemberPrice: 120,
+        available: 120,
+        total: 300,
+        perks: 'Special Member Price (33% Off), 4 Artisanal Treats, Drink Voucher & Charity Contribution',
+      },
+    ],
+  },
+  {
+    id: 'evt-hackathon-2026',
+    title: 'Inter-College 24hr Innovation Hackathon',
+    date: 'May 16, 2026',
+    time: '9:00 AM - Next Day 9:00 AM',
+    location: 'Campus Tech Center & Innovation Hub',
+    type: 'WORKSHOP',
+    description: '24-hour hybrid sprint on AI Agents, Open Source Tools, and sustainable campus software solutions with ₹50,000 in prizes.',
+    category: 'Technical Hackathon',
+    capacity: 250,
+    soldCount: 220,
+    checkedInCount: 198,
+    revenue: 44000,
+    fundraiserTargetGoal: 50000,
+    assignedOrganizer: {
+      name: 'Deepak Kumar',
+      email: 'deepak.k@skyline.edu',
+      role: 'Tech Committee Lead',
+      avatar: 'https://api.dicebear.com/9.x/thumbs/svg?seed=DeepakKumar&backgroundColor=b6e3f4',
+      assignedAt: 'April 05, 2026',
+      status: 'ACTIVE',
+    },
+    departmentStats: [
+      { department: 'Computer Science & Engineering', count: 132, percentage: 60 },
+      { department: 'Information Science', count: 44, percentage: 20 },
+      { department: 'Electronics & Communication', count: 33, percentage: 15 },
+      { department: 'Mechanical & Robotics', count: 11, percentage: 5 },
+    ],
+    yearStats: [
+      { year: '1st Year Freshmen', count: 22, percentage: 10 },
+      { year: '2nd Year Sophomores', count: 77, percentage: 35 },
+      { year: '3rd Year Juniors', count: 99, percentage: 45 },
+      { year: '4th Year Seniors', count: 22, percentage: 10 },
+    ],
+    memberVsStudentStats: {
+      members: 165,
+      students: 55,
+    },
+    attendanceHourly: [
+      { hour: '8:30 AM - 9:30 AM', count: 125 },
+      { hour: '9:30 AM - 10:30 AM', count: 55 },
+      { hour: '10:30 AM - 11:30 AM', count: 18 },
+    ],
+    tiers: [
+      {
+        name: 'Hacker Delegate Pass',
+        memberPrice: 150,
+        nonMemberPrice: 300,
+        available: 30,
+        total: 250,
+        perks: 'Special Member Price (50% Off), 24hr Meals & RedBull, Hacker Kit & Mentor Access',
+      },
     ],
   },
 ];
 
 export const mockDoorTickets = [
-  { id: 'TKT-GALA-001', attendee: 'Aarav Sharma', isMember: true, tier: 'Member Pass', checkedIn: true, time: '6:42 PM' },
-  { id: 'TKT-GALA-002', attendee: 'Priya Sundaram', isMember: true, tier: 'Member Pass', checkedIn: true, time: '6:45 PM' },
-  { id: 'TKT-GALA-003', attendee: 'Rohan Mehra', isMember: false, tier: 'General Non-Member', checkedIn: false, time: '-' },
-  { id: 'TKT-GALA-004', attendee: 'Deepak Kumar', isMember: true, tier: 'Member Pass', checkedIn: true, time: '6:51 PM' },
-  { id: 'TKT-GALA-005', attendee: 'Sneha Patel', isMember: false, tier: 'General Non-Member', checkedIn: false, time: '-' },
+  {
+    id: 'TKT-GALA-001',
+    attendee: 'Aarav Sharma',
+    email: 'aarav.sharma@nmit.edu.in',
+    department: 'Computer Science & Engineering',
+    year: '3rd Year',
+    isMember: true,
+    tier: 'Club Member Pass',
+    checkedIn: true,
+    time: '6:42 PM',
+    qrToken: 'SSA-GALA-2026-TKT001-AARAV',
+    seatNumber: 'Table A, Seat 03',
+  },
+  {
+    id: 'TKT-GALA-002',
+    attendee: 'Priya Sundaram',
+    email: 'priya.s@nmit.edu.in',
+    department: 'Electronics & Communication',
+    year: '2nd Year',
+    isMember: true,
+    tier: 'Club Member Pass',
+    checkedIn: true,
+    time: '6:45 PM',
+    qrToken: 'SSA-GALA-2026-TKT002-PRIYA',
+    seatNumber: 'Table A, Seat 04',
+  },
+  {
+    id: 'TKT-GALA-003',
+    attendee: 'Rohan Mehra',
+    email: 'rohan.m@campus.edu',
+    department: 'Mechanical Engineering',
+    year: '4th Year',
+    isMember: false,
+    tier: 'General Student Pass',
+    checkedIn: false,
+    time: '-',
+    qrToken: 'SSA-GALA-2026-TKT003-ROHAN',
+    seatNumber: 'General Tier, Seat 42',
+  },
+  {
+    id: 'TKT-GALA-004',
+    attendee: 'Deepak Kumar',
+    email: 'deepaka.ad24@bitsathy.ac.in',
+    department: 'Computer Science & Engineering',
+    year: '3rd Year',
+    isMember: true,
+    tier: 'Club Member Pass',
+    checkedIn: true,
+    time: '6:51 PM',
+    qrToken: 'SSA-GALA-2026-TKT004-DEEPAK',
+    seatNumber: 'Table B, Seat 01',
+  },
+  {
+    id: 'TKT-GALA-005',
+    attendee: 'Sneha Patel',
+    email: 'sneha.p@campus.edu',
+    department: 'Information Science',
+    year: '1st Year',
+    isMember: false,
+    tier: 'General Student Pass',
+    checkedIn: false,
+    time: '-',
+    qrToken: 'SSA-GALA-2026-TKT005-SNEHA',
+    seatNumber: 'General Tier, Seat 58',
+  },
+  {
+    id: 'TKT-GALA-006',
+    attendee: 'Hemanth S V',
+    email: 'hemanthsv.al24@bitsathy.ac.in',
+    department: 'Artificial Intelligence & DS',
+    year: '2nd Year',
+    isMember: true,
+    tier: 'Club Member Pass',
+    checkedIn: true,
+    time: '6:55 PM',
+    qrToken: 'SSA-GALA-2026-TKT006-HEMANTH',
+    seatNumber: 'Table B, Seat 05',
+  },
+  {
+    id: 'TKT-GALA-007',
+    attendee: 'Ananya Deshmukh',
+    email: 'ananya.d@campus.edu',
+    department: 'Design & Media',
+    year: '3rd Year',
+    isMember: true,
+    tier: 'VIP Executive Table',
+    checkedIn: true,
+    time: '7:04 PM',
+    qrToken: 'SSA-GALA-2026-TKT007-ANANYA',
+    seatNumber: 'VIP Table 01, Seat 02',
+  },
 ];
 
 // =============================================================================

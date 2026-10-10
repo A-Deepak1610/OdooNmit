@@ -12,6 +12,7 @@ import {
 import { useClubStore } from '../../../stores/club.store';
 import { useAuthStore } from '../../../stores/auth.store';
 import { RazorpayPaymentModal } from '../../shared/RazorpayPaymentModal';
+import { RealQrCode } from '../../shared/RealQrCode';
 
 export const EventsTicketingModule: React.FC = () => {
   const { user } = useAuthStore();
@@ -353,7 +354,7 @@ export const EventsTicketingModule: React.FC = () => {
                         }}
                       >
                         <CreditCard style={{ width: '14px', height: '14px' }} />
-                        <span>Book Pass (Razorpay)</span>
+                        <span>Book Pass • Pay</span>
                       </button>
                     </div>
                   </div>
@@ -433,32 +434,12 @@ export const EventsTicketingModule: React.FC = () => {
                   textAlign: 'center',
                 }}
               >
-                <img
-                  src="/qr-code.png"
-                  alt="Digital Event Ticket QR Code"
-                  style={{
-                    width: '110px',
-                    height: '110px',
-                    margin: '0 auto',
-                    objectFit: 'contain',
-                    borderRadius: '6px',
-                    display: 'block',
-                  }}
+                <RealQrCode
+                  value="SSA-GALA-2026-9812-DEEPAK"
+                  size={120}
+                  label="SSA-GALA-2026-9812"
+                  subLabel="Scan with camera for instant entrance verification"
                 />
-                <div
-                  style={{
-                    fontSize: '12px',
-                    fontFamily: 'monospace',
-                    fontWeight: 800,
-                    color: '#1e3a8a',
-                    marginTop: '8px',
-                  }}
-                >
-                  SSA-GALA-2026-9812
-                </div>
-                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                  Scan at entrance for door verification
-                </div>
               </div>
 
               <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.5 }}>
@@ -698,7 +679,7 @@ export const EventsTicketingModule: React.FC = () => {
               receipt
             );
             setBookingSuccess(
-              `Ticket Booked! Ticket #${ticketId} created with QR Pass ${qrToken}. ₹${selectedTier.price} payment verified via Razorpay.`
+              `Ticket Booked! Ticket #${ticketId} created with QR Pass ${qrToken}. ₹${selectedTier.price} payment verified.`
             );
             setSelectedTier(null);
           }}
