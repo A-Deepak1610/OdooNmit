@@ -32,7 +32,7 @@ if (process.env.NODE_ENV !== 'test') {
 export const env = {
   PORT: parseInt(process.env.PORT || '5000', 10),
   NODE_ENV: process.env.NODE_ENV || 'development',
-  APP_NAME: process.env.APP_NAME || 'campusmitra-backend',
+  APP_NAME: process.env.APP_NAME || 'student-organization-system-backend',
   DATABASE_URL: process.env.DATABASE_URL || '',
   
   // JWT & Session Auth Configuration
@@ -47,6 +47,10 @@ export const env = {
 
   // Client Web App Hand-off
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
+
+  // Razorpay Configuration
+  RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || '',
+  RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || '',
 
   isProduction: process.env.NODE_ENV === 'production',
   isDevelopment: process.env.NODE_ENV === 'development',

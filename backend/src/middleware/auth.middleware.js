@@ -34,6 +34,9 @@ export const authenticate = (req, res, next) => {
   }
 };
 
+// Convenient alias for authenticate
+export const authenticateUser = authenticate;
+
 /**
  * Authorization middleware: restricts route access to specified roles.
  *
@@ -46,14 +49,18 @@ export const requireRoles = (...allowedRoles) => {
       return next(new AppError('Authentication required before authorization check.', 401));
     }
 
-    const userRoles = req.user.roles || [];
-    const hasRole = allowedRoles.some((role) => userRoles.includes(role));
+    const userRoles = req.user.roles || (req.user.role ? [req.user.role] : []);
+    const normalizedAllowed = allowedRoles.map((r) => r.toUpperCase());
+    const hasRole = normalizedAllowed.some((role) =>
+      userRoles.map((r) => r.toUpperCase()).includes(role)
+    );
 
     if (!hasRole) {
       return next(
         new AppError(
           `Forbidden: Insufficient privileges. Required one of: ${allowedRoles.join(', ')}`,
-          403
+          403,
+          { requiredRoles: allowedRoles, currentRoles: userRoles }
         )
       );
     }

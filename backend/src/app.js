@@ -27,6 +27,10 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/api-docs.json', (req, res) => res.json(swaggerSpec));
 app.get('/docs', (req, res) => res.redirect('/api-docs'));
 
+// Root and Healthz diagnostics
+app.get('/', (req, res) => res.json({ message: 'Backend is running', docs: '/api-docs' }));
+app.get('/healthz', (req, res) => res.status(200).json({ status: 'ok' }));
+
 // API modules
 app.use('/api/v1/health', healthRoutes);
 app.use('/api/v1/auth', authRoutes);
