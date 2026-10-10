@@ -146,6 +146,45 @@ export class EventController {
       res.status(400).json({ success: false, message: err.message });
     }
   }
+
+  async bookTicket(req: Request, res: Response) {
+    try {
+      const userId = getUserId(req);
+      const { id: eventId } = req.params;
+      const { quantity, paymentMethod } = req.body;
+      const data = await eventService.bookTicket(userId, eventId, { quantity, paymentMethod });
+      res.status(201).json({
+        success: true,
+        data,
+        message: 'Pass booked successfully! QR code and check-in OTP generated.',
+      });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  async getMyTickets(req: Request, res: Response) {
+    try {
+      const userId = getUserId(req);
+      const data = await eventService.getMyTickets(userId);
+      res.json({ success: true, data });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  async verifyCheckinTicket(req: Request, res: Response) {
+    try {
+      const { code } = req.body;
+      const result = await eventService.verifyCheckinTicket(code);
+      if (!result.success) {
+        return res.status(result.alreadyCheckedIn ? 409 : 404).json(result);
+      }
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
 }
 
 export const eventController = new EventController();

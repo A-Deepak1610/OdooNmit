@@ -63,6 +63,14 @@ export const navigationConfig: NavigationItem[] = [
     allowedRoles: [ROLES.STUDENT],
     badge: 'Notice',
   },
+  {
+    id: 'student-events',
+    label: 'Events & Ticket Passes',
+    path: '/student/events',
+    icon: Calendar,
+    allowedRoles: [ROLES.STUDENT],
+    badge: 'Events',
+  },
 
   // Member Hub
   {
@@ -74,8 +82,16 @@ export const navigationConfig: NavigationItem[] = [
     group: 'MAIN',
   },
   {
+    id: 'member-events',
+    label: 'Events & Ticket Passes',
+    path: '/member/events',
+    icon: Calendar,
+    allowedRoles: [ROLES.MEMBER],
+    group: 'MEMBER HUB',
+  },
+  {
     id: 'member-tickets',
-    label: 'My Tickets & QR Passes',
+    label: 'My Booked Passes & QR',
     path: '/member/tickets',
     icon: Ticket,
     allowedRoles: [ROLES.MEMBER],

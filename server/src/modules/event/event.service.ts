@@ -895,6 +895,244 @@ export class EventService {
       tasks,
     };
   }
+
+  /**
+   * Book Event Ticket (Member or Non-Member price, Mock Payment simulation, OTP & QR Generation)
+   */
+  async bookTicket(
+    userId: string,
+    eventId: string,
+    data: { quantity?: number; paymentMethod?: string }
+  ) {
+    const qty = Math.max(1, Math.min(10, Number(data.quantity) || 1));
+
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      include: { organization: true },
+    });
+
+    if (!event) {
+      throw new Error('Event not found.');
+    }
+
+    if (event.remainingSeats < qty) {
+      throw new Error(`Only ${event.remainingSeats} seat(s) remaining for this event.`);
+    }
+
+    // Check if user is a member of this club/organization
+    const membershipRole = await prisma.userRole.findFirst({
+      where: {
+        userId,
+        organizationId: event.organizationId,
+        role: { in: [RoleType.MEMBER, RoleType.PRESIDENT, RoleType.VICE_PRESIDENT, RoleType.TREASURER, RoleType.SECRETARY, RoleType.VOLUNTEER] },
+      },
+    });
+
+    const isMember = !!membershipRole;
+    const unitPrice = isMember ? event.memberPrice : event.nonMemberPrice;
+    const totalAmount = unitPrice * qty;
+
+    // 6-digit verification OTP
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const bookingNumber = `TKT-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+
+    // Create Booking
+    const booking = await prisma.booking.create({
+      data: {
+        id: uuidv7(),
+        bookingNumber,
+        userId,
+        eventId,
+        quantity: qty,
+        unitPrice,
+        totalAmount,
+        currency: 'INR',
+        status: 'CONFIRMED',
+        confirmedAt: new Date(),
+        otpCode,
+      },
+      include: {
+        event: {
+          include: { organization: true },
+        },
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            username: true,
+            phone: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
+
+    // Create Mock Payment record
+    const mockPayId = `mock_pay_${Math.random().toString(36).substring(2, 10)}`;
+    await prisma.payment.create({
+      data: {
+        id: uuidv7(),
+        userId,
+        bookingId: booking.id,
+        status: 'CAPTURED',
+        amount: totalAmount,
+        currency: 'INR',
+        razorpayPaymentId: mockPayId,
+        razorpayOrderId: `mock_order_${Math.random().toString(36).substring(2, 10)}`,
+        capturedAt: new Date(),
+      },
+    });
+
+    // Decrement remaining seats
+    await prisma.event.update({
+      where: { id: eventId },
+      data: {
+        remainingSeats: Math.max(0, event.remainingSeats - qty),
+      },
+    });
+
+    // Generate User Notification
+    await prisma.notification.create({
+      data: {
+        id: uuidv7(),
+        userId,
+        title: `🎟️ Ticket Confirmed: ${event.title}`,
+        message: `Your booking #${booking.bookingNumber} is confirmed! OTP: ${otpCode}. Venue: ${event.venue}. Present your QR code at the door.`,
+        type: 'TICKET_CONFIRMED',
+        link: '/member/tickets',
+      },
+    });
+
+    return {
+      ...booking,
+      isMemberPriceApplied: isMember,
+      qrPayload: `CAMPUSMITRA:${booking.bookingNumber}:${otpCode}`,
+    };
+  }
+
+  /**
+   * Get Current User's Tickets / Passes
+   */
+  async getMyTickets(userId: string) {
+    const bookings = await prisma.booking.findMany({
+      where: { userId },
+      include: {
+        event: {
+          include: { organization: true },
+        },
+        payments: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return bookings.map((b) => ({
+      ...b,
+      qrPayload: `CAMPUSMITRA:${b.bookingNumber}:${b.otpCode || '123456'}`,
+    }));
+  }
+
+  /**
+   * Verify Ticket for Volunteer Door Check-in (supports QR Scan or 6-Digit OTP)
+   */
+  async verifyCheckinTicket(rawCode: string) {
+    let cleanCode = (rawCode || '').trim();
+    if (cleanCode.startsWith('CAMPUSMITRA:')) {
+      const parts = cleanCode.split(':');
+      if (parts.length >= 2) {
+        cleanCode = parts[1]; // bookingNumber
+      }
+    }
+
+    if (!cleanCode) {
+      throw new Error('Please provide a valid Ticket Pass number, QR code, or 6-digit OTP.');
+    }
+
+    // Try finding by bookingNumber, otpCode, or id
+    const booking = await prisma.booking.findFirst({
+      where: {
+        OR: [
+          { bookingNumber: { equals: cleanCode } },
+          { otpCode: { equals: cleanCode } },
+          { id: { equals: cleanCode } },
+        ],
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            username: true,
+            avatarUrl: true,
+            phone: true,
+          },
+        },
+        event: {
+          select: {
+            id: true,
+            title: true,
+            venue: true,
+            startAt: true,
+            category: true,
+          },
+        },
+      },
+    });
+
+    if (!booking) {
+      return {
+        success: false,
+        verified: false,
+        message: `Invalid pass or OTP code "${cleanCode}". No active registration found.`,
+      };
+    }
+
+    if (booking.checkedInAt) {
+      return {
+        success: false,
+        alreadyCheckedIn: true,
+        verified: true,
+        booking,
+        message: `⚠️ ATTENTION: Attendee "${booking.user.fullName}" was ALREADY CHECKED IN on ${new Date(booking.checkedInAt).toLocaleTimeString()}!`,
+      };
+    }
+
+    // Mark as checked in
+    const updated = await prisma.booking.update({
+      where: { id: booking.id },
+      data: { checkedInAt: new Date() },
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            username: true,
+            avatarUrl: true,
+            phone: true,
+          },
+        },
+        event: {
+          select: {
+            id: true,
+            title: true,
+            venue: true,
+            startAt: true,
+            category: true,
+          },
+        },
+      },
+    });
+
+    return {
+      success: true,
+      verified: true,
+      alreadyCheckedIn: false,
+      booking: updated,
+      message: `✅ Admission Approved! Welcome ${booking.user.fullName} (${booking.quantity} seat${booking.quantity > 1 ? 's' : ''}).`,
+    };
+  }
 }
 
 export const eventService = new EventService();

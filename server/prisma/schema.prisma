@@ -347,6 +347,7 @@ model Booking {
   reservationExpiresAt DateTime?
   confirmedAt          DateTime?
   checkedInAt          DateTime?
+  otpCode              String?            @db.VarChar(10)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
 

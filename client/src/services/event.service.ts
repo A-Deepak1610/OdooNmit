@@ -268,4 +268,40 @@ export const eventService = {
     });
     return res.data.data;
   },
+
+  // 12. Book Event Ticket with Mock Payment
+  async bookTicket(eventId: string, data: { quantity: number; paymentMethod?: string }): Promise<{
+    data: any;
+    message: string;
+  }> {
+    const res = await apiClient.post<{ success: boolean; data: any; message: string }>(
+      `/events/${eventId}/book`,
+      data
+    );
+    return res.data;
+  },
+
+  // 13. Get Current User's Booked Tickets & QR Passes
+  async getMyTickets(): Promise<any[]> {
+    const res = await apiClient.get<{ success: boolean; data: any[] }>('/events/tickets/my-tickets');
+    return res.data.data;
+  },
+
+  // 14. Verify Check-in for Volunteer Door Station (via QR code or 6-digit OTP)
+  async verifyCheckinTicket(code: string): Promise<{
+    success: boolean;
+    verified: boolean;
+    alreadyCheckedIn?: boolean;
+    booking?: any;
+    message: string;
+  }> {
+    const res = await apiClient.post<{
+      success: boolean;
+      verified: boolean;
+      alreadyCheckedIn?: boolean;
+      booking?: any;
+      message: string;
+    }>('/events/tickets/verify-checkin', { code });
+    return res.data;
+  },
 };

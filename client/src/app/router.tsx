@@ -197,6 +197,14 @@ export const router = createBrowserRouter([
             path: 'apply-membership',
             element: <StudentModulePage />,
           },
+          {
+            path: 'events',
+            element: <EventsTicketingModule />,
+          },
+          {
+            path: 'tickets',
+            element: <EventsTicketingModule />,
+          },
         ],
       },
 

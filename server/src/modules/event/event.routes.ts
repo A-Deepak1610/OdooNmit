@@ -12,11 +12,18 @@ eventRouter.get('/organizer/volunteers', (req, res) => eventController.getVolunt
 
 // 1. Read routes (Students, Members, Volunteers, Organizers can view)
 eventRouter.get('/', (req, res) => eventController.getEvents(req, res));
+eventRouter.get('/tickets/my-tickets', authenticateJwt, (req, res) => eventController.getMyTickets(req, res));
 eventRouter.get('/:id', (req, res) => eventController.getEventById(req, res));
 eventRouter.get('/:id/attendees', (req, res) => eventController.getEventAttendees(req, res));
 
 // 2. Protected routes requiring authentication
 eventRouter.use(authenticateJwt);
+
+// User ticket passes & Booking
+eventRouter.post('/:id/book', (req, res) => eventController.bookTicket(req, res));
+
+// Door Check-in Verification (by QR code string or 6-digit OTP)
+eventRouter.post('/tickets/verify-checkin', (req, res) => eventController.verifyCheckinTicket(req, res));
 
 // Check-in toggle on event day
 eventRouter.post(
