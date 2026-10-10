@@ -29,6 +29,7 @@ export const VolunteerExpenses: React.FC = () => {
   } = useVolunteerExpenses();
 
   const [showForm, setShowForm] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'REIMBURSED'>('ALL');
 
   const getStatusBadge = (status: ExpenseStatus) => {
     switch (status) {
@@ -50,7 +51,7 @@ export const VolunteerExpenses: React.FC = () => {
             className="dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800"
           >
             <CheckCircle2 style={{ width: '13px', height: '13px' }} />
-            <span>Reimbursed</span>
+            <span>Paid</span>
           </span>
         );
       case 'APPROVED':
@@ -71,7 +72,7 @@ export const VolunteerExpenses: React.FC = () => {
             className="dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800"
           >
             <CheckCircle2 style={{ width: '13px', height: '13px' }} />
-            <span>Approved for Payout</span>
+            <span>Approved</span>
           </span>
         );
       case 'REJECTED':
@@ -114,7 +115,7 @@ export const VolunteerExpenses: React.FC = () => {
             className="dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800"
           >
             <Clock style={{ width: '13px', height: '13px' }} />
-            <span>Pending Review</span>
+            <span>Pending</span>
           </span>
         );
     }
@@ -431,11 +432,13 @@ export const VolunteerExpenses: React.FC = () => {
       >
         <div
           style={{
-            padding: '20px 24px',
+            padding: '16px 24px',
             borderBottom: '1px solid var(--border-color, #f1f5f9)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '12px',
           }}
           className="border-slate-100 dark:border-slate-800"
         >
@@ -449,7 +452,7 @@ export const VolunteerExpenses: React.FC = () => {
               }}
               className="text-slate-900 dark:text-slate-100"
             >
-              My Claim History
+              Reimbursement Requests
             </h2>
             <span
               style={{
@@ -462,13 +465,40 @@ export const VolunteerExpenses: React.FC = () => {
               }}
               className="bg-slate-100 dark:bg-slate-800 text-slate-500"
             >
-              {expenses.length} records
+              {expenses.length} total
             </span>
           </div>
 
-          <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-            Audited under Skyline Student Association Treasury
-          </span>
+          {/* Status Filter Tabs (Track: pending, approved, rejected, or paid) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            {[
+              { id: 'ALL' as const, label: 'All', count: expenses.length },
+              { id: 'PENDING' as const, label: 'Pending', count: expenses.filter((e) => e.status === 'PENDING').length },
+              { id: 'APPROVED' as const, label: 'Approved', count: expenses.filter((e) => e.status === 'APPROVED').length },
+              { id: 'REJECTED' as const, label: 'Rejected', count: expenses.filter((e) => e.status === 'REJECTED').length },
+              { id: 'REIMBURSED' as const, label: 'Paid', count: expenses.filter((e) => e.status === 'REIMBURSED').length },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setStatusFilter(tab.id)}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: statusFilter === tab.id ? '#1e3a8a' : 'var(--muted, #f1f5f9)',
+                  color: statusFilter === tab.id ? '#ffffff' : '#64748b',
+                  transition: 'all 0.15s ease',
+                }}
+                className={statusFilter !== tab.id ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700' : ''}
+              >
+                {tab.label} ({tab.count})
+              </button>
+            ))}
+          </div>
         </div>
 
         {loading ? (
@@ -478,14 +508,16 @@ export const VolunteerExpenses: React.FC = () => {
               Loading reimbursement ledger...
             </p>
           </div>
-        ) : expenses.length === 0 ? (
+        ) : expenses.filter((c) => statusFilter === 'ALL' || c.status === statusFilter).length === 0 ? (
           <div style={{ padding: '64px 24px', textAlign: 'center' }}>
             <Receipt style={{ width: '44px', height: '44px', color: '#cbd5e1', margin: '0 auto 16px' }} />
             <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--foreground, #1e293b)', margin: '0 0 6px' }}>
-              No Claims Submitted
+              No {statusFilter === 'ALL' ? 'Claims' : statusFilter} Records Found
             </h4>
             <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>
-              Purchased bake sale supplies or event materials out-of-pocket? Click "New Expense Claim" above.
+              {statusFilter === 'ALL'
+                ? 'Purchased bake sale supplies or event materials out-of-pocket? Click "New Expense Claim" above.'
+                : `There are currently no reimbursement claims with status "${statusFilter}".`}
             </p>
           </div>
         ) : (
@@ -512,7 +544,9 @@ export const VolunteerExpenses: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {expenses.map((claim) => (
+                {expenses
+                  .filter((c) => statusFilter === 'ALL' || c.status === statusFilter)
+                  .map((claim) => (
                   <tr
                     key={claim.id}
                     style={{

@@ -13,15 +13,16 @@ import { MerchandiseTaskModule } from '../components/modules/merchandise/Merchan
 import { FinanceLedgerModule } from '../components/modules/finance/FinanceLedgerModule';
 import { AnnouncementBoardModule } from '../components/modules/announcements/AnnouncementBoardModule';
 import { ElectionsVotingModule } from '../components/modules/elections/ElectionsVotingModule';
+import { StudentOrganizationsModule } from '../components/modules/organizations/StudentOrganizationsModule';
+import { StudentMembershipModule } from '../components/modules/memberships/StudentMembershipModule';
+import { StudentTicketsModule } from '../components/modules/tickets/StudentTicketsModule';
+import { StudentOrdersModule } from '../components/modules/orders/StudentOrdersModule';
 import {
-  VolunteerLayout,
   VolunteerDashboard,
   VolunteerTasks,
   VolunteerScanner,
-  VolunteerProjects,
   VolunteerEvents,
   VolunteerExpenses,
-  VolunteerAnnouncements,
   VolunteerProfile,
 } from '../features/volunteer';
 import { useAuthStore } from '../stores/auth.store';
@@ -29,14 +30,6 @@ import { ROLES, getDefaultRole, ROLE_DEFAULT_PATHS } from '../config/roles';
 
 import { LandingPage } from '../pages/LandingPage';
 import { AdminUsersPage } from '../pages/admin/AdminUsersPage';
-import { AdminDbAssistantPage } from '../pages/admin/AdminDbAssistantPage';
-import { AdminWinnersPage } from '../pages/admin/AdminWinnersPage';
-import { AdminAnalyticsPage } from '../pages/admin/AdminAnalyticsPage';
-import { AdminReportsPage } from '../pages/admin/AdminReportsPage';
-import { AdminEventsPage } from '../pages/admin/AdminEventsPage';
-import { AdminEventsOverviewPage } from '../pages/admin/AdminEventsOverviewPage';
-import { AdminEventAnalyticsPage } from '../pages/admin/AdminEventAnalyticsPage';
-import { AdminIncomingEventsPage } from '../pages/admin/AdminIncomingEventsPage';
 import { AdminRolesPage } from '../pages/admin/AdminRolesPage';
 import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage';
 import { AdminAuditLogPage } from '../pages/admin/AdminAuditLogPage';
@@ -154,59 +147,6 @@ export const router = createBrowserRouter([
     element: <ModuleRedirect subpath="announcements" />,
   },
 
-  // ---------------------------------------------------------------------------
-  // Dedicated Volunteer Role Portal Shell (Separate Layout & Navigation)
-  // ---------------------------------------------------------------------------
-  {
-    path: '/volunteer',
-    element: (
-      <ProtectedRoute allowedRoles={[ROLES.VOLUNTEER]}>
-        <VolunteerLayout />
-      </ProtectedRoute>
-    ),
-    children: [
-      {
-        index: true,
-        element: <Navigate to="/volunteer/dashboard" replace />,
-      },
-      {
-        path: 'dashboard',
-        element: <VolunteerDashboard />,
-      },
-      {
-        path: 'tasks',
-        element: <VolunteerTasks />,
-      },
-      {
-        path: 'scanner',
-        element: <VolunteerScanner />,
-      },
-      {
-        path: 'projects',
-        element: <VolunteerProjects />,
-      },
-      {
-        path: 'events',
-        element: <VolunteerEvents />,
-      },
-      {
-        path: 'expenses',
-        element: <VolunteerExpenses />,
-      },
-      {
-        path: 'announcements',
-        element: <VolunteerAnnouncements />,
-      },
-      {
-        path: 'submit-expense',
-        element: <Navigate to="/volunteer/expenses" replace />,
-      },
-      {
-        path: 'profile',
-        element: <VolunteerProfile />,
-      },
-    ],
-  },
 
   // ---------------------------------------------------------------------------
   // Authenticated Application Shell Routes (Pathless Layout Route)
@@ -220,7 +160,7 @@ export const router = createBrowserRouter([
     children: [
 
       // -----------------------------------------------------------------------
-      // STUDENT ROLE ROUTES
+      // STUDENT ROLE ROUTES (Strictly per user specification)
       // -----------------------------------------------------------------------
       {
         path: 'student',
@@ -231,6 +171,10 @@ export const router = createBrowserRouter([
             element: <RoleDashboardPage role={ROLES.STUDENT} />,
           },
           {
+            path: 'organizations',
+            element: <StudentOrganizationsModule />,
+          },
+          {
             path: 'events',
             element: <EventsTicketingModule />,
           },
@@ -239,20 +183,24 @@ export const router = createBrowserRouter([
             element: <AnnouncementBoardModule />,
           },
           {
+            path: 'merchandise',
+            element: <MerchandiseTaskModule />,
+          },
+          {
+            path: 'membership',
+            element: <StudentMembershipModule />,
+          },
+          {
             path: 'apply-membership',
-            element: <MembershipModule />,
+            element: <StudentMembershipModule />,
           },
           {
-            path: 'applications',
-            element: <MembershipModule />,
+            path: 'tickets',
+            element: <StudentTicketsModule />,
           },
           {
-            path: 'elections',
-            element: <ElectionsVotingModule />,
-          },
-          {
-            path: 'voting',
-            element: <ElectionsVotingModule />,
+            path: 'orders',
+            element: <StudentOrdersModule />,
           },
         ],
       },
@@ -300,15 +248,53 @@ export const router = createBrowserRouter([
       },
 
       // -----------------------------------------------------------------------
-      // VOLUNTEER ROLE REDIRECT (Forward to Dedicated Volunteer Portal)
+      // VOLUNTEER ROLE ROUTES
       // -----------------------------------------------------------------------
       {
         path: 'volunteer',
-        element: <Navigate to="/volunteer/dashboard" replace />,
-      },
-      {
-        path: 'volunteer/*',
-        element: <Navigate to="/volunteer/dashboard" replace />,
+        element: <ProtectedRoute allowedRoles={[ROLES.VOLUNTEER]} />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/volunteer/dashboard" replace />,
+          },
+          {
+            path: 'dashboard',
+            element: <VolunteerDashboard />,
+          },
+          {
+            path: 'tasks',
+            element: <VolunteerTasks />,
+          },
+          {
+            path: 'scanner',
+            element: <VolunteerScanner />,
+          },
+          {
+            path: 'projects',
+            element: <Navigate to="/volunteer/tasks" replace />,
+          },
+          {
+            path: 'events',
+            element: <VolunteerEvents />,
+          },
+          {
+            path: 'expenses',
+            element: <VolunteerExpenses />,
+          },
+          {
+            path: 'announcements',
+            element: <Navigate to="/volunteer/dashboard" replace />,
+          },
+          {
+            path: 'submit-expense',
+            element: <Navigate to="/volunteer/expenses" replace />,
+          },
+          {
+            path: 'profile',
+            element: <VolunteerProfile />,
+          },
+        ],
       },
 
       // -----------------------------------------------------------------------
@@ -410,7 +396,13 @@ export const router = createBrowserRouter([
       },
 
       // -----------------------------------------------------------------------
-      // ADMIN ROLE ROUTES (Matches attached UI reference!)
+      // ADMIN ROLE ROUTES (System Administrator)
+      // Manages the platform and access controls:
+      // - Create, edit, deactivate organizations
+      // - Assign club leadership and role permissions
+      // - Manage accounts and access recovery
+      // - View system-wide activity and audit history
+      // - Configure platform-level settings
       // -----------------------------------------------------------------------
       {
         path: 'admin',
@@ -425,6 +417,7 @@ export const router = createBrowserRouter([
             element: <AdminClubsPage />,
           },
           {
+<<<<<<< HEAD
             path: 'events',
             element: <AdminEventsPage />,
           },
@@ -461,20 +454,18 @@ export const router = createBrowserRouter([
             element: <AdminElectionsPage />,
           },
           {
+=======
+>>>>>>> 249e6e922e960f2f5d34b00aac7dbc69cd669531
             path: 'organizations',
-            element: <AdminDashboardPage />,
-          },
-          {
-            path: 'roles',
-            element: <AdminDashboardPage />,
-          },
-          {
-            path: 'users',
-            element: <AdminUsersPage />,
+            element: <AdminClubsPage />,
           },
           {
             path: 'roles',
             element: <AdminRolesPage />,
+          },
+          {
+            path: 'users',
+            element: <AdminUsersPage />,
           },
           {
             path: 'audit-log',

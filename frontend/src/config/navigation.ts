@@ -3,7 +3,6 @@ import { ROLES, UserRole } from './roles';
 import {
   LayoutDashboard,
   Calendar,
-  Compass,
   Megaphone,
   UserCheck,
   Ticket,
@@ -27,49 +26,80 @@ import {
  */
 export const navigationConfig: NavigationItem[] = [
   // ===========================================================================
-  // 6. STUDENT / MEMBER NAVIGATION
-  // Browse orgs, events, announcements, merch; register & pay dues;
-  // view expiry/benefits; renew; buy tickets (QR passes); order status.
+  // 6. STUDENT ROLE NAVIGATION
+  // Strictly scoped to user specification:
+  // - Browse organizations, events, announcements, and merchandise.
+  // - Register for an organization and pay membership dues.
+  // - View membership status, expiry date, and benefits.
+  // - Renew membership.
+  // - Buy event tickets and merchandise.
+  // - Access ticket confirmations or QR codes.
+  // - View order and payment status.
+  // - View member-only announcements and applicable discounts.
   // ===========================================================================
   {
     id: 'student-dashboard',
-    label: 'Services Hub',
+    label: 'Student Services Hub',
     path: '/student/dashboard',
     icon: LayoutDashboard,
     allowedRoles: [ROLES.STUDENT],
     group: 'MAIN',
   },
   {
-    id: 'student-explore-events',
+    id: 'student-organizations',
+    label: 'Browse Organizations',
+    path: '/student/organizations',
+    icon: Building2,
+    allowedRoles: [ROLES.STUDENT],
+    group: 'DISCOVER & BROWSE',
+  },
+  {
+    id: 'student-events',
     label: 'Browse Events & Tickets',
     path: '/student/events',
-    icon: Compass,
+    icon: Calendar,
     allowedRoles: [ROLES.STUDENT],
-    group: 'CAMPUS SERVICES',
+    group: 'DISCOVER & BROWSE',
   },
   {
     id: 'student-announcements',
-    label: 'Club Announcements',
+    label: 'Announcements & Discounts',
     path: '/student/announcements',
     icon: Megaphone,
     allowedRoles: [ROLES.STUDENT],
-    group: 'CAMPUS SERVICES',
+    group: 'DISCOVER & BROWSE',
   },
   {
-    id: 'student-apply-membership',
-    label: 'Join Organization & Dues',
-    path: '/student/apply-membership',
+    id: 'student-merchandise',
+    label: 'Merchandise Store',
+    path: '/student/merchandise',
+    icon: ShoppingBag,
+    allowedRoles: [ROLES.STUDENT],
+    group: 'DISCOVER & BROWSE',
+  },
+  {
+    id: 'student-membership',
+    label: 'Membership, Expiry & Renewal',
+    path: '/student/membership',
     icon: UserCheck,
     allowedRoles: [ROLES.STUDENT],
-    group: 'MEMBERSHIP',
+    group: 'MEMBERSHIP & PERKS',
   },
   {
-    id: 'student-elections',
-    label: 'Officer Elections & Voting',
-    path: '/student/elections',
-    icon: Vote,
+    id: 'student-tickets',
+    label: 'Ticket Confirmations & QR Passes',
+    path: '/student/tickets',
+    icon: Ticket,
     allowedRoles: [ROLES.STUDENT],
-    group: 'CAMPUS SERVICES',
+    group: 'MY ACTIVITY',
+  },
+  {
+    id: 'student-orders',
+    label: 'Order & Payment Status',
+    path: '/student/orders',
+    icon: Receipt,
+    allowedRoles: [ROLES.STUDENT],
+    group: 'MY ACTIVITY',
   },
 
   // Member Hub
@@ -144,16 +174,8 @@ export const navigationConfig: NavigationItem[] = [
     group: 'VOLUNTEER OPERATIONS',
   },
   {
-    id: 'volunteer-scanner',
-    label: 'Door Ticket Scanner',
-    path: '/volunteer/scanner',
-    icon: QrCode,
-    allowedRoles: [ROLES.VOLUNTEER],
-    group: 'VOLUNTEER OPERATIONS',
-  },
-  {
     id: 'volunteer-events',
-    label: 'Event Duties & Shifts',
+    label: 'Event Duties & Instructions',
     path: '/volunteer/events',
     icon: Calendar,
     allowedRoles: [ROLES.VOLUNTEER],
@@ -168,10 +190,10 @@ export const navigationConfig: NavigationItem[] = [
     group: 'VOLUNTEER OPERATIONS',
   },
   {
-    id: 'volunteer-announcements',
-    label: 'Shift Briefings',
-    path: '/volunteer/announcements',
-    icon: Megaphone,
+    id: 'volunteer-scanner',
+    label: 'Ticket & Member Check-in',
+    path: '/volunteer/scanner',
+    icon: QrCode,
     allowedRoles: [ROLES.VOLUNTEER],
     group: 'VOLUNTEER OPERATIONS',
   },
@@ -324,8 +346,12 @@ export const navigationConfig: NavigationItem[] = [
 
   // ===========================================================================
   // 1. SUPER ADMIN / SYSTEM ADMINISTRATOR NAVIGATION
-  // Create/edit/deactivate orgs; assign leadership & role permissions;
-  // manage accounts & recovery; audit history; platform settings.
+  // Manages the platform and access controls:
+  // - Create, edit, deactivate organizations
+  // - Assign club leadership and role permissions
+  // - Manage accounts and access recovery
+  // - View system-wide activity and audit history
+  // - Configure platform-level settings
   // ===========================================================================
   {
     id: 'admin-dashboard',
@@ -336,12 +362,17 @@ export const navigationConfig: NavigationItem[] = [
     group: 'MAIN',
   },
   {
+<<<<<<< HEAD
     id: 'admin-organizations',
     label: 'Manage Organizations',
+=======
+    id: 'admin-clubs',
+    label: 'Clubs & Charters',
+>>>>>>> 249e6e922e960f2f5d34b00aac7dbc69cd669531
     path: '/admin/clubs',
     icon: Building2,
     allowedRoles: [ROLES.ADMIN],
-    group: 'SYSTEM ADMINISTRATION',
+    group: 'PLATFORM MANAGEMENT',
   },
   {
     id: 'admin-elections',
@@ -353,7 +384,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'admin-roles',
-    label: 'Leadership & Role Permissions',
+    label: 'Leadership & Permissions',
     path: '/admin/roles',
     icon: ShieldCheck,
     allowedRoles: [ROLES.ADMIN],
@@ -361,7 +392,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'admin-users',
-    label: 'Accounts & Access Recovery',
+    label: 'Accounts & Recovery',
     path: '/admin/users',
     icon: Users,
     allowedRoles: [ROLES.ADMIN],

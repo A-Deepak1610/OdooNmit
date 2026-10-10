@@ -6,11 +6,12 @@ import {
 } from 'lucide-react';
 import { useClubStore } from '../../../stores/club.store';
 import { useAuthStore } from '../../../stores/auth.store';
+import { ROLES } from '../../../config/roles';
 import { RazorpayPaymentModal } from '../../shared/RazorpayPaymentModal';
 import { MockTask } from '../../../data/mockClubData';
 
 export const MerchandiseTaskModule: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user, role } = useAuthStore();
   const {
     merchandise,
     orders,
@@ -120,15 +121,15 @@ export const MerchandiseTaskModule: React.FC = () => {
             Club Merchandise Store & Fundraiser Coordination
           </h2>
           <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-            Online size collection and stock depletion with Razorpay payment, alongside volunteer task boards for charity bake sales.
+            Online size collection and stock depletion with instant payment, alongside volunteer task boards for charity bake sales.
           </p>
         </div>
 
         {/* Tab Switcher */}
         <div style={{ display: 'flex', gap: '6px', background: 'var(--muted)', padding: '4px', borderRadius: '8px' }}>
-          {(['store', 'orders', 'tasks'] as const).map((tab) => {
+          {(role === ROLES.STUDENT ? (['store', 'orders'] as const) : (['store', 'orders', 'tasks'] as const)).map((tab) => {
             const isActive = activeTab === tab;
-            const labels = {
+            const labels: Record<string, string> = {
               store: 'Merchandise Shop',
               orders: `My Orders (${orders.length})`,
               tasks: `Bake Sale Tasks (${progressPercent}%)`,
@@ -329,7 +330,7 @@ export const MerchandiseTaskModule: React.FC = () => {
                 >
                   <CreditCard style={{ width: '16px', height: '16px' }} />
                   <span>
-                    {isOutOfStock ? `Size ${activeSize} Sold Out` : `Order Size ${activeSize} (Pay via Razorpay)`}
+                    {isOutOfStock ? `Size ${activeSize} Sold Out` : `Order Size ${activeSize} • Pay`}
                   </span>
                 </button>
               </div>
@@ -368,7 +369,7 @@ export const MerchandiseTaskModule: React.FC = () => {
                   <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Item & Size</th>
                   <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Student</th>
                   <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Amount</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Razorpay Payment ID</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Payment ID</th>
                   <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Status</th>
                 </tr>
               </thead>
@@ -675,7 +676,7 @@ export const MerchandiseTaskModule: React.FC = () => {
             );
             if (order) {
               setOrderAlert(
-                `Order Placed! Order #${order.id} for ${checkoutItem.name} (Size: ${checkoutItem.size}). Paid ₹${checkoutItem.price} via Razorpay.`
+                `Order Placed! Order #${order.id} for ${checkoutItem.name} (Size: ${checkoutItem.size}). Paid ₹${checkoutItem.price}.`
               );
             }
             setCheckoutItem(null);

@@ -116,7 +116,7 @@ export interface PaymentReceipt {
   purpose: string;
   payerName: string;
   payerEmail: string;
-  method: 'UPI' | 'CARD' | 'NETBANKING';
+  method: 'UPI' | 'CARD' | 'NETBANKING' | 'RAZORPAY_OFFICIAL_POPUP';
   timestamp: string;
   signature: string;
 }

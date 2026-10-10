@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  QrCode,
   UserPlus,
   CheckCircle2,
   Award,
@@ -133,7 +132,7 @@ export const MembershipModule: React.FC = () => {
             Digital Membership Sign-ups, Verification & Dues Renewal
           </h2>
           <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-            Instant digital pass generation with Razorpay dues payment, real-time discount entitlements, and automated renewal reminders.
+            Instant digital pass generation with dues payment, real-time discount entitlements, and automated renewal reminders.
           </p>
         </div>
 
@@ -337,7 +336,7 @@ export const MembershipModule: React.FC = () => {
                 }}
               >
                 <CreditCard style={{ width: '16px', height: '16px' }} />
-                <span>Collect Annual Dues (₹250 via Razorpay) & Register</span>
+                <span>Pay ₹250 & Register</span>
               </button>
             </div>
           </form>
@@ -476,7 +475,7 @@ export const MembershipModule: React.FC = () => {
                             cursor: 'pointer',
                           }}
                         >
-                          Pay Dues (Razorpay)
+                          Pay Dues
                         </button>
                       ) : (
                         <span style={{ fontSize: '12px', color: '#15803d', fontWeight: 600 }}>
@@ -540,7 +539,18 @@ export const MembershipModule: React.FC = () => {
                 border: '1px solid var(--border)',
               }}
             >
-              <QrCode style={{ width: '100px', height: '100px', margin: '0 auto', color: '#1e293b' }} />
+              <img
+                src="/qr-code.png"
+                alt="Membership Pass QR Code"
+                style={{
+                  width: '100px',
+                  height: '100px',
+                  margin: '0 auto',
+                  objectFit: 'contain',
+                  borderRadius: '6px',
+                  display: 'block',
+                }}
+              />
               <div style={{ fontSize: '12px', fontFamily: 'monospace', fontWeight: 800, color: '#1e3a8a', marginTop: '8px' }}>
                 {selectedMember.membershipId}
               </div>
@@ -587,7 +597,7 @@ export const MembershipModule: React.FC = () => {
               }}
             >
               <CreditCard style={{ width: '16px', height: '16px' }} />
-              <span>Renew Membership Dues (₹250 via Razorpay)</span>
+              <span>Renew Membership (₹250)</span>
             </button>
           )}
         </div>
@@ -618,7 +628,7 @@ export const MembershipModule: React.FC = () => {
                 receipt
               );
               setRegisteredNotice(
-                `Welcome ${created.name}! Digital pass created with ID ${created.membershipId}. Annual dues of ₹250 paid via Razorpay.`
+                `Welcome ${created.name}! Digital pass created with ID ${created.membershipId}. Annual dues of ₹250 paid successfully.`
               );
               setShowRegisterForm(false);
               setSelectedMember(created);

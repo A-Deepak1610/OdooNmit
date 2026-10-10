@@ -1,16 +1,36 @@
 import React, { useState } from 'react';
 import {
   Users,
-  CreditCard,
   Search,
   Filter,
   Plus,
+  KeyRound,
+  ShieldCheck,
+  CheckCircle2,
+  Lock,
+  UserCheck,
+  X,
 } from 'lucide-react';
-import { MembershipModule } from '../../components/modules/memberships/MembershipModule';
 import { UserAccount, INITIAL_USERS } from './data/users';
 
 export const AdminUsersPage: React.FC = () => {
   const [users, setUsers] = useState<UserAccount[]>(INITIAL_USERS);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserAccount | null>(null);
+  const [recoveringUser, setRecoveringUser] = useState<UserAccount | null>(null);
+  const [recoveryNotice, setRecoveryNotice] = useState<string | null>(null);
+
+  const [newUser, setNewUser] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    role: 'Member' as UserAccount['role'],
+    department: 'Computer Science',
+    semester: 6,
+  });
 
   const updateUser = (id: string, updates: Partial<UserAccount>) => {
     setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...updates } : u)));
@@ -25,20 +45,6 @@ export const AdminUsersPage: React.FC = () => {
     };
     setUsers((prev) => [newUserRecord, ...prev]);
   };
-  const [activeTab, setActiveTab] = useState<'memberships' | 'system_users'>('memberships');
-  const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('ALL');
-  const [showAddUserModal, setShowAddUserModal] = useState(false);
-  const [editingUser, setEditingUser] = useState<UserAccount | null>(null);
-
-  const [newUser, setNewUser] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    role: 'Member' as UserAccount['role'],
-    department: 'Computer Science',
-    semester: 6,
-  });
 
   const filteredUsers = users.filter((u) => {
     const matchesSearch =
@@ -46,7 +52,8 @@ export const AdminUsersPage: React.FC = () => {
       u.email.toLowerCase().includes(search.toLowerCase()) ||
       u.department.toLowerCase().includes(search.toLowerCase());
     const matchesRole = roleFilter === 'ALL' || u.role === roleFilter;
-    return matchesSearch && matchesRole;
+    const matchesStatus = statusFilter === 'ALL' || u.status === statusFilter;
+    return matchesSearch && matchesRole && matchesStatus;
   });
 
   const handleCreateUser = (e: React.FormEvent) => {
@@ -75,17 +82,43 @@ export const AdminUsersPage: React.FC = () => {
       department: 'Computer Science',
       semester: 6,
     });
+    setRecoveryNotice(`User account ${newUser.email} created successfully.`);
+    setTimeout(() => setRecoveryNotice(null), 4000);
   };
+
+  const handleTriggerPasswordReset = (user: UserAccount) => {
+    setRecoveryNotice(`Password recovery instructions & secure token dispatched to ${user.email}.`);
+    setRecoveringUser(null);
+    setTimeout(() => setRecoveryNotice(null), 5000);
+  };
+
+  const handleReset2FA = (user: UserAccount) => {
+    setRecoveryNotice(`Two-factor authentication (2FA) reset for ${user.name}. User will be prompted to re-register on next login.`);
+    setRecoveringUser(null);
+    setTimeout(() => setRecoveryNotice(null), 5000);
+  };
+
+  const handleToggleLock = (user: UserAccount) => {
+    const nextStatus = user.status === 'Active' ? 'Suspended' : 'Active';
+    updateUser(user.id, { status: nextStatus as any });
+    setRecoveryNotice(`Account status for ${user.name} changed to ${nextStatus}.`);
+    setRecoveringUser(null);
+    setTimeout(() => setRecoveryNotice(null), 4000);
+  };
+
+  const activeCount = users.filter((u) => u.status === 'Active').length;
+  const officerCount = users.filter((u) => u.role !== 'Member').length;
+  const suspendedCount = users.filter((u) => u.status !== 'Active').length;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* ── Page Header with Tab Navigation ── */}
+      {/* ── Page Header ── */}
       <div
         style={{
           background: 'white',
           borderRadius: '12px',
           border: '1px solid #e2e8f0',
-          padding: '20px',
+          padding: '20px 24px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -106,342 +139,624 @@ export const AdminUsersPage: React.FC = () => {
                 textTransform: 'uppercase',
               }}
             >
-              Administrator Workspace
+              Access & Identity Management
             </span>
             <span style={{ fontSize: '12px', color: '#64748b' }}>
-              Campus Central User & Membership Governance
+              Platform Identity & Security Controls
             </span>
           </div>
-          <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#1e293b', margin: '0 0 4px 0' }}>
-            User Accounts & Membership Governance
+          <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#1e293b', margin: '0 0 4px 0' }}>
+            Accounts & Access Recovery
           </h1>
           <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-            Unified command center to monitor student club passes, collect dues, and manage institutional system roles.
+            Provision user accounts, configure institutional permissions, initiate credential recovery, and manage account lockouts.
           </p>
         </div>
 
-        {/* Tab Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <button
+          onClick={() => setShowAddUserModal(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            background: '#1e3a8a',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+          }}
+        >
+          <Plus size={16} />
+          <span>Provision New Account</span>
+        </button>
+      </div>
+
+      {/* ── Notification Feedback Alert ── */}
+      {recoveryNotice && (
+        <div
+          style={{
+            padding: '12px 18px',
+            borderRadius: '8px',
+            background: '#ecfdf5',
+            border: '1px solid #a7f3d0',
+            color: '#065f46',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}
+        >
+          <CheckCircle2 size={18} />
+          <span>{recoveryNotice}</span>
+        </div>
+      )}
+
+      {/* ── Stat Summary Cards ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+        <div
+          style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '18px 20px',
+            border: '1px solid #e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+          }}
+        >
           <div
             style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '10px',
+              background: '#eff6ff',
               display: 'flex',
-              background: '#f1f5f9',
-              padding: '3px',
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#1e3a8a',
             }}
           >
-            <button
-              onClick={() => setActiveTab('memberships')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '6px',
-                border: 'none',
-                background: activeTab === 'memberships' ? 'white' : 'transparent',
-                color: activeTab === 'memberships' ? '#1e3a8a' : '#64748b',
-                fontWeight: 600,
-                fontSize: '13px',
-                cursor: 'pointer',
-                boxShadow: activeTab === 'memberships' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-              }}
-            >
-              <CreditCard size={15} />
-              Member Passes & Dues
-            </button>
-            <button
-              onClick={() => setActiveTab('system_users')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '6px',
-                border: 'none',
-                background: activeTab === 'system_users' ? 'white' : 'transparent',
-                color: activeTab === 'system_users' ? '#1e3a8a' : '#64748b',
-                fontWeight: 600,
-                fontSize: '13px',
-                cursor: 'pointer',
-                boxShadow: activeTab === 'system_users' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-              }}
-            >
-              <Users size={15} />
-              System Users & RBAC
-            </button>
+            <Users size={20} />
+          </div>
+          <div>
+            <div style={{ fontSize: '12px', color: '#64748b' }}>Total User Accounts</div>
+            <div style={{ fontSize: '22px', fontWeight: 700, color: '#1e293b' }}>{users.length}</div>
+            <div style={{ fontSize: '11px', color: '#16a34a' }}>{activeCount} Active Sessions</div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '18px 20px',
+            border: '1px solid #e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+          }}
+        >
+          <div
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '10px',
+              background: '#f0fdf4',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#15803d',
+            }}
+          >
+            <UserCheck size={20} />
+          </div>
+          <div>
+            <div style={{ fontSize: '12px', color: '#64748b' }}>Appointed Officers</div>
+            <div style={{ fontSize: '22px', fontWeight: 700, color: '#1e293b' }}>{officerCount}</div>
+            <div style={{ fontSize: '11px', color: '#64748b' }}>Presidents & Staff</div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '18px 20px',
+            border: '1px solid #e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+          }}
+        >
+          <div
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '10px',
+              background: '#fef2f2',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#dc2626',
+            }}
+          >
+            <Lock size={20} />
+          </div>
+          <div>
+            <div style={{ fontSize: '12px', color: '#64748b' }}>Locked / Suspended</div>
+            <div style={{ fontSize: '22px', fontWeight: 700, color: '#dc2626' }}>{suspendedCount}</div>
+            <div style={{ fontSize: '11px', color: '#64748b' }}>Access restricted</div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '18px 20px',
+            border: '1px solid #e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+          }}
+        >
+          <div
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '10px',
+              background: '#faf5ff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#7e22ce',
+            }}
+          >
+            <ShieldCheck size={20} />
+          </div>
+          <div>
+            <div style={{ fontSize: '12px', color: '#64748b' }}>Access Recovery</div>
+            <div style={{ fontSize: '22px', fontWeight: 700, color: '#1e293b' }}>SSO / 2FA</div>
+            <div style={{ fontSize: '11px', color: '#15803d' }}>Self-Service & Admin Pin</div>
           </div>
         </div>
       </div>
 
-      {/* ── Active Tab View ── */}
-      {activeTab === 'memberships' ? (
-        <MembershipModule />
-      ) : (
-        /* System Users & RBAC Directory View */
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Controls Bar */}
-          <div
-            style={{
-              background: 'white',
-              borderRadius: '12px',
-              border: '1px solid #e2e8f0',
-              padding: '16px 20px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '12px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', flex: 1 }}>
-              <div style={{ position: 'relative', minWidth: '280px', flex: 1, maxWidth: '400px' }}>
-                <Search
-                  size={16}
-                  color="#94a3b8"
-                  style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}
-                />
-                <input
-                  type="text"
-                  placeholder="Search by name, email, or department..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  style={{
-                    width: '100%',
-                    height: '38px',
-                    paddingLeft: '38px',
-                    paddingRight: '12px',
-                    borderRadius: '8px',
-                    border: '1px solid #e2e8f0',
-                    fontSize: '13px',
-                    background: '#f8fafc',
-                    outline: 'none',
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Filter size={16} color="#64748b" />
-                <select
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                  style={{
-                    height: '38px',
-                    padding: '0 12px',
-                    borderRadius: '8px',
-                    border: '1px solid #e2e8f0',
-                    fontSize: '13px',
-                    background: '#f8fafc',
-                    color: '#334155',
-                    outline: 'none',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <option value="ALL">All Roles ({users.length})</option>
-                  <option value="Super Admin">Super Admin</option>
-                  <option value="Club President">Club President</option>
-                  <option value="Treasurer">Treasurer</option>
-                  <option value="Event Organizer">Event Organizer</option>
-                  <option value="Volunteer">Volunteer</option>
-                  <option value="Member">Member</option>
-                </select>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowAddUserModal(true)}
+      {/* ── Controls Bar ── */}
+      <div
+        style={{
+          background: 'white',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          padding: '16px 20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', flex: 1 }}>
+          <div style={{ position: 'relative', minWidth: '260px', flex: 1, maxWidth: '400px' }}>
+            <Search
+              size={16}
+              color="#94a3b8"
+              style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}
+            />
+            <input
+              type="text"
+              placeholder="Search by name, email, or department..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '9px 16px',
-                background: '#1e3a8a',
-                color: 'white',
-                border: 'none',
+                width: '100%',
+                height: '38px',
+                paddingLeft: '38px',
+                paddingRight: '12px',
                 borderRadius: '8px',
+                border: '1px solid #e2e8f0',
                 fontSize: '13px',
-                fontWeight: 600,
+                background: '#f8fafc',
+                outline: 'none',
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Filter size={16} color="#64748b" />
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              style={{
+                height: '38px',
+                padding: '0 12px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                fontSize: '13px',
+                background: '#f8fafc',
+                color: '#334155',
+                outline: 'none',
                 cursor: 'pointer',
               }}
             >
-              <Plus size={16} />
-              Add System Account
-            </button>
-          </div>
+              <option value="ALL">All Roles ({users.length})</option>
+              <option value="Super Admin">Super Admin</option>
+              <option value="Club President">Club President</option>
+              <option value="Treasurer">Treasurer</option>
+              <option value="Event Organizer">Event Organizer</option>
+              <option value="Volunteer">Volunteer</option>
+              <option value="Member">Member</option>
+            </select>
 
-          {/* User Accounts Table */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              style={{
+                height: '38px',
+                padding: '0 12px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                fontSize: '13px',
+                background: '#f8fafc',
+                color: '#334155',
+                outline: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="ALL">All Statuses</option>
+              <option value="Active">Active</option>
+              <option value="Suspended">Suspended</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* ── User Accounts Table ── */}
+      <div
+        style={{
+          background: 'white',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <thead>
+              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left', color: '#64748b' }}>
+                <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '12px' }}>USER ACCOUNT</th>
+                <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '12px' }}>ASSIGNED ROLE</th>
+                <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '12px' }}>DEPARTMENT</th>
+                <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '12px' }}>ORGANIZATION SCOPE</th>
+                <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '12px' }}>STATUS</th>
+                <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '12px', textAlign: 'right' }}>ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.map((u) => {
+                const roleColorMap: Record<string, { bg: string; text: string }> = {
+                  'Super Admin': { bg: '#dcfce7', text: '#15803d' },
+                  'Club President': { bg: '#ede9fe', text: '#6d28d9' },
+                  Treasurer: { bg: '#fef3c7', text: '#b45309' },
+                  'Event Organizer': { bg: '#fed7aa', text: '#c2410c' },
+                  Volunteer: { bg: '#cffafe', text: '#0e7490' },
+                  Member: { bg: '#e0e7ff', text: '#3730a3' },
+                };
+                const roleStyle = roleColorMap[u.role] || { bg: '#f1f5f9', text: '#475569' };
+                const isActive = u.status === 'Active';
+
+                return (
+                  <tr
+                    key={u.id}
+                    style={{
+                      borderBottom: '1px solid #f1f5f9',
+                    }}
+                  >
+                    <td style={{ padding: '14px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div
+                          style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            background: u.avatarColor || '#3b82f6',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 700,
+                            fontSize: '13px',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {u.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '13px' }}>
+                            {u.name}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#64748b' }}>{u.email}</div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td style={{ padding: '14px 16px' }}>
+                      <span
+                        style={{
+                          background: roleStyle.bg,
+                          color: roleStyle.text,
+                          padding: '3px 10px',
+                          borderRadius: '6px',
+                          fontWeight: 700,
+                          fontSize: '11px',
+                          letterSpacing: '0.3px',
+                        }}
+                      >
+                        {u.role}
+                      </span>
+                    </td>
+
+                    <td style={{ padding: '14px 16px', color: '#475569' }}>
+                      <div>{u.department}</div>
+                      <div style={{ fontSize: '11px', color: '#94a3b8' }}>Semester {u.semester}</div>
+                    </td>
+
+                    <td style={{ padding: '14px 16px', color: '#64748b', fontSize: '12px' }}>
+                      {u.organizationNames.join(', ')}
+                    </td>
+
+                    <td style={{ padding: '14px 16px' }}>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          color: isActive ? '#16a34a' : '#dc2626',
+                          background: isActive ? '#f0fdf4' : '#fef2f2',
+                          border: `1px solid ${isActive ? '#bbf7d0' : '#fecaca'}`,
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          fontWeight: 600,
+                          fontSize: '11px',
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            background: isActive ? '#16a34a' : '#dc2626',
+                          }}
+                        />
+                        {u.status}
+                      </span>
+                    </td>
+
+                    <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+                        <button
+                          onClick={() => setRecoveringUser(u)}
+                          title="Manage Access & Password Recovery"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: '#eff6ff',
+                            color: '#1e3a8a',
+                            border: '1px solid #bfdbfe',
+                            borderRadius: '6px',
+                            padding: '6px 10px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <KeyRound size={13} />
+                          <span>Recovery</span>
+                        </button>
+
+                        <button
+                          onClick={() => setEditingUser(u)}
+                          style={{
+                            background: '#f1f5f9',
+                            color: '#334155',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Edit Role
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── Modal: Access Recovery ── */}
+      {recoveringUser && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            padding: '16px',
+          }}
+        >
           <div
             style={{
               background: 'white',
-              borderRadius: '12px',
-              border: '1px solid #e2e8f0',
-              overflow: 'hidden',
+              borderRadius: '14px',
+              padding: '24px',
+              width: '100%',
+              maxWidth: '480px',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)',
             }}
           >
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                <thead>
-                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left', color: '#64748b' }}>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '12px' }}>USER ACCOUNT</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '12px' }}>ASSIGNED ROLE</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '12px' }}>DEPARTMENT & SEM</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '12px' }}>ORGANIZATION SCOPE</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '12px' }}>STATUS</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '12px', textAlign: 'right' }}>ACTIONS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.map((u) => {
-                    const isThirumurugan = u.email.includes('thirumurugank');
-                    const roleColorMap: Record<string, { bg: string; text: string }> = {
-                      'Super Admin': { bg: '#dcfce7', text: '#15803d' },
-                      'Club President': { bg: '#ede9fe', text: '#6d28d9' },
-                      Treasurer: { bg: '#fef3c7', text: '#b45309' },
-                      'Event Organizer': { bg: '#fed7aa', text: '#c2410c' },
-                      Volunteer: { bg: '#cffafe', text: '#0e7490' },
-                      Member: { bg: '#e0e7ff', text: '#3730a3' },
-                    };
-                    const roleStyle = roleColorMap[u.role] || { bg: '#f1f5f9', text: '#475569' };
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <KeyRound size={20} color="#1e3a8a" />
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#1e293b' }}>
+                  Account Access Recovery
+                </h3>
+              </div>
+              <button
+                onClick={() => setRecoveringUser(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-                    return (
-                      <tr
-                        key={u.id}
-                        style={{
-                          borderBottom: '1px solid #f1f5f9',
-                          background: isThirumurugan ? '#f0fdf4' : 'transparent',
-                        }}
-                      >
-                        <td style={{ padding: '14px 16px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div
-                              style={{
-                                width: '36px',
-                                height: '36px',
-                                borderRadius: '50%',
-                                background: u.avatarColor || '#3b82f6',
-                                color: 'white',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontWeight: 700,
-                                fontSize: '13px',
-                                flexShrink: 0,
-                              }}
-                            >
-                              {u.name.charAt(0)}
-                            </div>
-                            <div>
-                              <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                {u.name}
-                                {isThirumurugan && (
-                                  <span
-                                    style={{
-                                      fontSize: '10px',
-                                      background: '#16a34a',
-                                      color: 'white',
-                                      padding: '1px 6px',
-                                      borderRadius: '4px',
-                                      fontWeight: 700,
-                                    }}
-                                  >
-                                    Current Session
-                                  </span>
-                                )}
-                              </div>
-                              <div style={{ fontSize: '12px', color: '#64748b' }}>{u.email}</div>
-                            </div>
-                          </div>
-                        </td>
+            <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#64748b' }}>
+              Execute access recovery procedures for <strong>{recoveringUser.name}</strong> ({recoveringUser.email}).
+            </p>
 
-                        <td style={{ padding: '14px 16px' }}>
-                          <span
-                            style={{
-                              background: roleStyle.bg,
-                              color: roleStyle.text,
-                              padding: '3px 10px',
-                              borderRadius: '6px',
-                              fontWeight: 700,
-                              fontSize: '11px',
-                              letterSpacing: '0.3px',
-                            }}
-                          >
-                            {u.role}
-                          </span>
-                        </td>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+              <div
+                style={{
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  padding: '12px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '13px', color: '#1e293b' }}>Password Reset Link</div>
+                  <div style={{ fontSize: '11px', color: '#64748b' }}>Email a cryptographically secure 1-hour password reset link</div>
+                </div>
+                <button
+                  onClick={() => handleTriggerPasswordReset(recoveringUser)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    background: '#1e3a8a',
+                    color: 'white',
+                    border: 'none',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Send Link
+                </button>
+              </div>
 
-                        <td style={{ padding: '14px 16px', color: '#475569' }}>
-                          <div>{u.department}</div>
-                          <div style={{ fontSize: '11px', color: '#94a3b8' }}>Semester {u.semester}</div>
-                        </td>
+              <div
+                style={{
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  padding: '12px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '13px', color: '#1e293b' }}>Reset 2FA Credentials</div>
+                  <div style={{ fontSize: '11px', color: '#64748b' }}>Clear authenticator app binding & require re-enrollment</div>
+                </div>
+                <button
+                  onClick={() => handleReset2FA(recoveringUser)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    background: '#f8fafc',
+                    color: '#334155',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Reset 2FA
+                </button>
+              </div>
 
-                        <td style={{ padding: '14px 16px', color: '#64748b', fontSize: '12px' }}>
-                          {u.organizationNames.join(', ')}
-                        </td>
+              <div
+                style={{
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  padding: '12px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '13px', color: '#1e293b' }}>Account Status Lock</div>
+                  <div style={{ fontSize: '11px', color: '#64748b' }}>
+                    Current status: <strong>{recoveringUser.status}</strong>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleToggleLock(recoveringUser)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    background: recoveringUser.status === 'Active' ? '#fef2f2' : '#f0fdf4',
+                    color: recoveringUser.status === 'Active' ? '#dc2626' : '#15803d',
+                    border: `1px solid ${recoveringUser.status === 'Active' ? '#fecaca' : '#bbf7d0'}`,
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {recoveringUser.status === 'Active' ? 'Lock Account' : 'Unlock Account'}
+                </button>
+              </div>
+            </div>
 
-                        <td style={{ padding: '14px 16px' }}>
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              color: u.status === 'Active' ? '#16a34a' : '#ea580c',
-                              fontWeight: 600,
-                              fontSize: '12px',
-                            }}
-                          >
-                            <span
-                              style={{
-                                width: '7px',
-                                height: '7px',
-                                borderRadius: '50%',
-                                background: u.status === 'Active' ? '#16a34a' : '#ea580c',
-                              }}
-                            />
-                            {u.status}
-                          </span>
-                        </td>
-
-                        <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
-                            <button
-                              onClick={() => setEditingUser(u)}
-                              style={{
-                                background: '#f1f5f9',
-                                color: '#1e3a8a',
-                                border: 'none',
-                                borderRadius: '6px',
-                                padding: '6px 12px',
-                                fontSize: '12px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                              }}
-                            >
-                              Edit Role
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setRecoveringUser(null)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  background: 'white',
+                  color: '#64748b',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Edit Role Modal */}
+      {/* ── Modal: Edit Role ── */}
       {editingUser && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0,0,0,0.5)',
+            background: 'rgba(15, 23, 42, 0.6)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 100,
+            padding: '16px',
           }}
         >
           <div
@@ -508,6 +823,8 @@ export const AdminUsersPage: React.FC = () => {
                   const sel = document.getElementById('role-select') as HTMLSelectElement;
                   if (sel) {
                     updateUser(editingUser.id, { role: sel.value as UserAccount['role'] });
+                    setRecoveryNotice(`Role for ${editingUser.name} updated to ${sel.value}.`);
+                    setTimeout(() => setRecoveryNotice(null), 4000);
                   }
                   setEditingUser(null);
                 }}
@@ -515,7 +832,7 @@ export const AdminUsersPage: React.FC = () => {
                   padding: '8px 16px',
                   borderRadius: '6px',
                   border: 'none',
-                  background: '#2563eb',
+                  background: '#1e3a8a',
                   color: 'white',
                   fontSize: '13px',
                   fontWeight: 600,
@@ -529,17 +846,18 @@ export const AdminUsersPage: React.FC = () => {
         </div>
       )}
 
-      {/* Add User Modal */}
+      {/* ── Modal: Add User ── */}
       {showAddUserModal && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0,0,0,0.5)',
+            background: 'rgba(15, 23, 42, 0.6)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 100,
+            padding: '16px',
           }}
         >
           <div
@@ -553,17 +871,17 @@ export const AdminUsersPage: React.FC = () => {
             }}
           >
             <h3 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: 700, color: '#1e293b' }}>
-              Add New Campus User
+              Provision New User Account
             </h3>
             <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#64748b' }}>
-              Create an institutional account with designated permissions.
+              Create an institutional account with designated permissions and access recovery defaults.
             </p>
 
             <form onSubmit={handleCreateUser}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
-                    Full Name
+                    Full Name *
                   </label>
                   <input
                     type="text"
@@ -576,7 +894,7 @@ export const AdminUsersPage: React.FC = () => {
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
-                    Institutional Email
+                    Institutional Email *
                   </label>
                   <input
                     type="email"
@@ -590,7 +908,7 @@ export const AdminUsersPage: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
-                      Role
+                      Initial Role
                     </label>
                     <select
                       value={newUser.role}
@@ -650,7 +968,7 @@ export const AdminUsersPage: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  Create User
+                  Provision Account
                 </button>
               </div>
             </form>

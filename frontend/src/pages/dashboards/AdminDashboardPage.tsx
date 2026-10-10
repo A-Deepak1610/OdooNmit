@@ -116,7 +116,7 @@ const INITIAL_AUDITS: AuditEntry[] = [
     id: 'aud-04',
     action: 'Platform Dues Configuration',
     performedBy: 'Super Admin',
-    target: 'Global Razorpay Sandbox Mode',
+    target: 'Global Payment Gateway Sandbox Mode',
     timestamp: '2 days ago',
     type: 'SETTINGS',
   },
@@ -339,7 +339,7 @@ export const AdminDashboardPage: React.FC = () => {
             }}
           >
             <Plus style={{ width: '16px', height: '16px' }} />
-            <span>+ Create Organization</span>
+            <span>Create Organization</span>
           </button>
         </div>
       </div>
@@ -428,14 +428,10 @@ export const AdminDashboardPage: React.FC = () => {
 
       {/* ── 3. Main 2:1 Content Grid ──────────────────────────────── */}
       <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
-          gap: '24px',
-        }}
+        className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.8fr)_minmax(320px,1fr)] gap-6"
       >
         {/* LEFT COLUMN: Organizations Directory & Management (2/3) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', minWidth: 0 }}>
           <div
             style={{
               background: 'var(--card-bg, #ffffff)',
@@ -504,8 +500,8 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
 
             {/* Organizations Table */}
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+            <div style={{ overflowX: 'auto', width: '100%' }}>
+              <table style={{ width: '100%', minWidth: '660px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                 <thead>
                   <tr
                     style={{
@@ -518,11 +514,11 @@ export const AdminDashboardPage: React.FC = () => {
                     }}
                     className="bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-800"
                   >
-                    <th style={{ padding: '14px 20px', fontWeight: 600 }}>Organization Charter</th>
-                    <th style={{ padding: '14px 16px', fontWeight: 600 }}>Leadership</th>
-                    <th style={{ padding: '14px 16px', fontWeight: 600 }}>Enrolled Members</th>
-                    <th style={{ padding: '14px 16px', fontWeight: 600 }}>Charter Status</th>
-                    <th style={{ padding: '14px 20px', fontWeight: 600, textAlign: 'right' }}>Admin Controls</th>
+                    <th style={{ padding: '14px 20px', fontWeight: 600, whiteSpace: 'nowrap' }}>Organization Charter</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 600, whiteSpace: 'nowrap' }}>Leadership</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 600, whiteSpace: 'nowrap' }}>Enrolled Members</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 600, whiteSpace: 'nowrap' }}>Charter Status</th>
+                    <th style={{ padding: '14px 20px', fontWeight: 600, textAlign: 'right', whiteSpace: 'nowrap' }}>Admin Controls</th>
                   </tr>
                 </thead>
                 <tbody>

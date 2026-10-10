@@ -461,7 +461,7 @@ Certified on: ${new Date().toLocaleDateString()}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', margin: 0 }}>
-              Razorpay Inflow Receipts & Cryptographic Signatures
+              Inflow Payment Receipts & Cryptographic Signatures
             </h3>
             <span style={{ fontSize: '12px', color: '#15803d', fontWeight: 600 }}>
               HMAC SHA-256 Verified

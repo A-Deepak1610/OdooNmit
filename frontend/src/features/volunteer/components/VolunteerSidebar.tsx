@@ -11,8 +11,6 @@ import {
   GraduationCap,
   LogOut,
   X,
-  Bell,
-  HeartHandshake,
 } from 'lucide-react';
 
 interface VolunteerSidebarProps {
@@ -31,39 +29,27 @@ const NAVIGATION_GROUPS = [
       },
       {
         id: 'volunteer-tasks',
-        label: 'Bake Sale Tasks',
+        label: 'Fundraiser Tasks',
         path: '/volunteer/tasks',
         icon: CheckSquare,
       },
       {
-        id: 'volunteer-scanner',
-        label: 'Door Ticket Scanner',
-        path: '/volunteer/scanner',
-        icon: QrCode,
-      },
-      {
-        id: 'volunteer-projects',
-        label: 'Charity Fundraisers',
-        path: '/volunteer/projects',
-        icon: HeartHandshake,
-      },
-      {
         id: 'volunteer-events',
-        label: 'Event Shift Roster',
+        label: 'Event Duties & Shifts',
         path: '/volunteer/events',
         icon: Calendar,
       },
       {
         id: 'volunteer-expenses',
-        label: 'Expense Claims',
+        label: 'Reimbursement Claims',
         path: '/volunteer/expenses',
         icon: Receipt,
       },
       {
-        id: 'volunteer-announcements',
-        label: 'Club Announcements',
-        path: '/volunteer/announcements',
-        icon: Bell,
+        id: 'volunteer-scanner',
+        label: 'Ticket & Member Check-in',
+        path: '/volunteer/scanner',
+        icon: QrCode,
       },
     ],
   },

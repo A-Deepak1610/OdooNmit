@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Menu,
   Moon,
   Sun,
   HeartHandshake,
+  Bell,
 } from 'lucide-react';
+import { NotificationDropdown } from '../../../components/shared/NotificationDropdown';
+import { useNotificationStore } from '../../../stores/notification.store';
 
 interface VolunteerHeaderProps {
   onToggleMobileMenu: () => void;
@@ -14,6 +17,13 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({ onToggleMobile
   const [isDark, setIsDark] = useState<boolean>(() => {
     return document.documentElement.getAttribute('data-theme') === 'dark';
   });
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+
+  const { unreadCount, fetchNotifications } = useNotificationStore();
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   const toggleTheme = () => {
     const nextTheme = isDark ? 'light' : 'dark';
@@ -96,6 +106,71 @@ export const VolunteerHeader: React.FC<VolunteerHeaderProps> = ({ onToggleMobile
         >
           {isDark ? <Sun style={{ width: '18px', height: '18px' }} /> : <Moon style={{ width: '18px', height: '18px' }} />}
         </button>
+
+        {/* Notification Bell with Dropdown */}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setIsNotificationsOpen((prev) => !prev)}
+            style={{
+              background: isNotificationsOpen ? 'var(--muted)' : 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: isNotificationsOpen ? 'var(--foreground)' : 'var(--muted-foreground)',
+              padding: '6px',
+              borderRadius: 'var(--radius-md)',
+              transition: 'color 0.2s, background 0.2s',
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            title="Notifications"
+            aria-label="View notifications"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--muted)';
+              e.currentTarget.style.color = 'var(--foreground)';
+            }}
+            onMouseLeave={(e) => {
+              if (!isNotificationsOpen) {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = 'var(--muted-foreground)';
+              }
+            }}
+          >
+            <Bell style={{ width: '20px', height: '20px' }} />
+            {/* Dynamic Unread Badge Pill */}
+            {unreadCount > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '-2px',
+                  right: '-2px',
+                  minWidth: '16px',
+                  height: '16px',
+                  padding: '0 4px',
+                  background: '#ef4444',
+                  color: '#ffffff',
+                  borderRadius: '10px',
+                  border: '2px solid var(--background)',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  lineHeight: 1,
+                }}
+              >
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {/* Notifications Dropdown Panel */}
+          <NotificationDropdown
+            isOpen={isNotificationsOpen}
+            onClose={() => setIsNotificationsOpen(false)}
+          />
+        </div>
       </div>
     </header>
   );
