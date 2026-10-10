@@ -217,7 +217,7 @@ export class PresidentController {
     try {
       const userId = getUserId(req);
       const data = await presidentService.sendDuesReminders(userId);
-      res.json({ success: true, ...data });
+      res.json(data);
     } catch (err: any) {
       res.status(400).json({ success: false, message: err.message });
     }
