@@ -777,6 +777,107 @@ export class AdminService {
       };
     }
   }
+
+  /**
+   * 6. Central Announcement Broadcasts (Campus Administration)
+   */
+  async getAnnouncements() {
+    return prisma.announcement.findMany({
+      orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
+      include: {
+        organization: {
+          select: { id: true, name: true, slug: true, logoUrl: true },
+        },
+        author: {
+          select: { id: true, fullName: true, username: true, avatarUrl: true },
+        },
+      },
+    });
+  }
+
+  async createAnnouncement(
+    adminId: string,
+    data: {
+      title: string;
+      content: string;
+      category?: string;
+      organizationId?: string;
+      isPinned?: boolean;
+      isMemberOnly?: boolean;
+    }
+  ) {
+    if (!data.title || !data.content) {
+      throw new Error('Title and content are required to publish an announcement.');
+    }
+
+    let targetOrgId = data.organizationId;
+    if (!targetOrgId) {
+      const defaultOrg = await prisma.organization.findFirst({ where: { isActive: true } });
+      if (!defaultOrg) {
+        throw new Error('No active organization found to attach announcement.');
+      }
+      targetOrgId = defaultOrg.id;
+    }
+
+    const announcement = await prisma.announcement.create({
+      data: {
+        id: generateId(),
+        organizationId: targetOrgId,
+        authorId: adminId,
+        title: data.title,
+        content: data.content,
+        category: data.category || 'CAMPUS_ALERT',
+        isPinned: !!data.isPinned,
+        isMemberOnly: !!data.isMemberOnly,
+      },
+      include: {
+        organization: {
+          select: { id: true, name: true, slug: true, logoUrl: true },
+        },
+        author: {
+          select: { id: true, fullName: true, username: true, avatarUrl: true },
+        },
+      },
+    });
+
+    // Broadcast system notification to all members/students without sending email
+    await prisma.notification.create({
+      data: {
+        id: generateId(),
+        title: `📢 Announcement: ${data.title}`,
+        message: data.content.slice(0, 120),
+        type: 'ANNOUNCEMENT',
+        link: '/student/notifications',
+      },
+    });
+
+    return announcement;
+  }
+
+  async updateAnnouncement(
+    announcementId: string,
+    data: Partial<{
+      title: string;
+      content: string;
+      category: string;
+      isPinned: boolean;
+      isMemberOnly: boolean;
+    }>
+  ) {
+    return prisma.announcement.update({
+      where: { id: announcementId },
+      data,
+      include: {
+        organization: { select: { id: true, name: true, slug: true } },
+        author: { select: { id: true, fullName: true, avatarUrl: true } },
+      },
+    });
+  }
+
+  async deleteAnnouncement(announcementId: string) {
+    await prisma.announcement.delete({ where: { id: announcementId } });
+    return { success: true, message: 'Announcement deleted successfully.' };
+  }
 }
 
 export const adminService = new AdminService();

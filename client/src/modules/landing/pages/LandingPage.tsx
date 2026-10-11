@@ -84,7 +84,7 @@ export const LandingPage: React.FC = () => {
     }
   };
 
-  // High quality images related to CampusFlow student org project
+  // High quality images related to CampusMitra student org project
   const column1Images = [
     {
       url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=500&q=80',
@@ -189,7 +189,7 @@ export const LandingPage: React.FC = () => {
             </svg>
             <div className="flex flex-col">
               <span className="text-xl font-extrabold tracking-tight text-surface-900 leading-none">
-                CampusFlow
+                CampusMitra
               </span>
               <span className="text-[10px] font-semibold text-brand-600 tracking-wider mt-0.5">
                 Be the true you. Be found.
@@ -204,15 +204,13 @@ export const LandingPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => toggleDropdown('users')}
-                className={`flex items-center gap-1 transition-colors py-2 ${
-                  activeDropdown === 'users' ? 'text-brand-600 font-semibold' : 'hover:text-brand-600'
-                }`}
+                className={`flex items-center gap-1 transition-colors py-2 ${activeDropdown === 'users' ? 'text-brand-600 font-semibold' : 'hover:text-brand-600'
+                  }`}
               >
                 <span>Users</span>
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform duration-200 ${
-                    activeDropdown === 'users' ? 'rotate-180 text-brand-600' : 'text-surface-400'
-                  }`}
+                  className={`h-4 w-4 transition-transform duration-200 ${activeDropdown === 'users' ? 'rotate-180 text-brand-600' : 'text-surface-400'
+                    }`}
                 />
               </button>
               {activeDropdown === 'users' && (
@@ -221,7 +219,7 @@ export const LandingPage: React.FC = () => {
                     Direct Persona Portals
                   </div>
                   <button
-                    onClick={() => handleInstantRoleLaunch('member@campusflow.test', 'MEMBER')}
+                    onClick={() => handleInstantRoleLaunch('member@CampusMitra.test', 'MEMBER')}
                     className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 flex items-center justify-between font-medium transition-colors"
                   >
                     <span className="flex items-center gap-2">
@@ -230,7 +228,7 @@ export const LandingPage: React.FC = () => {
                     <Badge variant="outline" className="text-[9px] py-0 px-1">MEMBER</Badge>
                   </button>
                   <button
-                    onClick={() => handleInstantRoleLaunch('volunteer@campusflow.test', 'VOLUNTEER')}
+                    onClick={() => handleInstantRoleLaunch('volunteer@CampusMitra.test', 'VOLUNTEER')}
                     className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 flex items-center justify-between font-medium transition-colors"
                   >
                     <span className="flex items-center gap-2">
@@ -239,7 +237,7 @@ export const LandingPage: React.FC = () => {
                     <Badge variant="outline" className="text-[9px] py-0 px-1">VOLUNTEER</Badge>
                   </button>
                   <button
-                    onClick={() => handleInstantRoleLaunch('organizer@campusflow.test', 'EVENT_ORGANIZER')}
+                    onClick={() => handleInstantRoleLaunch('organizer@CampusMitra.test', 'EVENT_ORGANIZER')}
                     className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 flex items-center justify-between font-medium transition-colors"
                   >
                     <span className="flex items-center gap-2">
@@ -248,7 +246,7 @@ export const LandingPage: React.FC = () => {
                     <Badge variant="outline" className="text-[9px] py-0 px-1">ORGANIZER</Badge>
                   </button>
                   <button
-                    onClick={() => handleInstantRoleLaunch('treasurer@campusflow.test', 'TREASURER')}
+                    onClick={() => handleInstantRoleLaunch('treasurer@CampusMitra.test', 'TREASURER')}
                     className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 flex items-center justify-between font-medium transition-colors"
                   >
                     <span className="flex items-center gap-2">
@@ -257,7 +255,7 @@ export const LandingPage: React.FC = () => {
                     <Badge variant="outline" className="text-[9px] py-0 px-1">TREASURER</Badge>
                   </button>
                   <button
-                    onClick={() => handleInstantRoleLaunch('president@campusflow.test', 'PRESIDENT')}
+                    onClick={() => handleInstantRoleLaunch('president@CampusMitra.test', 'PRESIDENT')}
                     className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 flex items-center justify-between font-medium transition-colors"
                   >
                     <span className="flex items-center gap-2">
@@ -266,7 +264,7 @@ export const LandingPage: React.FC = () => {
                     <Badge variant="outline" className="text-[9px] py-0 px-1">PRESIDENT</Badge>
                   </button>
                   <button
-                    onClick={() => handleInstantRoleLaunch('admin@campusflow.test', 'ADMIN')}
+                    onClick={() => handleInstantRoleLaunch('admin@CampusMitra.test', 'ADMIN')}
                     className="w-full text-left px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 flex items-center justify-between font-medium transition-colors"
                   >
                     <span className="flex items-center gap-2">
@@ -283,15 +281,13 @@ export const LandingPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => toggleDropdown('organization')}
-                className={`flex items-center gap-1 transition-colors py-2 ${
-                  activeDropdown === 'organization' ? 'text-brand-600 font-semibold' : 'hover:text-brand-600'
-                }`}
+                className={`flex items-center gap-1 transition-colors py-2 ${activeDropdown === 'organization' ? 'text-brand-600 font-semibold' : 'hover:text-brand-600'
+                  }`}
               >
                 <span>Organization</span>
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform duration-200 ${
-                    activeDropdown === 'organization' ? 'rotate-180 text-brand-600' : 'text-surface-400'
-                  }`}
+                  className={`h-4 w-4 transition-transform duration-200 ${activeDropdown === 'organization' ? 'rotate-180 text-brand-600' : 'text-surface-400'
+                    }`}
                 />
               </button>
               {activeDropdown === 'organization' && (
@@ -329,15 +325,13 @@ export const LandingPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => toggleDropdown('solutions')}
-                className={`flex items-center gap-1 transition-colors py-2 ${
-                  activeDropdown === 'solutions' ? 'text-brand-600 font-semibold' : 'hover:text-brand-600'
-                }`}
+                className={`flex items-center gap-1 transition-colors py-2 ${activeDropdown === 'solutions' ? 'text-brand-600 font-semibold' : 'hover:text-brand-600'
+                  }`}
               >
                 <span>Our Solutions</span>
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform duration-200 ${
-                    activeDropdown === 'solutions' ? 'rotate-180 text-brand-600' : 'text-surface-400'
-                  }`}
+                  className={`h-4 w-4 transition-transform duration-200 ${activeDropdown === 'solutions' ? 'rotate-180 text-brand-600' : 'text-surface-400'
+                    }`}
                 />
               </button>
               {activeDropdown === 'solutions' && (
@@ -395,25 +389,23 @@ export const LandingPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => toggleDropdown('about')}
-                className={`flex items-center gap-1 transition-colors py-2 ${
-                  activeDropdown === 'about' ? 'text-brand-600 font-semibold' : 'hover:text-brand-600'
-                }`}
+                className={`flex items-center gap-1 transition-colors py-2 ${activeDropdown === 'about' ? 'text-brand-600 font-semibold' : 'hover:text-brand-600'
+                  }`}
               >
                 <span>About</span>
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform duration-200 ${
-                    activeDropdown === 'about' ? 'rotate-180 text-brand-600' : 'text-surface-400'
-                  }`}
+                  className={`h-4 w-4 transition-transform duration-200 ${activeDropdown === 'about' ? 'rotate-180 text-brand-600' : 'text-surface-400'
+                    }`}
                 />
               </button>
               {activeDropdown === 'about' && (
                 <div className="absolute top-full left-0 w-60 rounded-2xl bg-white shadow-2xl border border-surface-200 p-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                   <a
-                    href="#why-campusflow"
+                    href="#why-CampusMitra"
                     onClick={() => setActiveDropdown(null)}
                     className="block px-3 py-2 rounded-xl text-xs hover:bg-brand-50 hover:text-brand-700 font-medium"
                   >
-                    Why CampusFlow?
+                    Why CampusMitra?
                   </a>
                   <a
                     href="#whom-we-serve"
@@ -474,13 +466,13 @@ export const LandingPage: React.FC = () => {
               </h1>
 
               <p className="text-base sm:text-lg text-surface-600 leading-relaxed font-normal">
-                CampusFlow connects events, clubs, memberships, fees, fundraising, volunteering, and extracurricular activities—then turns participation into verifiable digital credentials and portfolios that prove social impact for scholarships, grants, and fundraising.
+                CampusMitra connects events, clubs, memberships, fees, fundraising, volunteering, and extracurricular activities—then turns participation into verifiable digital credentials and portfolios that prove social impact for scholarships, grants, and fundraising.
               </p>
 
               {/* Two CTA Buttons matching Screenshot 1 */}
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Button
-                  onClick={() => handleInstantRoleLaunch('president@campusflow.test', 'PRESIDENT')}
+                  onClick={() => handleInstantRoleLaunch('president@CampusMitra.test', 'PRESIDENT')}
                   isLoading={loadingRole === 'PRESIDENT'}
                   className="bg-[#5B51D8] hover:bg-[#4B41C5] text-white px-7 h-12 rounded-xl text-sm font-bold shadow-md shadow-indigo-500/20 transition-all hover:scale-[1.02]"
                 >
@@ -488,7 +480,7 @@ export const LandingPage: React.FC = () => {
                 </Button>
 
                 <Button
-                  onClick={() => handleInstantRoleLaunch('member@campusflow.test', 'MEMBER')}
+                  onClick={() => handleInstantRoleLaunch('member@CampusMitra.test', 'MEMBER')}
                   isLoading={loadingRole === 'MEMBER'}
                   className="bg-[#F9C04D] hover:bg-[#EFAF3D] text-surface-900 px-7 h-12 rounded-xl text-sm font-bold shadow-md transition-all hover:scale-[1.02]"
                 >
@@ -501,7 +493,7 @@ export const LandingPage: React.FC = () => {
                 <span className="font-semibold text-surface-700">Explore Role Workspaces:</span>
                 <button
                   type="button"
-                  onClick={() => handleInstantRoleLaunch('admin@campusflow.test', 'ADMIN')}
+                  onClick={() => handleInstantRoleLaunch('admin@CampusMitra.test', 'ADMIN')}
                   className="underline hover:text-brand-600 font-medium"
                 >
                   Super Admin
@@ -509,7 +501,7 @@ export const LandingPage: React.FC = () => {
                 <span>·</span>
                 <button
                   type="button"
-                  onClick={() => handleInstantRoleLaunch('treasurer@campusflow.test', 'TREASURER')}
+                  onClick={() => handleInstantRoleLaunch('treasurer@CampusMitra.test', 'TREASURER')}
                   className="underline hover:text-brand-600 font-medium"
                 >
                   Treasurer
@@ -517,7 +509,7 @@ export const LandingPage: React.FC = () => {
                 <span>·</span>
                 <button
                   type="button"
-                  onClick={() => handleInstantRoleLaunch('organizer@campusflow.test', 'EVENT_ORGANIZER')}
+                  onClick={() => handleInstantRoleLaunch('organizer@CampusMitra.test', 'EVENT_ORGANIZER')}
                   className="underline hover:text-brand-600 font-medium"
                 >
                   Event Organizer
@@ -525,7 +517,7 @@ export const LandingPage: React.FC = () => {
                 <span>·</span>
                 <button
                   type="button"
-                  onClick={() => handleInstantRoleLaunch('volunteer@campusflow.test', 'VOLUNTEER')}
+                  onClick={() => handleInstantRoleLaunch('volunteer@CampusMitra.test', 'VOLUNTEER')}
                   className="underline hover:text-brand-600 font-medium"
                 >
                   Volunteer
@@ -608,13 +600,13 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. "WHY CAMPUSFLOW?" SECTION (Matches sample images 2 & 3) */}
-      <section id="why-campusflow" className="py-20 lg:py-28 bg-white border-b border-surface-200">
+      {/* 3. "WHY CampusMitra?" SECTION (Matches sample images 2 & 3) */}
+      <section id="why-CampusMitra" className="py-20 lg:py-28 bg-white border-b border-surface-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center max-w-3xl mx-auto space-y-3 mb-16">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-surface-900 tracking-tight">
-              Why <span className="text-[#4F46E5]">CampusFlow</span>?
+              Why <span className="text-[#4F46E5]">CampusMitra</span>?
             </h2>
             <p className="text-lg sm:text-xl font-semibold text-[#4F46E5]">
               One Platform. Multiple Solutions. Real Results.
@@ -857,7 +849,7 @@ export const LandingPage: React.FC = () => {
                 Whom We Serve
               </h2>
               <p className="text-base sm:text-lg text-surface-700 leading-relaxed font-normal max-w-xl">
-                CampusFlow empowers organizations and individuals to connect, operate, and showcase their impact.
+                CampusMitra empowers organizations and individuals to connect, operate, and showcase their impact.
               </p>
             </div>
 
@@ -961,7 +953,7 @@ export const LandingPage: React.FC = () => {
             <div className="relative mx-auto w-full max-w-6xl">
               <img
                 src="/network-hub-illustration.png"
-                alt="CampusFlow Purposeful Social Network Architecture"
+                alt="CampusMitra Purposeful Social Network Architecture"
                 className="w-full h-auto object-contain mx-auto select-none drop-shadow-sm transition-transform duration-500 hover:scale-[1.01]"
                 loading="eager"
               />
@@ -1026,7 +1018,7 @@ export const LandingPage: React.FC = () => {
           {/* Impact Statement & Quick Navigation CTA */}
           <div className="mt-12 text-center space-y-6 max-w-3xl mx-auto">
             <p className="text-base sm:text-lg lg:text-xl font-medium text-surface-800 leading-relaxed">
-              Discover skills, connect with aligned organizations, and showcase verified achievements on CampusFlow network.
+              Discover skills, connect with aligned organizations, and showcase verified achievements on CampusMitra network.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
               <Link
@@ -1057,7 +1049,7 @@ export const LandingPage: React.FC = () => {
       <footer className="bg-white border-t border-surface-200 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-surface-500">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-surface-900">CampusFlow</span>
+            <span className="font-bold text-surface-900">CampusMitra</span>
             <span>© 2026. Student Organization Management System.</span>
           </div>
           <div className="flex items-center gap-6">

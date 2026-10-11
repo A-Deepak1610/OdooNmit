@@ -21,6 +21,7 @@ import {
   Building2,
   CreditCard,
   UserCheck,
+  HelpCircle,
 } from 'lucide-react';
 
 interface RoleDashboardProps {
@@ -81,6 +82,7 @@ const ROLE_CONFIGS: Record<string, RoleConfig> = {
       { label: 'Membership Status, Expiry & Renewal', description: 'Inspect membership card, check expiry date, benefits, and renew annual dues', color: '#1e3a8a', bg: '#eff6ff', icon: UserCheck, path: '/student/membership' },
       { label: 'Register for Organization & Dues', description: 'Enroll in clubs and pay annual membership dues (₹250)', color: '#15803d', bg: '#dcfce7', icon: CreditCard, path: '/student/apply-membership' },
       { label: 'Order & Payment Status', description: 'Review order fulfillment status, verified receipts, and transaction hashes', color: '#475569', bg: '#f1f5f9', icon: Receipt, path: '/student/orders' },
+      { label: 'Help & Support Desk', description: 'Submit platform queries, bug reports, or club inquiries to leadership', color: '#0284c7', bg: '#e0f2fe', icon: HelpCircle, path: '/student/support' },
     ],
   },
 
@@ -100,6 +102,7 @@ const ROLE_CONFIGS: Record<string, RoleConfig> = {
       { label: 'My Event Tickets', description: 'Access confirmed ticket QR codes for the Spring Gala', color: '#1e3a8a', bg: '#eff6ff', icon: Ticket, path: '/member/tickets' },
       { label: 'Order Merchandise', description: 'Purchase club hoodies and track delivery status', color: '#b45309', bg: '#fef3c7', icon: ShoppingBag, path: '/member/merchandise' },
       { label: 'Member Announcements', description: 'View meeting schedules, elections notices, and discount codes', color: '#7c3aed', bg: '#f3e8ff', icon: Megaphone, path: '/member/announcements' },
+      { label: 'Help & Support Desk', description: 'Submit club queries or platform bug reports to leadership', color: '#0284c7', bg: '#e0f2fe', icon: HelpCircle, path: '/member/support' },
     ],
   },
 

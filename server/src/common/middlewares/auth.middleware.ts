@@ -35,3 +35,17 @@ export const extractExpiredTokenPayload = (authHeader?: string): TokenPayload | 
     return null;
   }
 };
+
+export const optionalAuthenticateJwt = (req: Request, _res: Response, next: NextFunction): void => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const payload = verifyAccessToken(token);
+      req.user = payload;
+    } catch {
+      // Continue without user if token is invalid or expired
+    }
+  }
+  next();
+};

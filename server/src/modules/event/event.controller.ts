@@ -11,7 +11,7 @@ const getUserId = (req: Request): string => {
 export class EventController {
   async getEvents(req: Request, res: Response) {
     try {
-      const { search, status, domain, category, organizationId, inchargeId } = req.query;
+      const { search, status, domain, category, organizationId, inchargeId, postedDate, sortBy } = req.query;
       const data = await eventService.getEvents({
         search: search as string,
         status: status as string,
@@ -19,6 +19,8 @@ export class EventController {
         category: category as string,
         organizationId: organizationId as string,
         inchargeId: inchargeId as string,
+        postedDate: postedDate as string,
+        sortBy: sortBy as string,
       });
       res.json({ success: true, data });
     } catch (err: any) {
@@ -29,10 +31,22 @@ export class EventController {
   async getEventById(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const data = await eventService.getEventById(id);
+      const userId = getUserId(req);
+      const data = await eventService.getEventById(id, userId);
       res.json({ success: true, data });
     } catch (err: any) {
       res.status(404).json({ success: false, message: err.message });
+    }
+  }
+
+  async recordView(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = getUserId(req);
+      const data = await eventService.recordView(id, userId);
+      res.json({ success: true, data });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
     }
   }
 

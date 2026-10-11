@@ -568,6 +568,42 @@ export class StudentService {
       message: `Membership for ${club.name} successfully renewed through ${newValidUntil.toLocaleDateString()}!`,
     };
   }
+
+  /**
+   * 8. Get Announcements for student/member feed
+   * Combines platform-wide broadcasts and club-specific announcements
+   */
+  async getAnnouncements(userId?: string) {
+    let userOrgIds: string[] = [];
+    if (userId) {
+      const userRoles = await prisma.userRole.findMany({
+        where: { userId, organizationId: { not: null } },
+        select: { organizationId: true },
+      });
+      userOrgIds = userRoles.map((r) => r.organizationId!).filter(Boolean);
+    }
+
+    return prisma.announcement.findMany({
+      where: {
+        OR: [
+          { isMemberOnly: false },
+          ...(userOrgIds.length > 0 ? [{ isMemberOnly: true, organizationId: { in: userOrgIds } }] : []),
+        ],
+      },
+      orderBy: [
+        { isPinned: 'desc' },
+        { createdAt: 'desc' },
+      ],
+      include: {
+        organization: {
+          select: { id: true, name: true, slug: true, logoUrl: true, category: true },
+        },
+        author: {
+          select: { id: true, fullName: true, username: true, avatarUrl: true },
+        },
+      },
+    });
+  }
 }
 
 export const studentService = new StudentService();

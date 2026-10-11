@@ -293,4 +293,41 @@ export const adminService = {
     const res = await apiClient.post('/admin/db-assistant', { query });
     return res.data.data as DbAssistantResult;
   },
+
+  // 6. Central Announcements
+  getAnnouncements: async () => {
+    const res = await apiClient.get('/admin/announcements');
+    return res.data.data;
+  },
+
+  createAnnouncement: async (data: {
+    title: string;
+    content: string;
+    category?: string;
+    organizationId?: string;
+    isPinned?: boolean;
+    isMemberOnly?: boolean;
+  }) => {
+    const res = await apiClient.post('/admin/announcements', data);
+    return res.data.data;
+  },
+
+  updateAnnouncement: async (
+    id: string,
+    data: Partial<{
+      title: string;
+      content: string;
+      category: string;
+      isPinned: boolean;
+      isMemberOnly: boolean;
+    }>
+  ) => {
+    const res = await apiClient.patch(`/admin/announcements/${id}`, data);
+    return res.data.data;
+  },
+
+  deleteAnnouncement: async (id: string) => {
+    const res = await apiClient.delete(`/admin/announcements/${id}`);
+    return res.data;
+  },
 };

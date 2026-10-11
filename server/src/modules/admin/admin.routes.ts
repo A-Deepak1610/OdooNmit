@@ -33,6 +33,12 @@ router.patch('/elections/candidates/:candidateId/status', requireRoles(['ADMIN']
 router.post('/elections/:id/vote', (req, res) => adminController.castVote(req, res)); // 1-time atomic vote
 router.post('/elections/:id/finalize', requireRoles(['ADMIN']), (req, res) => adminController.finalizeElection(req, res)); // Closes and promotes winner to President!
 
+// Central Announcements
+router.get('/announcements', requireRoles(['ADMIN']), (req, res) => adminController.getAnnouncements(req, res));
+router.post('/announcements', requireRoles(['ADMIN']), (req, res) => adminController.createAnnouncement(req, res));
+router.patch('/announcements/:id', requireRoles(['ADMIN']), (req, res) => adminController.updateAnnouncement(req, res));
+router.delete('/announcements/:id', requireRoles(['ADMIN']), (req, res) => adminController.deleteAnnouncement(req, res));
+
 // DB Assistant Natural Query
 router.post('/db-assistant', requireRoles(['ADMIN']), (req, res) => adminController.queryDbAssistant(req, res));
 

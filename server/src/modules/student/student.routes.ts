@@ -24,3 +24,6 @@ studentRouter.post('/elections/:id/vote', (req, res) => studentController.castVo
 // 4. Member Dues Status & Renewal
 studentRouter.get('/membership/my-status', (req, res) => studentController.getMyMembershipStatus(req, res));
 studentRouter.post('/membership/renew', (req, res) => studentController.renewMembership(req, res));
+
+// 5. Announcements Feed
+studentRouter.get('/announcements', (req, res) => studentController.getAnnouncements(req, res));
