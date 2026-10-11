@@ -461,6 +461,7 @@ export const MembershipModule: React.FC = () => {
           onClose={() => setShowPaymentModal(false)}
           title={`Renew Annual Membership - ${clubName}`}
           purpose={`Annual Membership Dues Extension (+365 Days) for ${clubName}`}
+          organizationId={'01a127d9-1403-720b-8909-ed5f464fa9cd'}
           amount={duesAmount}
           payerName={memberName}
           payerEmail={memberEmail}
