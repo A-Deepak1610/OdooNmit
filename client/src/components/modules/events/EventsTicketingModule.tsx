@@ -10,7 +10,6 @@ import {
   Users,
   ShieldCheck,
   CreditCard,
-  QrCode,
   Tag,
   KeyRound,
   Check,
@@ -20,9 +19,11 @@ import {
   ArrowRight,
   Filter,
   Eye,
+  Lock,
 } from 'lucide-react';
 import { useAuthStore } from '../../../stores/auth.store';
 import { eventService, CampusEventItem } from '../../../services/event.service';
+import { paymentService } from '../../../services/payment.service';
 import { RealQrCode } from '../../shared/RealQrCode';
 
 export const EventsTicketingModule: React.FC = () => {
@@ -43,7 +44,6 @@ export const EventsTicketingModule: React.FC = () => {
   const [viewingEvent, setViewingEvent] = useState<CampusEventItem | null>(null);
   const [bookingEvent, setBookingEvent] = useState<CampusEventItem | null>(null);
   const [ticketQuantity, setTicketQuantity] = useState<number>(1);
-  const [paymentMethod, setPaymentMethod] = useState<'campus_pay' | 'upi_mock' | 'student_id'>('campus_pay');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState<any | null>(null);
 
@@ -88,15 +88,45 @@ export const EventsTicketingModule: React.FC = () => {
     if (!bookingEvent) return;
     setIsProcessingPayment(true);
     try {
+      const unitPrice = isMember
+        ? Number(bookingEvent.memberPriceINR)
+        : Number(bookingEvent.nonMemberPriceINR);
+      const totalAmount = unitPrice * ticketQuantity;
+
       const res = await eventService.bookTicket(bookingEvent.id, {
         quantity: ticketQuantity,
-        paymentMethod,
+        paymentMethod: 'RAZORPAY',
       });
-      setConfirmedBooking(res.data);
-      setBookingEvent(null);
-      // Refresh tickets and events
-      loadMyTickets();
-      loadEvents();
+
+      if (totalAmount > 0) {
+        // Launch real Razorpay Checkout
+        await paymentService.openCheckout({
+          bookingId: res.data.id,
+          organizationId: bookingEvent.organizationId,
+          purpose: `Admission Pass: ${bookingEvent.title} (${ticketQuantity}x)`,
+          amount: totalAmount,
+          payerName: user?.name || 'Student Member',
+          payerEmail: user?.email || 'student@campusmitra.edu',
+          onSuccess: () => {
+            setConfirmedBooking(res.data);
+            setBookingEvent(null);
+            loadMyTickets();
+            loadEvents();
+          },
+          onError: (err) => {
+            alert(err?.description || err?.message || 'Payment was not completed.');
+          },
+          onDismiss: () => {
+            // Dismissed by user
+          },
+        });
+      } else {
+        // Free ticket directly issued
+        setConfirmedBooking(res.data);
+        setBookingEvent(null);
+        loadMyTickets();
+        loadEvents();
+      }
     } catch (err: any) {
       alert(err.message || 'Failed to complete ticket booking.');
     } finally {
@@ -668,58 +698,27 @@ export const EventsTicketingModule: React.FC = () => {
                 </div>
               </div>
 
-              {/* Mock Payment Mode Selector */}
+              {/* Payment Mode */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
-                  Payment Mode (Simulated Gateway)
+                  Payment Mode
                 </label>
-                <div className="space-y-1.5">
-                  {[
-                    {
-                      id: 'campus_pay',
-                      title: 'Campus Mitra 1-Click Pay',
-                      desc: 'Instant mock sandbox checkout',
-                      icon: Sparkles,
-                    },
-                    {
-                      id: 'upi_mock',
-                      title: 'UPI / QR Mock Pay',
-                      desc: 'Simulated UPI app checkout',
-                      icon: QrCode,
-                    },
-                    {
-                      id: 'student_id',
-                      title: 'Student ID Smart Wallet',
-                      desc: 'Deduct from campus ID card',
-                      icon: CreditCard,
-                    },
-                  ].map((pm) => {
-                    const Icon = pm.icon;
-                    return (
-                      <label
-                        key={pm.id}
-                        onClick={() => setPaymentMethod(pm.id as any)}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border cursor-pointer transition-all ${
-                          paymentMethod === pm.id
-                            ? 'border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-500'
-                            : 'border-slate-200 hover:bg-slate-50'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="payment_method"
-                          checked={paymentMethod === pm.id}
-                          onChange={() => {}}
-                          className="text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5"
-                        />
-                        <Icon className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
-                        <div className="flex-1 text-left min-w-0">
-                          <div className="text-xs font-bold text-slate-900 leading-tight">{pm.title}</div>
-                          <div className="text-[10px] text-slate-500 truncate">{pm.desc}</div>
-                        </div>
-                      </label>
-                    );
-                  })}
+                <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center gap-3 text-xs">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200/60 flex items-center justify-center text-indigo-700 flex-shrink-0">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-bold text-slate-900 leading-tight">
+                      Online Gateway Checkout
+                    </div>
+                    <div className="text-[10px] text-slate-500 truncate mt-0.5">
+                      UPI, Credit/Debit Cards, NetBanking & Wallets
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-bold border border-emerald-200 flex-shrink-0">
+                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                    <span>256-Bit SSL</span>
+                  </div>
                 </div>
               </div>
 
@@ -767,7 +766,7 @@ export const EventsTicketingModule: React.FC = () => {
                 {isProcessingPayment ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Processing...
+                    Connecting to Gateway...
                   </>
                 ) : (
                   <>

@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import {
-  CreditCard,
-  Smartphone,
   ShieldCheck,
   Lock,
   X,
   CheckCircle2,
-  Building,
   Loader2,
   AlertCircle,
+  CreditCard,
+  Smartphone,
+  Building,
+  Wallet,
 } from 'lucide-react';
 import { PaymentReceipt } from '../../stores/club.store';
 import { apiClient } from '../../services/api-client';
@@ -32,29 +33,21 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
   title,
   purpose,
   amount,
-  payerName = 'Deepak Kumar',
-  payerEmail = 'deepaka.ad24@bitsathy.ac.in',
+  payerName = 'Student Member',
+  payerEmail = 'student@campusmitra.edu',
   organizationId,
   bookingId,
   onSuccess,
 }) => {
-  const [activeTab, setActiveTab] = useState<'UPI' | 'CARD' | 'NETBANKING'>('UPI');
-  const [upiId, setUpiId] = useState('student@okhdfcbank');
-  const [cardNumber, setCardNumber] = useState('4532 8920 1204 8829');
-  const [cardExpiry, setCardExpiry] = useState('08/28');
-  const [cardCvv, setCardCvv] = useState('482');
-  const [cardName, setCardName] = useState(payerName);
-  const [selectedBank, setSelectedBank] = useState('HDFC Bank');
-
   const [paymentStatus, setPaymentStatus] = useState<'IDLE' | 'PROCESSING' | 'SUCCESS'>('IDLE');
   const [generatedReceipt, setGeneratedReceipt] = useState<PaymentReceipt | null>(null);
-  const [isLaunchingRazorpay, setIsLaunchingRazorpay] = useState(false);
+  const [isLaunchingPayment, setIsLaunchingPayment] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleLaunchOfficialRazorpay = async () => {
-    setIsLaunchingRazorpay(true);
+  const handlePayNow = async () => {
+    setIsLaunchingPayment(true);
     setErrorMessage(null);
 
     // 1. Ensure Razorpay Checkout SDK script is loaded in DOM
@@ -76,9 +69,8 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
       });
 
       if (!scriptReady && typeof (window as any).Razorpay !== 'function') {
-        setIsLaunchingRazorpay(false);
-        setErrorMessage('Could not load Razorpay Checkout SDK. Please check your network.');
-        handleProcessPayment(activeTab);
+        setIsLaunchingPayment(false);
+        setErrorMessage('Could not load payment checkout SDK. Please verify your network connection.');
         return;
       }
     }
@@ -88,9 +80,9 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
     let paymentAmountPaise = Math.round(amount * 100);
     let paymentCurrency = 'INR';
 
-    // 2. Call authenticated backend /api/payment/create-order API
+    // 2. Call backend order creation API: POST /api/payment/create-order
     try {
-      const payload: any = { purpose };
+      const payload: any = { purpose: purpose || title };
       if (organizationId) payload.organizationId = organizationId;
       if (bookingId) payload.bookingId = bookingId;
 
@@ -103,16 +95,14 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
         if (resData.currency) paymentCurrency = resData.currency;
       }
     } catch (orderErr: any) {
-      console.warn('Backend Razorpay order creation notice:', orderErr);
-      const msg = orderErr?.response?.data?.message || orderErr?.message;
-      if (msg && (orderErr?.response?.status === 400 || orderErr?.response?.status === 409 || orderErr?.response?.status === 404)) {
-        setIsLaunchingRazorpay(false);
-        setErrorMessage(msg);
-        return;
-      }
+      console.error('[PaymentModal] Order creation error:', orderErr);
+      const msg = orderErr?.response?.data?.message || orderErr?.message || 'Failed to create payment order.';
+      setIsLaunchingPayment(false);
+      setErrorMessage(msg);
+      return;
     }
 
-    // 3. Open official Razorpay Checkout popup using returned order_id, amount, currency, and Key ID
+    // 3. Open Razorpay Checkout modal
     if (typeof (window as any).Razorpay === 'function') {
       try {
         const options: any = {
@@ -120,7 +110,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
           amount: paymentAmountPaise, // in paise
           currency: paymentCurrency,
           name: 'CampusMitra',
-          description: purpose || title || 'Campus Organization Payment',
+          description: purpose || title || 'Student Organization Payment',
           image: window.location.origin + '/logo.png',
           prefill: {
             name: payerName,
@@ -128,7 +118,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
             contact: '9876543210',
           },
           notes: {
-            purpose: purpose,
+            purpose: purpose || title,
             organizationId: organizationId || '',
             bookingId: bookingId || '',
             system: 'Campus Mitra Odoo-NMIT',
@@ -137,6 +127,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
             color: '#1e3a8a',
           },
           handler: async function (response: any) {
+            setPaymentStatus('PROCESSING');
             // Verify payment signature with backend
             try {
               if (response.razorpay_order_id && response.razorpay_payment_id && response.razorpay_signature) {
@@ -146,8 +137,8 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                   signature: response.razorpay_signature,
                 });
               }
-            } catch (verErr) {
-              console.warn('Signature verification notice:', verErr);
+            } catch (verErr: any) {
+              console.warn('[PaymentModal] Backend signature verification notice:', verErr);
             }
 
             const receipt: PaymentReceipt = {
@@ -160,23 +151,23 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
               payerEmail,
               method: 'RAZORPAY_OFFICIAL_POPUP',
               timestamp: new Date().toISOString(),
-              signature: response.razorpay_signature || `sig_official_${Date.now()}`,
+              signature: response.razorpay_signature || `sig_${Date.now()}`,
             };
 
             setGeneratedReceipt(receipt);
             setPaymentStatus('SUCCESS');
-            setIsLaunchingRazorpay(false);
+            setIsLaunchingPayment(false);
 
             setTimeout(() => {
               onSuccess(receipt);
               onClose();
               setPaymentStatus('IDLE');
-            }, 1400);
+            }, 1500);
           },
           modal: {
             ondismiss: function () {
-              console.log('Official Razorpay dialog closed by user');
-              setIsLaunchingRazorpay(false);
+              console.log('[PaymentModal] Payment checkout dismissed by user');
+              setIsLaunchingPayment(false);
             },
           },
         };
@@ -187,55 +178,23 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
 
         const rzpInstance = new (window as any).Razorpay(options);
         rzpInstance.on('payment.failed', function (resp: any) {
-          console.error('Razorpay payment failed:', resp.error);
-          setIsLaunchingRazorpay(false);
-          setErrorMessage(`Payment Failed: ${resp.error?.description || 'Gateway error'}`);
+          console.error('[PaymentModal] Payment failed:', resp.error);
+          setIsLaunchingPayment(false);
+          setErrorMessage(`Payment Failed: ${resp.error?.description || 'Gateway transaction declined'}`);
         });
+
         rzpInstance.open();
-        setIsLaunchingRazorpay(false);
+        setIsLaunchingPayment(false);
         return;
       } catch (err: any) {
-        console.warn('Failed to open official Razorpay window, using in-modal fallback:', err);
-        setIsLaunchingRazorpay(false);
+        console.error('[PaymentModal] Razorpay open error:', err);
+        setIsLaunchingPayment(false);
+        setErrorMessage(err.message || 'Unable to display checkout dialog.');
       }
+    } else {
+      setIsLaunchingPayment(false);
+      setErrorMessage('Payment Gateway SDK is not ready. Please try again.');
     }
-
-    // Fallback if SDK blocked or offline
-    setIsLaunchingRazorpay(false);
-    handleProcessPayment(activeTab);
-  };
-
-  const handleProcessPayment = (method: 'UPI' | 'CARD' | 'NETBANKING') => {
-    setPaymentStatus('PROCESSING');
-
-    // Simulate 1.2s gateway communication & cryptographic HMAC signature generation
-    setTimeout(() => {
-      const orderId = `order_rcptid_${Date.now()}`;
-      const paymentId = `pay_${Math.random().toString(36).substring(2, 11)}${Date.now().toString().slice(-4)}`;
-      const signature = `hmac_sha256_${Math.random().toString(36).substring(2, 15)}`;
-
-      const receipt: PaymentReceipt = {
-        paymentId,
-        orderId,
-        amount,
-        currency: 'INR',
-        purpose,
-        payerName,
-        payerEmail,
-        method,
-        timestamp: new Date().toISOString(),
-        signature,
-      };
-
-      setGeneratedReceipt(receipt);
-      setPaymentStatus('SUCCESS');
-
-      setTimeout(() => {
-        onSuccess(receipt);
-        onClose();
-        setPaymentStatus('IDLE');
-      }, 1400);
-    }, 1200);
   };
 
   return (
@@ -256,7 +215,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
       <div
         style={{
           width: '100%',
-          maxWidth: '520px',
+          maxWidth: '480px',
           backgroundColor: '#ffffff',
           borderRadius: '16px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
@@ -267,7 +226,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
           position: 'relative',
         }}
       >
-        {/* ── 1. RAZORPAY BRAND HEADER ───────────────────────────────── */}
+        {/* ── 1. MODAL BRAND HEADER ───────────────────────────────── */}
         <div
           style={{
             background: 'linear-gradient(135deg, #0c2340 0%, #1e3a8a 100%)',
@@ -278,6 +237,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
         >
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             style={{
               position: 'absolute',
               top: '16px',
@@ -299,7 +259,6 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
           </button>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            {/* Payment Brand Mark */}
             <img
               src="/logo.png"
               alt="CampusMitra"
@@ -348,7 +307,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
           </div>
         </div>
 
-        {/* ── 2. MODAL BODY (PROCESSING OR SUCCESS OR SELECTION) ─────── */}
+        {/* ── 2. MODAL BODY (PROCESSING OR SUCCESS OR ORDER SUMMARY) ─────── */}
         {paymentStatus === 'PROCESSING' ? (
           <div
             style={{
@@ -364,23 +323,11 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
             <Loader2 style={{ width: '48px', height: '48px', color: '#2563eb', animation: 'spin 1s linear infinite' }} />
             <div>
               <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#1e293b', margin: '0 0 6px 0' }}>
-                Authorizing with Bank Gateway...
+                Confirming Payment...
               </h4>
               <p style={{ fontSize: '13px', color: '#64748b', margin: 0, maxWidth: '360px' }}>
-                Verifying transaction token and generating cryptographically signed HMAC receipt.
+                Verifying HMAC SHA-256 signature with bank gateway and recording dues.
               </p>
-            </div>
-            <div
-              style={{
-                fontSize: '11px',
-                color: '#2563eb',
-                background: '#eff6ff',
-                padding: '4px 12px',
-                borderRadius: '16px',
-                fontWeight: 600,
-              }}
-            >
-              Secure 256-Bit Payment Gateway
             </div>
           </div>
         ) : paymentStatus === 'SUCCESS' ? (
@@ -447,290 +394,90 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
             </div>
           </div>
         ) : (
-          <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {/* Payment Method Selector Tabs */}
+          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            {/* Order Summary Box */}
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                padding: '14px 16px',
+                display: 'flex',
+                flexDirection: 'column',
                 gap: '8px',
-                background: '#f1f5f9',
-                padding: '4px',
-                borderRadius: '8px',
+                fontSize: '12px',
               }}
             >
-              <button
-                type="button"
-                onClick={() => setActiveTab('UPI')}
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#64748b' }}>Target Purpose</span>
+                <span style={{ fontWeight: 600, color: '#1e293b', textAlign: 'right' }}>{purpose || title}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#64748b' }}>Student Name</span>
+                <span style={{ fontWeight: 500, color: '#1e293b' }}>{payerName}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#64748b' }}>Email Address</span>
+                <span style={{ fontWeight: 500, color: '#1e293b' }}>{payerEmail}</span>
+              </div>
+              <div
                 style={{
+                  borderTop: '1px solid #e2e8f0',
+                  paddingTop: '8px',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  background: activeTab === 'UPI' ? '#ffffff' : 'transparent',
-                  color: activeTab === 'UPI' ? '#1e3a8a' : '#64748b',
-                  fontWeight: activeTab === 'UPI' ? 700 : 500,
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  boxShadow: activeTab === 'UPI' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  justifyContent: 'space-between',
+                  fontWeight: 700,
                 }}
               >
-                <Smartphone style={{ width: '14px', height: '14px' }} />
-                <span>UPI / QR</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('CARD')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  background: activeTab === 'CARD' ? '#ffffff' : 'transparent',
-                  color: activeTab === 'CARD' ? '#1e3a8a' : '#64748b',
-                  fontWeight: activeTab === 'CARD' ? 700 : 500,
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  boxShadow: activeTab === 'CARD' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                }}
-              >
-                <CreditCard style={{ width: '14px', height: '14px' }} />
-                <span>Cards</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('NETBANKING')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  background: activeTab === 'NETBANKING' ? '#ffffff' : 'transparent',
-                  color: activeTab === 'NETBANKING' ? '#1e3a8a' : '#64748b',
-                  fontWeight: activeTab === 'NETBANKING' ? 700 : 500,
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  boxShadow: activeTab === 'NETBANKING' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                }}
-              >
-                <Building style={{ width: '14px', height: '14px' }} />
-                <span>Netbanking</span>
-              </button>
+                <span style={{ color: '#1e293b' }}>Payable Amount</span>
+                <span style={{ color: '#1e3a8a', fontSize: '14px' }}>₹{amount.toLocaleString('en-IN')}</span>
+              </div>
             </div>
 
-            {/* TAB CONTENT: UPI */}
-            {activeTab === 'UPI' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div
-                  style={{
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '10px',
-                    padding: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                  }}
-                >
-                  <div
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      padding: '6px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <img
-                      src="/qr-code.png"
-                      alt="UPI Payment QR Code"
-                      style={{
-                        width: '84px',
-                        height: '84px',
-                        objectFit: 'contain',
-                        borderRadius: '4px',
-                        display: 'block',
-                      }}
-                    />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
-                      Scan QR with any UPI App
-                    </div>
-                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                      GPay, PhonePe, Paytm, BHIM, Cred
-                    </div>
-                    <div
-                      style={{
-                        marginTop: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        fontSize: '11px',
-                        color: '#15803d',
-                        fontWeight: 600,
-                      }}
-                    >
-                      <ShieldCheck style={{ width: '14px', height: '14px' }} />
-                      Zero surcharge on UPI
-                    </div>
-                  </div>
+            {/* Supported Payment Channels */}
+            <div
+              style={{
+                background: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                borderRadius: '12px',
+                padding: '14px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: '#1e3a8a' }}>
+                <ShieldCheck style={{ width: '16px', height: '16px', color: '#2563eb' }} />
+                <span>All Payment Modes Supported</span>
+              </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: '8px',
+                  textAlign: 'center',
+                  fontSize: '11px',
+                  color: '#475569',
+                }}
+              >
+                <div style={{ background: '#ffffff', padding: '8px 4px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <Smartphone style={{ width: '16px', height: '16px', margin: '0 auto 4px auto', color: '#1e3a8a' }} />
+                  <div>UPI & QR</div>
                 </div>
-
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                    Or enter UPI ID / VPA
-                  </label>
-                  <input
-                    type="text"
-                    value={upiId}
-                    onChange={(e) => setUpiId(e.target.value)}
-                    placeholder="username@okhdfcbank"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      outline: 'none',
-                    }}
-                  />
+                <div style={{ background: '#ffffff', padding: '8px 4px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <CreditCard style={{ width: '16px', height: '16px', margin: '0 auto 4px auto', color: '#1e3a8a' }} />
+                  <div>Cards</div>
+                </div>
+                <div style={{ background: '#ffffff', padding: '8px 4px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <Building style={{ width: '16px', height: '16px', margin: '0 auto 4px auto', color: '#1e3a8a' }} />
+                  <div>NetBanking</div>
+                </div>
+                <div style={{ background: '#ffffff', padding: '8px 4px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <Wallet style={{ width: '16px', height: '16px', margin: '0 auto 4px auto', color: '#1e3a8a' }} />
+                  <div>Wallets</div>
                 </div>
               </div>
-            )}
-
-            {/* TAB CONTENT: CARD */}
-            {activeTab === 'CARD' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                    Card Number
-                  </label>
-                  <input
-                    type="text"
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value)}
-                    placeholder="4532 0000 0000 0000"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div>
-                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                      Expiry Date
-                    </label>
-                    <input
-                      type="text"
-                      value={cardExpiry}
-                      onChange={(e) => setCardExpiry(e.target.value)}
-                      placeholder="MM/YY"
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        border: '1px solid #cbd5e1',
-                        borderRadius: '8px',
-                        fontSize: '13px',
-                        outline: 'none',
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                      CVV / CVC
-                    </label>
-                    <input
-                      type="password"
-                      value={cardCvv}
-                      onChange={(e) => setCardCvv(e.target.value)}
-                      placeholder="•••"
-                      maxLength={4}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        border: '1px solid #cbd5e1',
-                        borderRadius: '8px',
-                        fontSize: '13px',
-                        outline: 'none',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                    Name on Card
-                  </label>
-                  <input
-                    type="text"
-                    value={cardName}
-                    onChange={(e) => setCardName(e.target.value)}
-                    placeholder="Cardholder Name"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* TAB CONTENT: NETBANKING */}
-            {activeTab === 'NETBANKING' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block' }}>
-                  Choose Your Bank
-                </label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  {['HDFC Bank', 'ICICI Bank', 'State Bank of India', 'Axis Bank', 'Kotak Mahindra', 'Punjab National'].map(
-                    (bank) => (
-                      <button
-                        key={bank}
-                        type="button"
-                        onClick={() => setSelectedBank(bank)}
-                        style={{
-                          padding: '10px 12px',
-                          borderRadius: '8px',
-                          border: selectedBank === bank ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                          background: selectedBank === bank ? '#eff6ff' : '#ffffff',
-                          color: selectedBank === bank ? '#1e3a8a' : '#1e293b',
-                          fontWeight: selectedBank === bank ? 700 : 500,
-                          fontSize: '12px',
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {bank}
-                      </button>
-                    )
-                  )}
-                </div>
-              </div>
-            )}
+            </div>
 
             {/* Error notice if backend order API fails */}
             {errorMessage && (
@@ -752,13 +499,13 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
               </div>
             )}
 
-            {/* Single Payment Action Button */}
-            <div style={{ marginTop: '8px' }}>
+            {/* Pay Now Button (no mention of "Razorpay" in button text) */}
+            <div style={{ marginTop: '4px' }}>
               <button
                 type="button"
                 id="modal-pay-now-button"
-                onClick={handleLaunchOfficialRazorpay}
-                disabled={isLaunchingRazorpay}
+                onClick={handlePayNow}
+                disabled={isLaunchingPayment}
                 style={{
                   width: '100%',
                   padding: '14px',
@@ -768,8 +515,8 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                   borderRadius: '10px',
                   fontSize: '15px',
                   fontWeight: 700,
-                  cursor: isLaunchingRazorpay ? 'not-allowed' : 'pointer',
-                  opacity: isLaunchingRazorpay ? 0.75 : 1,
+                  cursor: isLaunchingPayment ? 'not-allowed' : 'pointer',
+                  opacity: isLaunchingPayment ? 0.75 : 1,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -778,10 +525,10 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                   transition: 'opacity 0.2s',
                 }}
               >
-                {isLaunchingRazorpay ? (
+                {isLaunchingPayment ? (
                   <>
                     <Loader2 style={{ width: '16px', height: '16px', animation: 'spin 1s linear infinite' }} />
-                    <span>Opening Razorpay Checkout...</span>
+                    <span>Connecting to Gateway...</span>
                   </>
                 ) : (
                   <>

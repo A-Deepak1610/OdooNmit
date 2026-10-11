@@ -54,6 +54,7 @@ export interface OpenRazorpayOptions {
   eventId?: string;
   purpose?: string;
   title?: string;
+  amount?: number;
   payerName?: string;
   payerEmail?: string;
   payerContact?: string;

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { BASE_URL } from '../services/api-client';
 
 export type NotificationCategory =
   | 'ALL'
@@ -104,7 +105,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   fetchNotifications: async () => {
     try {
       set({ isLoading: true });
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+      const apiUrl = BASE_URL;
       const res = await fetch(`${apiUrl}/notifications`);
       if (res.ok) {
         const data = await res.json();
@@ -133,7 +134,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     });
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+      const apiUrl = BASE_URL;
       await fetch(`${apiUrl}/notifications/${id}/read`, { method: 'PATCH' });
     } catch (_err) {
       // Local state is already updated
@@ -148,7 +149,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     });
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+      const apiUrl = BASE_URL;
       await fetch(`${apiUrl}/notifications/mark-all-read`, { method: 'POST' });
     } catch (_err) {
       // Local state is already updated
@@ -163,7 +164,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     });
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+      const apiUrl = BASE_URL;
       await fetch(`${apiUrl}/notifications/${id}`, { method: 'DELETE' });
     } catch (_err) {
       // Local state is already updated
