@@ -11,6 +11,7 @@ from langchain_groq import ChatGroq
 
 from .prompts import (
     ANSWER_EXPLANATION_PROMPT,
+    SPELL_CORRECTION_PROMPT,
     SQL_GENERATION_PROMPT,
 )
 from .schema import retrieve_relevant_schema
@@ -43,6 +44,53 @@ def get_llm() -> ChatGroq:
         )
 
     return _llm
+
+
+def correct_query_spelling(question: str) -> str:
+    """
+    Send the user's input query to Groq to fix misspellings, typos,
+    and grammatical errors before resuming the RAG pipeline.
+    """
+    raw_query = question.strip()
+    if not raw_query:
+        return raw_query
+
+    try:
+        llm = get_llm()
+        messages = SPELL_CORRECTION_PROMPT.format_messages(query=raw_query)
+        result = llm.invoke(messages)
+        content = (
+            result.content if isinstance(result.content, str) else str(result.content)
+        )
+        corrected = content.strip()
+
+        # Remove markdown code formatting if accidentally returned
+        match = re.search(r"```(?:\w+)?\s*([\s\S]*?)```", corrected)
+        if match:
+            corrected = match.group(1).strip()
+
+        # Remove common introductory prefixes if returned
+        for prefix in (
+            "corrected query:",
+            "corrected question:",
+            "corrected:",
+            "query:",
+        ):
+            if corrected.lower().startswith(prefix):
+                corrected = corrected[len(prefix) :].strip()
+
+        # Remove surrounding quotes if present
+        if (corrected.startswith('"') and corrected.endswith('"')) or (
+            corrected.startswith("'") and corrected.endswith("'")
+        ):
+            corrected = corrected[1:-1].strip()
+
+        return corrected if corrected else raw_query
+    except Exception as e:
+        print(
+            f"[SQL Chatbot] Spelling correction error, proceeding with original query: {e}"
+        )
+        return raw_query
 
 
 def extract_sql_from_response(model_output: str) -> str:
@@ -78,18 +126,22 @@ def extract_sql_from_response(model_output: str) -> str:
 def run_sql_chat_pipeline(question: str) -> Dict[str, Any]:
     """
     Run the complete SQL chatbot pipeline:
-    1. Retrieve relevant schema from ChromaDB.
-    2. Generate SQL using Groq.
-    3. Validate and execute SQL against TiDB.
-    4. Explain the results in plain English.
+    1. Send the query to Groq to correct spelling and typos (e.g. 'queuries' -> 'queries').
+    2. RESUME RAG: Retrieve relevant schema from ChromaDB using the corrected query.
+    3. Generate SQL using Groq.
+    4. Validate and execute SQL against TiDB.
+    5. Explain the results in plain English using Groq.
     """
     cleaned_question = question.strip()
 
     if not cleaned_question:
         raise ValueError("Question cannot be empty.")
 
-    # 1. Retrieve relevant schema documents.
-    schema_docs = retrieve_relevant_schema(cleaned_question, k=6)
+    # 1. Correct spelling of the user's query via Groq
+    corrected_question = correct_query_spelling(cleaned_question)
+
+    # 2. RESUME RAG: Retrieve relevant schema documents using the corrected query
+    schema_docs = retrieve_relevant_schema(corrected_question, k=6)
 
     if not schema_docs:
         raise ValueError(
@@ -100,12 +152,12 @@ def run_sql_chat_pipeline(question: str) -> Dict[str, Any]:
         document.page_content for document in schema_docs
     )
 
-    # 2. Generate SQL using Groq.
+    # 3. Generate SQL using Groq with schema context and corrected query
     llm = get_llm()
 
     sql_prompt_messages = SQL_GENERATION_PROMPT.format_messages(
         schema_context=schema_context,
-        question=cleaned_question,
+        question=corrected_question,
     )
 
     sql_generation_result = llm.invoke(sql_prompt_messages)
@@ -115,16 +167,16 @@ def run_sql_chat_pipeline(question: str) -> Dict[str, Any]:
         content if isinstance(content, str) else str(content)
     )
 
-    # 3. Extract the SQL statement.
+    # 4. Extract the SQL statement.
     extracted_sql = extract_sql_from_response(generated_sql_text)
 
-    # 4. Validate and execute SQL against TiDB.
+    # 5. Validate and execute SQL against TiDB.
     engine = get_engine()
     results, validated_sql = execute_sql(extracted_sql, engine)
 
-    # 5. Generate a plain-English explanation.
+    # 6. Generate a plain-English explanation.
     explanation_messages = ANSWER_EXPLANATION_PROMPT.format_messages(
-        question=cleaned_question,
+        question=corrected_question,
         sql=validated_sql,
         results=results,
     )
@@ -138,9 +190,11 @@ def run_sql_chat_pipeline(question: str) -> Dict[str, Any]:
         else str(explanation_content).strip()
     )
 
-    # 6. Return a structured response.
+    # 7. Return a structured response with corrected and original queries.
     return {
-        "question": cleaned_question,
+        "question": corrected_question,
+        "original_question": cleaned_question,
+        "corrected_question": corrected_question,
         "sql": validated_sql,
         "answer": plain_english_answer,
         "results": results,

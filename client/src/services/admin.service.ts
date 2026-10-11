@@ -127,6 +127,8 @@ export interface ElectionItem {
 
 export interface DbAssistantResult {
   query: string;
+  originalQuery?: string;
+  correctedQuery?: string;
   interpretedIntent: string;
   sqlQuery: string;
   summaryMetrics: Array<{ label: string; value: string }>;
@@ -276,6 +278,8 @@ export const adminService = {
             : [['No records found']];
         return {
           query: data.question,
+          originalQuery: data.original_question || query.trim(),
+          correctedQuery: data.corrected_question || data.question,
           interpretedIntent: data.answer,
           sqlQuery: data.sql,
           summaryMetrics: [

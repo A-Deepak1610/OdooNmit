@@ -65,6 +65,8 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     question: str
+    original_question: Optional[str] = None
+    corrected_question: Optional[str] = None
     sql: str
     answer: str
     results: List[Dict[str, Any]]
