@@ -125,6 +125,47 @@ export interface ElectionItem {
   };
 }
 
+export interface ElectionVoteAuditItem {
+  id: string;
+  electionId: string;
+  candidateId: string;
+  voterId: string;
+  castAt: string;
+  voter: {
+    id: string;
+    fullName: string;
+    username: string;
+    email: string;
+    avatarUrl: string | null;
+    phone?: string | null;
+  };
+}
+
+export interface DetailedElectionCandidateItem extends ElectionCandidateItem {
+  votes?: ElectionVoteAuditItem[];
+}
+
+export interface DetailedElectionItem {
+  id: string;
+  title: string;
+  organizationId: string;
+  academicYear: string;
+  description: string | null;
+  status: 'DRAFT' | 'NOMINATION_OPEN' | 'VOTING_OPEN' | 'COMPLETED' | 'CANCELLED';
+  nominationDeadline: string;
+  votingStartDate: string;
+  votingEndDate: string;
+  winnerCandidateId: string | null;
+  createdAt: string;
+  updatedAt?: string;
+  organization: ClubItem;
+  candidates: DetailedElectionCandidateItem[];
+  _count: {
+    votes: number;
+    candidates: number;
+  };
+}
+
 export interface DbAssistantResult {
   query: string;
   interpretedIntent: string;
@@ -223,6 +264,11 @@ export const adminService = {
   getElections: async () => {
     const res = await apiClient.get('/admin/elections');
     return res.data.data as ElectionItem[];
+  },
+
+  getElectionDetails: async (electionId: string) => {
+    const res = await apiClient.get(`/admin/elections/${electionId}`);
+    return res.data.data as DetailedElectionItem;
   },
 
   createElection: async (data: {
