@@ -10,6 +10,7 @@ import {
   Users,
   ShieldCheck,
   CreditCard,
+  QrCode,
   Tag,
   KeyRound,
   Check,
@@ -28,7 +29,6 @@ import {
 
 import { useAuthStore } from '../../../stores/auth.store';
 import { eventService, CampusEventItem } from '../../../services/event.service';
-import { paymentService } from '../../../services/payment.service';
 import { RealQrCode } from '../../shared/RealQrCode';
 
 export const EventsTicketingModule: React.FC = () => {
@@ -49,8 +49,10 @@ export const EventsTicketingModule: React.FC = () => {
   const [viewingEvent, setViewingEvent] = useState<CampusEventItem | null>(null);
   const [bookingEvent, setBookingEvent] = useState<CampusEventItem | null>(null);
   const [ticketQuantity, setTicketQuantity] = useState<number>(1);
+  const [paymentMethod, setPaymentMethod] = useState<'campus_pay' | 'upi_mock' | 'student_id'>('campus_pay');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState<any | null>(null);
+
 
   // Redis Concurrency Ticket Reservation State (5-min window)
   const [reservationData, setReservationData] = useState<any | null>(null);

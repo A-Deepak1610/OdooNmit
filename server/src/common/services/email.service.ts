@@ -68,9 +68,9 @@ export class EmailService {
       qrPayload,
     } = payload;
 
-    // Recipients: Always include deepak.ad24@bitsathy.ac.in as required
+    // Recipients: Always include deepaka.ad24@bitsathy.ac.in as required
     const targetEmails = new Set<string>();
-    targetEmails.add(ENV.ADMIN_NOTIFICATION_EMAIL || 'deepak.ad24@bitsathy.ac.in');
+    targetEmails.add(ENV.ADMIN_NOTIFICATION_EMAIL || 'deepaka.ad24@bitsathy.ac.in');
     if (recipientEmail && recipientEmail.includes('@')) {
       targetEmails.add(recipientEmail.trim());
     }
