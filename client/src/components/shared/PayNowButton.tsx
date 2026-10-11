@@ -119,7 +119,7 @@ export const PayNowButton: React.FC<PayNowButtonProps> = ({
         {isLoading ? (
           <>
             <Loader2 style={{ width: '15px', height: '15px', animation: 'spin 1s linear infinite' }} />
-            <span>Opening Razorpay...</span>
+            <span>Connecting to Gateway...</span>
           </>
         ) : (
           <>

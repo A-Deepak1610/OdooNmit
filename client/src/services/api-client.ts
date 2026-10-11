@@ -2,7 +2,25 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'ax
 import { useAuthStore } from '../stores/auth.store';
 import { ApiErrorPayload } from '../types';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+const resolveApiBaseUrl = (): string => {
+  const customUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL;
+  if (customUrl && typeof customUrl === 'string' && customUrl.trim() !== '') {
+    const trimmed = customUrl.trim().replace(/\/+$/, '');
+    if (!trimmed.endsWith('/api/v1') && !trimmed.endsWith('/api')) {
+      return `${trimmed}/api/v1`;
+    }
+    return trimmed;
+  }
+
+  // Separation between production and development
+  if (import.meta.env.PROD) {
+    return 'https://student-organization-system-odoo-nmit.onrender.com/api/v1';
+  }
+
+  return 'http://localhost:5000/api/v1';
+};
+
+export const BASE_URL = resolveApiBaseUrl();
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,

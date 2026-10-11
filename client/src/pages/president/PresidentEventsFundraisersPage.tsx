@@ -1323,7 +1323,7 @@ export const PresidentEventsFundraisersPage: React.FC<PresidentEventsFundraisers
                         }}
                       >
                         <CreditCard style={{ width: '14px', height: '14px' }} />
-                        <span>Book via Razorpay</span>
+                        <span>Pay & Book Pass</span>
                       </button>
                     </div>
 

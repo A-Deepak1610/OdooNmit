@@ -10,7 +10,6 @@ import {
   Users,
   ShieldCheck,
   CreditCard,
-  QrCode,
   Tag,
   KeyRound,
   Check,
@@ -29,6 +28,7 @@ import {
 
 import { useAuthStore } from '../../../stores/auth.store';
 import { eventService, CampusEventItem } from '../../../services/event.service';
+import { paymentService } from '../../../services/payment.service';
 import { RealQrCode } from '../../shared/RealQrCode';
 
 export const EventsTicketingModule: React.FC = () => {
@@ -49,7 +49,6 @@ export const EventsTicketingModule: React.FC = () => {
   const [viewingEvent, setViewingEvent] = useState<CampusEventItem | null>(null);
   const [bookingEvent, setBookingEvent] = useState<CampusEventItem | null>(null);
   const [ticketQuantity, setTicketQuantity] = useState<number>(1);
-  const [paymentMethod, setPaymentMethod] = useState<'campus_pay' | 'upi_mock' | 'student_id'>('campus_pay');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState<any | null>(null);
 
@@ -864,10 +863,10 @@ export const EventsTicketingModule: React.FC = () => {
                 </div>
               </div>
 
-              {/* Mock Payment Mode Selector */}
+              {/* Payment Mode */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
-                  Payment Mode (Simulated Gateway)
+                  Payment Mode
                 </label>
                 <div className="space-y-1.5">
                   {[

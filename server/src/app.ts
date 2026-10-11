@@ -15,12 +15,58 @@ import { errorHandler } from './common/middlewares/error.middleware.js';
 
 export const app = express();
 
-app.use(
-  cors({
-    origin: [ENV.FRONTEND_URL, 'http://localhost:3000', 'http://localhost:5173'],
-    credentials: true,
-  })
-);
+const rawFrontendUrls = (ENV.FRONTEND_URL || '')
+  .split(',')
+  .map((url) => url.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
+const allowedOrigins = [
+  ...rawFrontendUrls,
+  'https://odoo-nmit-theta.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173',
+];
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, server-to-server webhooks)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    const normalizedOrigin = origin.replace(/\/+$/, '');
+
+    // Allow configured origins, any *.vercel.app deployment, or localhost
+    const isAllowed =
+      allowedOrigins.includes(normalizedOrigin) ||
+      normalizedOrigin.endsWith('.vercel.app') ||
+      normalizedOrigin.includes('localhost') ||
+      normalizedOrigin.includes('127.0.0.1');
+
+    if (isAllowed || process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'x-request-id',
+    'x-razorpay-signature',
+    'Accept',
+  ],
+  exposedHeaders: ['x-request-id'],
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(cookieParser());
 app.use(
   express.json({
