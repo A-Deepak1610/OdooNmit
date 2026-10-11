@@ -13,6 +13,7 @@ import { apiClient } from '../../services/api-client';
 interface Interaction {
   id: string;
   question: string;
+  correctedQuestion?: string;
   answer?: string;
   sql?: string;
   isLoading?: boolean;
@@ -88,7 +89,13 @@ export const AdminDbAssistantPage: React.FC = () => {
     setIsExecuting(true);
 
     try {
-      let resultData: { question: string; sql: string; answer: string } | null = null;
+      let resultData: {
+        question: string;
+        original_question?: string;
+        corrected_question?: string;
+        sql: string;
+        answer: string;
+      } | null = null;
 
       // 1. Try direct connection to Python SQL Chatbot on port 8001
       try {
@@ -112,6 +119,8 @@ export const AdminDbAssistantPage: React.FC = () => {
             const data = proxyRes.data.data;
             resultData = {
               question: data.query,
+              original_question: data.originalQuery || trimmed,
+              corrected_question: data.correctedQuery || data.query,
               sql: data.sqlQuery || '',
               answer: data.interpretedIntent || 'Query executed successfully.',
             };
@@ -135,6 +144,9 @@ export const AdminDbAssistantPage: React.FC = () => {
                 isLoading: false,
                 answer: resultData!.answer || 'No natural language response provided.',
                 sql: resultData!.sql || '',
+                correctedQuestion:
+                  resultData!.corrected_question ||
+                  (resultData!.question !== item.question ? resultData!.question : undefined),
               }
             : item
         )
@@ -236,13 +248,21 @@ export const AdminDbAssistantPage: React.FC = () => {
           {interactions.map((item) => (
             <div key={item.id} className="space-y-3">
               {/* User Question */}
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                   Your question
                 </span>
                 <div className="bg-slate-100/90 rounded-xl px-4 py-3 border border-slate-200 text-sm font-medium text-slate-900">
                   {item.question}
                 </div>
+                {item.correctedQuestion &&
+                  item.correctedQuestion.trim().toLowerCase() !==
+                    item.question.trim().toLowerCase() && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100 text-xs font-medium text-indigo-700">
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                      <span>Corrected via Groq: &ldquo;{item.correctedQuestion}&rdquo;</span>
+                    </div>
+                  )}
               </div>
 
               {/* Assistant Response */}
@@ -257,7 +277,7 @@ export const AdminDbAssistantPage: React.FC = () => {
                     <div className="flex items-center gap-3 text-slate-500 py-3">
                       <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
                       <span className="text-sm font-medium">
-                        Analyzing campus schema and generating answer...
+                        Refining query spelling with Groq & retrieving database schema...
                       </span>
                     </div>
                   ) : item.error ? (
