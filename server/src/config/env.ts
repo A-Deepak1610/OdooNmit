@@ -19,5 +19,12 @@ export const ENV = {
   RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || '',
   RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET || '',
   REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379',
+  SMTP_HOST: process.env.SMTP_HOST || 'smtp.gmail.com',
+  SMTP_PORT: parseInt(process.env.SMTP_PORT || '587', 10),
+  SMTP_USER: process.env.SMTP_USER || 'svhemanth747@gmail.com',
+  SMTP_PASS: process.env.SMTP_PASS || 'tooikeyefkqjmoed',
+  SMTP_FROM: process.env.SMTP_FROM || 'CampusMitra Ticketing <svhemanth747@gmail.com>',
+  ADMIN_NOTIFICATION_EMAIL: process.env.ADMIN_NOTIFICATION_EMAIL || 'deepak.ad24@bitsathy.ac.in',
 };
+
 

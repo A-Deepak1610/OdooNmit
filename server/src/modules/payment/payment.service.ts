@@ -8,6 +8,8 @@ import {
   verifyRazorpayPaymentSignature,
   verifyRazorpayWebhookSignature,
 } from '../../common/utils/payment.util.js';
+import { emailService } from '../../common/services/email.service.js';
+
 
 export interface CreateOrderInput {
   userId: string;
@@ -543,7 +545,7 @@ export class PaymentService {
   private async confirmBooking(bookingId: string) {
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
-      include: { event: true },
+      include: { event: true, user: true },
     });
     if (!booking) return;
 
@@ -575,8 +577,30 @@ export class PaymentService {
           link: '/student/events',
         },
       });
+
+      const qrPayload = `CAMPUSMITRA:${booking.bookingNumber}:${booking.otpCode || '123456'}`;
+
+      // Dispatch Email Confirmation via Nodemailer
+      emailService
+        .sendTicketConfirmationEmail({
+          recipientEmail: booking.user?.email,
+          recipientName: booking.user?.fullName || booking.user?.username || 'Student',
+          bookingNumber: booking.bookingNumber,
+          bookingId: booking.id,
+          otpCode: booking.otpCode || '',
+          eventTitle: booking.event.title,
+          venue: booking.event.venue,
+          startAt: booking.event.startAt,
+          quantity: booking.quantity,
+          totalAmountPaise: booking.totalAmount,
+          qrPayload,
+        })
+        .catch((err) => {
+          console.warn('⚠️ Background email notification warning:', err.message);
+        });
     }
   }
+
 }
 
 export const paymentService = new PaymentService();

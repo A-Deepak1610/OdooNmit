@@ -9,6 +9,8 @@ import {
   RESERVATION_TTL_SECONDS,
 } from '../../config/redis.js';
 import { RoleType } from '@prisma/client';
+import { emailService } from '../../common/services/email.service.js';
+
 
 export interface ReserveTicketResult {
   bookingWindowToken: string;
@@ -366,6 +368,25 @@ export class TicketReservationService {
 
     const qrPayload = `CAMPUSMITRA:${confirmedBooking.bookingNumber}:${confirmedBooking.otpCode}`;
 
+    // 7. Dispatch Ticket Email Confirmation via Nodemailer
+    emailService
+      .sendTicketConfirmationEmail({
+        recipientEmail: confirmedBooking.user?.email,
+        recipientName: confirmedBooking.user?.fullName || confirmedBooking.user?.username || 'Student',
+        bookingNumber: confirmedBooking.bookingNumber,
+        bookingId: confirmedBooking.id,
+        otpCode: confirmedBooking.otpCode || '',
+        eventTitle: confirmedBooking.event.title,
+        venue: confirmedBooking.event.venue,
+        startAt: confirmedBooking.event.startAt,
+        quantity: confirmedBooking.quantity,
+        totalAmountPaise: confirmedBooking.totalAmount,
+        qrPayload,
+      })
+      .catch((err) => {
+        console.warn('⚠️ Background email notification warning:', err.message);
+      });
+
     return {
       booking: confirmedBooking,
       payment,
@@ -373,6 +394,7 @@ export class TicketReservationService {
       otpCode: confirmedBooking.otpCode || '',
       message: 'Booking confirmed successfully! Digital pass and check-in OTP generated.',
     };
+
   }
 
   /**
