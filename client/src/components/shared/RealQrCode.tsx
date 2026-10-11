@@ -4,6 +4,7 @@ import { eventService } from '../../services/event.service';
 
 interface RealQrCodeProps {
   value: string;
+  qrDataUrl?: string;
   size?: number;
   label?: string;
   subLabel?: string;
@@ -17,6 +18,7 @@ interface RealQrCodeProps {
  */
 export const RealQrCode: React.FC<RealQrCodeProps> = ({
   value,
+  qrDataUrl,
   size = 180,
   label,
   subLabel,
@@ -26,10 +28,18 @@ export const RealQrCode: React.FC<RealQrCodeProps> = ({
   const [copied, setCopied] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [qrSrc, setQrSrc] = useState<string>('');
+  const [qrSrc, setQrSrc] = useState<string>(qrDataUrl || '');
 
   useEffect(() => {
     let isMounted = true;
+
+    if (qrDataUrl) {
+      setQrSrc(qrDataUrl);
+      setImageLoaded(true);
+      setImageError(false);
+      return;
+    }
+
     setImageLoaded(false);
     setImageError(false);
 
@@ -46,7 +56,6 @@ export const RealQrCode: React.FC<RealQrCodeProps> = ({
       })
       .catch(() => {
         if (isMounted) {
-          // Fallback to client data URI or SVG if network issue
           setImageError(true);
         }
       });
@@ -54,7 +63,7 @@ export const RealQrCode: React.FC<RealQrCodeProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [value, size]);
+  }, [value, qrDataUrl, size]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(value);

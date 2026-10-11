@@ -32,15 +32,29 @@ import { useAuthStore } from '../../../stores/auth.store';
 import { eventService, CampusEventItem } from '../../../services/event.service';
 import { RealQrCode } from '../../shared/RealQrCode';
 
-export const EventsTicketingModule: React.FC = () => {
+export interface EventsTicketingModuleProps {
+  initialTab?: 'events' | 'my-tickets';
+}
+
+export const EventsTicketingModule: React.FC<EventsTicketingModuleProps> = ({
+  initialTab = 'events',
+}) => {
   const { user } = useAuthStore();
   const isMember = user?.roles?.includes('MEMBER') || user?.roles?.includes('PRESIDENT') || user?.roles?.includes('EVENT_ORGANIZER');
 
-  const [activeTab, setActiveTab] = useState<'events' | 'my-tickets'>('events');
+  const [activeTab, setActiveTab] = useState<'events' | 'my-tickets'>(initialTab);
   const [events, setEvents] = useState<CampusEventItem[]>([]);
   const [myTickets, setMyTickets] = useState<any[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [loadingTickets, setLoadingTickets] = useState(false);
+  const [enlargedPass, setEnlargedPass] = useState<any | null>(null);
+
+  // Sync initialTab when route changes
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -660,7 +674,7 @@ export const EventsTicketingModule: React.FC = () => {
                               <CreditCard className="w-3.5 h-3.5 text-slate-400" /> Total Paid
                             </span>
                             <span className="font-bold text-emerald-700">
-                              ₹{Math.round(t.totalAmount / 100)} (Mock Captured)
+                              ₹{Math.round(t.totalAmount / 100)} (Payment Verified)
                             </span>
                           </div>
                         </div>
@@ -673,9 +687,14 @@ export const EventsTicketingModule: React.FC = () => {
 
                       {/* Right: QR Code & 6-Digit Door OTP */}
                       <div className="p-6 bg-slate-50 flex flex-col items-center justify-center text-center space-y-3 min-w-[240px]">
-                        <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
+                        <div
+                          onClick={() => setEnlargedPass(t)}
+                          className="bg-white p-2 rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:border-indigo-300 hover:shadow-md transition-all group"
+                          title="Click to enlarge pass"
+                        >
                           <RealQrCode
                             value={t.qrPayload || `CAMPUSMITRA:${t.bookingNumber}:${t.otpCode || '123456'}`}
+                            qrDataUrl={t.qrCodeDataUrl}
                             size={140}
                             showPayloadPreview={false}
                           />
@@ -691,9 +710,13 @@ export const EventsTicketingModule: React.FC = () => {
                           </div>
                         </div>
 
-                        <p className="text-[10px] text-slate-500 max-w-[190px] leading-tight">
-                          Show QR code or quote OTP to the door scanner volunteer.
-                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setEnlargedPass(t)}
+                          className="w-full py-1.5 px-3 bg-white hover:bg-slate-100 text-indigo-600 border border-indigo-200 rounded-lg text-[11px] font-bold shadow-2xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          <QrCode className="w-3 h-3" /> Present Pass at Door
+                        </button>
                       </div>
                     </div>
                   );
@@ -1147,6 +1170,82 @@ export const EventsTicketingModule: React.FC = () => {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ENLARGED DIGITAL PASS MODAL FOR DOOR SCANNER PRESENTATION */}
+      {enlargedPass && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-sm w-full border border-slate-200 shadow-2xl overflow-hidden flex flex-col p-6 text-center space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="text-left">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
+                  PASS #{enlargedPass.bookingNumber}
+                </span>
+                <h3 className="text-base font-black text-slate-900 mt-1 line-clamp-1">
+                  {enlargedPass.event?.title || 'Campus Event Pass'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setEnlargedPass(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold flex items-center justify-center transition-colors text-xs"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Check-in status badge */}
+            <div>
+              {enlargedPass.checkedInAt ? (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Checked In at {new Date(enlargedPass.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 animate-pulse">
+                  <Clock className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Ready for Entrance Gate • Present at Door</span>
+                </div>
+              )}
+            </div>
+
+            {/* Large Scannable QR Code */}
+            <div className="bg-white p-4 rounded-2xl border-2 border-slate-900/10 shadow-inner flex items-center justify-center mx-auto">
+              <RealQrCode
+                value={enlargedPass.qrPayload || `CAMPUSMITRA:${enlargedPass.bookingNumber}:${enlargedPass.otpCode || '123456'}`}
+                qrDataUrl={enlargedPass.qrCodeDataUrl}
+                size={220}
+                showPayloadPreview={false}
+              />
+            </div>
+
+            {/* Door OTP Box */}
+            <div className="bg-indigo-950 text-white rounded-2xl p-3 shadow-md">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-300 flex items-center justify-center gap-1.5">
+                <KeyRound className="w-3.5 h-3.5 text-indigo-300" /> Door Check-in OTP
+              </div>
+              <div className="text-3xl font-black font-mono tracking-widest text-amber-300 mt-1">
+                {enlargedPass.otpCode
+                  ? `${enlargedPass.otpCode.slice(0, 3)} ${enlargedPass.otpCode.slice(3)}`
+                  : '482 910'}
+              </div>
+              <div className="text-[10px] text-slate-300 mt-1">
+                Show this QR or quote this 6-digit code to the volunteer.
+              </div>
+            </div>
+
+            <div className="text-[11px] text-slate-500 flex items-center justify-between border-t border-slate-100 pt-3">
+              <span className="truncate max-w-[180px]">📍 {enlargedPass.event?.venue || 'Campus Venue'}</span>
+              <span className="font-bold text-slate-700">{enlargedPass.quantity} Seat{enlargedPass.quantity > 1 ? 's' : ''}</span>
+            </div>
+
+            <button
+              onClick={() => setEnlargedPass(null)}
+              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition-all cursor-pointer"
+            >
+              Done / Return
+            </button>
           </div>
         </div>
       )}

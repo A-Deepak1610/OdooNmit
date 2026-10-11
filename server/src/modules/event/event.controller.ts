@@ -11,8 +11,23 @@ const getUserId = (req: Request): string => {
 };
 
 export class EventController {
-  sendEventAnnouncementEmail(req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>, number>): void {
-    throw new Error('Method not implemented.');
+  async sendEventAnnouncementEmail(req: Request, res: Response) {
+    try {
+      const eventId = req.params.id;
+      const organizerUserId = getUserId(req);
+      const { subject, message, filter, audienceFilter, priority } = req.body;
+      const rawFilter = filter || audienceFilter || 'ALL';
+      const resolvedFilter = rawFilter === 'PENDING' ? 'NOT_CHECKED_IN' : (rawFilter as 'ALL' | 'CHECKED_IN' | 'NOT_CHECKED_IN');
+      const result = await eventService.sendEventAnnouncementEmail(eventId, organizerUserId, {
+        subject,
+        message,
+        filter: resolvedFilter,
+        priority,
+      });
+      res.json({ success: true, data: result });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
   }
   async getEvents(req: Request, res: Response) {
     try {
@@ -267,10 +282,10 @@ export class EventController {
 
   async verifyCheckinTicket(req: Request, res: Response) {
     try {
-      const { code } = req.body;
-      const result = await eventService.verifyCheckinTicket(code);
+      const { code, eventId } = req.body;
+      const result = await eventService.verifyCheckinTicket(code, eventId);
       if (!result.success) {
-        return res.status(result.alreadyCheckedIn ? 409 : 404).json(result);
+        return res.status(result.alreadyCheckedIn ? 409 : result.wrongEvent ? 422 : 404).json(result);
       }
       res.json(result);
     } catch (err: any) {

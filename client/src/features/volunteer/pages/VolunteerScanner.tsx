@@ -1,929 +1,759 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  QrCode,
-  KeyRound,
-  Clock,
-  Ticket,
-  ShieldCheck,
-  Loader2,
-  Check,
-  AlertTriangle,
-  XCircle,
   Camera,
   CameraOff,
+  KeyRound,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
   Upload,
-  Sparkles,
+  Loader2,
+  FlipHorizontal,
+  ChevronDown,
+  Copy,
+  Check,
   RefreshCw,
-  Zap,
-  UserCheck,
-  FileImage,
 } from 'lucide-react';
-import { Html5Qrcode } from 'html5-qrcode';
-import { eventService } from '../../../services/event.service';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { eventService, CampusEventItem } from '../../../services/event.service';
 
 export const VolunteerScanner: React.FC = () => {
-  const [activeMode, setActiveMode] = useState<'OTP' | 'QR'>('OTP');
-  const [qrSubTab, setQrSubTab] = useState<'CAMERA' | 'FILE' | 'GENERATOR' | 'MANUAL'>('CAMERA');
-  const [otpInput, setOtpInput] = useState('');
-  const [qrInput, setQrInput] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
+  // ── 1. Events & Active Event Selection ───────────────────────────────────
+  const [events, setEvents] = useState<CampusEventItem[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<string>('ALL');
+  const [isLoadingEvents, setIsLoadingEvents] = useState(true);
 
-  // Camera State
+  // ── 2. Tab Selection ('qr' | 'otp') ──────────────────────────────────────
+  const [activeTab, setActiveTab] = useState<'qr' | 'otp'>('qr');
+
+  // ── 3. QR Camera State ───────────────────────────────────────────────────
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
+  const [isProcessingScan, setIsProcessingScan] = useState(false);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+  const cameraViewportId = 'volunteer-live-qr-viewport';
 
-  // Verification result state
+  // ── 4. OTP Form State ────────────────────────────────────────────────────
+  const [otpValue, setOtpValue] = useState<string>('');
+  const [otpValidationError, setOtpValidationError] = useState<string | null>(null);
+  const [isSubmittingOtp, setIsSubmittingOtp] = useState<boolean>(false);
+
+  // ── 5. Verification Result Feedback State ────────────────────────────────
   const [verificationResult, setVerificationResult] = useState<{
-    status: 'success' | 'duplicate' | 'error';
+    status: 'success' | 'duplicate' | 'wrong_event' | 'error';
     message: string;
     booking?: any;
+    timestamp?: string;
   } | null>(null);
 
-  // Live door history
-  const [recentCheckins, setRecentCheckins] = useState<any[]>([]);
-
-  // Door Stats
-  const [stats, setStats] = useState({
-    totalCheckedIn: 0,
-    recentEntries: 0,
-  });
-
-  // Recent Registered Passes for QR generation & quick testing
-  const [recentPasses, setRecentPasses] = useState<any[]>([]);
-  const [isLoadingPasses, setIsLoadingPasses] = useState(false);
-  const [customQrInput, setCustomQrInput] = useState('');
-  const [generatedCustomQr, setGeneratedCustomQr] = useState<{ payload: string; dataUrl: string } | null>(null);
-  const [isGeneratingCustomQr, setIsGeneratingCustomQr] = useState(false);
-  const [selectedPassModal, setSelectedPassModal] = useState<any | null>(null);
-
-  // Audio feedback on successful scan
-  const playBeep = () => {
+  // ── Audio Feedback Generator ─────────────────────────────────────────────
+  const playSound = useCallback((type: 'success' | 'duplicate' | 'error') => {
     try {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioCtx) return;
       const ctx = new AudioCtx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      gain.gain.setValueAtTime(0.2, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.15);
-    } catch {
-      // Audio autoplay restriction fallback
-    }
-  };
 
-  // Load recent passes on mount or tab change
-  const loadRecentPasses = async () => {
-    setIsLoadingPasses(true);
-    try {
-      const passes = await eventService.getRecentPasses(12);
-      if (passes && Array.isArray(passes)) {
-        setRecentPasses(passes);
+      if (type === 'success') {
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.setValueAtTime(1320, now + 0.08);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      } else if (type === 'duplicate') {
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.setValueAtTime(330, now + 0.12);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } else {
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, now);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
       }
     } catch {
-      // Ignore fallback
-    } finally {
-      setIsLoadingPasses(false);
+      // fallback
     }
-  };
 
-  useEffect(() => {
-    loadRecentPasses();
-  }, []);
-
-  // Stop camera when leaving QR mode or switching sub-tabs
-  useEffect(() => {
-    if (activeMode !== 'QR' || qrSubTab !== 'CAMERA') {
-      stopCameraScanner();
-    }
-  }, [activeMode, qrSubTab]);
-
-  // Clean up camera on unmount
-  useEffect(() => {
-    return () => {
-      stopCameraScanner();
-    };
-  }, []);
-
-  const startCameraScanner = async () => {
-    setCameraError(null);
-    try {
-      const elementId = 'volunteer-camera-viewport';
-      const container = document.getElementById(elementId);
-      if (!container) {
-        throw new Error('Camera scanner container not ready.');
-      }
-
-      if (!html5QrCodeRef.current) {
-        html5QrCodeRef.current = new Html5Qrcode(elementId);
-      }
-
-      await html5QrCodeRef.current.start(
-        { facingMode: 'environment' },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-        },
-        (decodedText) => {
-          playBeep();
-          stopCameraScanner();
-          handleVerify(decodedText);
-        },
-        () => {
-          // ignore scan frame errors
-        }
-      );
-      setIsCameraActive(true);
-    } catch (err: any) {
-      setCameraError(
-        err?.message ||
-          'Camera access blocked or unavailable. Ensure camera permissions are granted in your browser.'
-      );
-      setIsCameraActive(false);
-    }
-  };
-
-  const stopCameraScanner = async () => {
-    if (html5QrCodeRef.current && isCameraActive) {
+    if ('vibrate' in navigator) {
       try {
-        await html5QrCodeRef.current.stop();
+        if (type === 'success') navigator.vibrate([80, 40, 80]);
+        else if (type === 'duplicate') navigator.vibrate([200, 100, 200]);
+        else navigator.vibrate([300]);
       } catch {
         // ignore
       }
-      setIsCameraActive(false);
+    }
+  }, []);
+
+  // ── Load Real Database Events ────────────────────────────────────────────
+  const loadEvents = async () => {
+    setIsLoadingEvents(true);
+    try {
+      const data = await eventService.getEvents();
+      setEvents(data);
+      const ongoing = data.find((e) => e.displayStatus === 'ONGOING');
+      if (ongoing) {
+        setSelectedEventId(ongoing.id);
+      } else if (data.length > 0) {
+        setSelectedEventId(data[0].id);
+      }
+    } catch (err) {
+      console.error('Failed to load events:', err);
+    } finally {
+      setIsLoadingEvents(false);
     }
   };
 
+  useEffect(() => {
+    loadEvents();
+  }, []);
+
+  // ── Core Ticket Verification Handler ──────────────────────────────────────
+  const processCheckinCode = async (rawCode: string) => {
+    const cleanCode = (rawCode || '').trim();
+    if (!cleanCode || isProcessingScan) return;
+
+    setIsProcessingScan(true);
+    try {
+      const result = await eventService.verifyCheckinTicket(
+        cleanCode,
+        selectedEventId !== 'ALL' ? selectedEventId : undefined
+      );
+
+      const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      if (result.success) {
+        playSound('success');
+        setVerificationResult({
+          status: 'success',
+          message: result.message || 'Admission approved! Attendance recorded.',
+          booking: result.booking,
+          timestamp: nowStr,
+        });
+      } else if (result.alreadyCheckedIn) {
+        playSound('duplicate');
+        setVerificationResult({
+          status: 'duplicate',
+          message: result.message || 'Warning: Attendee is already checked in.',
+          booking: result.booking,
+          timestamp: nowStr,
+        });
+      } else if (result.wrongEvent) {
+        playSound('duplicate');
+        setVerificationResult({
+          status: 'wrong_event',
+          message: result.message || 'Ticket is registered for a different event gate.',
+          booking: result.booking,
+          timestamp: nowStr,
+        });
+      } else {
+        playSound('error');
+        setVerificationResult({
+          status: 'error',
+          message: result.message || 'Invalid ticket pass or OTP. No registration found.',
+          timestamp: nowStr,
+        });
+      }
+    } catch (err: any) {
+      playSound('error');
+      setVerificationResult({
+        status: 'error',
+        message: err.message || 'Verification failed. Please check network connection.',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      });
+    } finally {
+      setIsProcessingScan(false);
+      setOtpValue('');
+      setOtpValidationError(null);
+    }
+  };
+
+  // ── Camera Scanner Controls ──────────────────────────────────────────────
+  const startCamera = async () => {
+    setCameraError(null);
+    try {
+      const container = document.getElementById(cameraViewportId);
+      if (!container) return;
+
+      if (html5QrCodeRef.current) {
+        await stopCamera();
+      }
+
+      const scanner = new Html5Qrcode(cameraViewportId, {
+        formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+        verbose: false,
+      });
+      html5QrCodeRef.current = scanner;
+
+      await scanner.start(
+        { facingMode },
+        {
+          fps: 15,
+          qrbox: { width: 240, height: 240 },
+          aspectRatio: 1.777778,
+        },
+        (decodedText) => {
+          if (!isProcessingScan) {
+            processCheckinCode(decodedText);
+          }
+        },
+        () => {
+          // ignore scan frame without QR
+        }
+      );
+
+      setIsCameraActive(true);
+    } catch (err: any) {
+      setIsCameraActive(false);
+      try {
+        if (html5QrCodeRef.current) {
+          await html5QrCodeRef.current.clear();
+        }
+      } catch {
+        // ignore
+      }
+      html5QrCodeRef.current = null;
+      setCameraError(
+        err?.message ||
+          'Unable to access camera. Please allow camera permissions in your browser or enter the 6-digit OTP.'
+      );
+    }
+  };
+
+  const stopCamera = async () => {
+    if (html5QrCodeRef.current) {
+      try {
+        if (html5QrCodeRef.current.isScanning) {
+          await html5QrCodeRef.current.stop();
+        }
+        await html5QrCodeRef.current.clear();
+      } catch {
+        // ignore
+      }
+      html5QrCodeRef.current = null;
+    }
+    setIsCameraActive(false);
+  };
+
+  const toggleCameraFacing = async () => {
+    const nextFacing = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(nextFacing);
+    await stopCamera();
+    setTimeout(() => {
+      startCamera();
+    }, 200);
+  };
+
+  // Tab switching lifecycle: start camera when on 'qr', stop camera immediately when on 'otp'
+  useEffect(() => {
+    if (activeTab === 'qr') {
+      const timer = setTimeout(() => {
+        startCamera();
+      }, 150);
+      return () => clearTimeout(timer);
+    } else {
+      stopCamera();
+    }
+  }, [activeTab]);
+
+  // Clean up camera streams on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
+  // ── Upload QR Image Fallback ──────────────────────────────────────────────
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setIsVerifying(true);
-    setVerificationResult(null);
-
     try {
-      const tempId = 'qr-file-decoder-temp';
-      const html5QrCode = new Html5Qrcode(tempId);
-      const decodedText = await html5QrCode.scanFile(file, true);
-      html5QrCode.clear();
-
-      playBeep();
-      handleVerify(decodedText);
-    } catch (err: any) {
+      setIsProcessingScan(true);
+      const scanner = new Html5Qrcode('volunteer-file-temp-viewport');
+      const decoded = await scanner.scanFile(file, true);
+      await scanner.clear();
+      if (decoded) {
+        processCheckinCode(decoded);
+      }
+    } catch {
+      playSound('error');
       setVerificationResult({
         status: 'error',
-        message: 'No readable QR code found in this image file. Please ensure the QR code is clearly visible.',
+        message: 'No valid QR code detected in the uploaded image. Please enter the 6-digit OTP.',
       });
-      setIsVerifying(false);
-    } finally {
-      if (e.target) e.target.value = '';
+      setIsProcessingScan(false);
     }
+    e.target.value = '';
   };
 
-  const handleVerify = async (code: string) => {
-    if (!code.trim()) return;
-    setIsVerifying(true);
-    setVerificationResult(null);
+  // ── OTP Handlers (Numeric-Only Validation) ─────────────────────────────────
+  const handleOtpChange = (val: string) => {
+    // Strictly numeric validation: strip non-digits and cap at 6 digits
+    const numericOnly = val.replace(/\D/g, '').slice(0, 6);
+    setOtpValue(numericOnly);
+    setOtpValidationError(null);
 
-    try {
-      const res = await eventService.verifyCheckinTicket(code.trim());
-
-      if (res.success && res.booking) {
-        setVerificationResult({
-          status: 'success',
-          message: res.message || 'Admission approved! Welcome to the event.',
-          booking: res.booking,
-        });
-
-        // Add to recent feed
-        setRecentCheckins((prev) => [
-          {
-            ...res.booking,
-            verifiedAt: new Date(),
-          },
-          ...prev.slice(0, 19),
-        ]);
-
-        setStats((prev) => ({
-          ...prev,
-          totalCheckedIn: prev.totalCheckedIn + (res.booking.quantity || 1),
-          recentEntries: prev.recentEntries + 1,
-        }));
-
-        // Refresh recent pass cards to reflect checked in status
-        loadRecentPasses();
-      } else if (res.alreadyCheckedIn) {
-        setVerificationResult({
-          status: 'duplicate',
-          message: res.message || 'Warning: Attendee is already checked in.',
-          booking: res.booking,
-        });
-      } else {
-        setVerificationResult({
-          status: 'error',
-          message: res.message || 'Invalid ticket pass or OTP code.',
-        });
-      }
-    } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Verification error.';
-      const isDup = err.response?.status === 409 || err.response?.data?.alreadyCheckedIn;
-
-      setVerificationResult({
-        status: isDup ? 'duplicate' : 'error',
-        message: msg,
-        booking: err.response?.data?.booking,
+    // Auto-submit if exactly 6 digits entered
+    if (numericOnly.length === 6 && !isProcessingScan && !isSubmittingOtp) {
+      setIsSubmittingOtp(true);
+      processCheckinCode(numericOnly).finally(() => {
+        setIsSubmittingOtp(false);
       });
-    } finally {
-      setIsVerifying(false);
-      setOtpInput('');
-      setQrInput('');
     }
   };
 
   const handleOtpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (otpInput.length >= 4) {
-      handleVerify(otpInput);
+    if (isSubmittingOtp || isProcessingScan) return;
+
+    if (!otpValue || otpValue.length !== 6) {
+      setOtpValidationError('Please enter all 6 digits of the attendee OTP.');
+      return;
     }
+
+    setOtpValidationError(null);
+    setIsSubmittingOtp(true);
+    processCheckinCode(otpValue).finally(() => {
+      setIsSubmittingOtp(false);
+    });
   };
 
-  const handleQrSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (qrInput.trim()) {
-      handleVerify(qrInput);
-    }
-  };
-
-  const handleGenerateCustomQr = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!customQrInput.trim()) return;
-    setIsGeneratingCustomQr(true);
+  const handlePasteOtp = async () => {
     try {
-      const result = await eventService.generateTicketQrCode(customQrInput.trim(), 280);
-      setGeneratedCustomQr(result);
-    } catch (err: any) {
-      alert(`QR Generation Error: ${err.message}`);
-    } finally {
-      setIsGeneratingCustomQr(false);
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        handleOtpChange(text);
+      }
+    } catch {
+      // clipboard permission denied
     }
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
-      {/* Hidden container for image decoding */}
-      <div id="qr-file-decoder-temp" style={{ display: 'none' }} />
+    <div className="w-full lg:w-3/4 max-w-4xl mx-auto py-6 sm:py-8 px-4 font-sans text-slate-900 space-y-6">
+      {/* Hidden file viewport for uploaded images */}
+      <div id="volunteer-file-temp-viewport" style={{ display: 'none' }} />
 
-      {/* Header */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* ── 1. Clean Minimal Header ────────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" /> Door Security Station
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/60 flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-500" /> Powered by Node.js QR & OTP
-            </span>
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Door Admission & Pass Verification
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+            Door Check-In
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Admit attendees via live Camera QR Scanner, Pass image upload, Node.js QR code passes, or 6-digit door OTP.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Scan attendee pass QR code or enter their 6-digit OTP for entry verification
           </p>
         </div>
 
-        {/* Quick Stats Pill */}
-        <div className="flex items-center gap-4 bg-slate-50 border border-slate-200 p-3 rounded-xl">
-          <div>
-            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-              Admitted Today
-            </div>
-            <div className="text-xl font-black text-indigo-600">
-              {stats.totalCheckedIn} <span className="text-xs font-normal text-slate-500">passengers</span>
-            </div>
-          </div>
-          <div className="h-8 w-px bg-slate-200" />
-          <div>
-            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-              Verification Mode
-            </div>
-            <div className="text-xs font-bold text-emerald-700 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Dual OTP / QR Active
-            </div>
-          </div>
+        {/* Compact Event Selector */}
+        <div className="relative w-full sm:w-72 shrink-0">
+          <select
+            value={selectedEventId}
+            onChange={(e) => setSelectedEventId(e.target.value)}
+            disabled={isLoadingEvents}
+            className="w-full pl-3 pr-8 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none cursor-pointer truncate"
+          >
+            <option value="ALL">⚡ Any Active Event (Auto-Detect)</option>
+            {events.map((ev) => (
+              <option key={ev.id} value={ev.id}>
+                {ev.title}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
       </div>
 
-      {/* Main Verification Card */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Verification Station */}
-        <div className="lg:col-span-7 space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-6">
-            {/* Primary Mode Switcher (OTP vs QR) */}
-            <div className="flex bg-slate-100 p-1.5 rounded-xl border border-slate-200">
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveMode('OTP');
-                  setVerificationResult(null);
-                  stopCameraScanner();
-                }}
-                className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                  activeMode === 'OTP'
-                    ? 'bg-white text-indigo-600 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <KeyRound className="w-4 h-4" />
-                6-Digit Door OTP Check-in
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveMode('QR');
-                  setVerificationResult(null);
-                }}
-                className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                  activeMode === 'QR'
-                    ? 'bg-white text-indigo-600 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <QrCode className="w-4 h-4" />
-                Live QR Attendance Scanner
-              </button>
+      {/* ── 2. Mode Selector: Scan QR Code vs Enter 6-Digit OTP ────────────── */}
+      <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+        <button
+          type="button"
+          onClick={() => setActiveTab('qr')}
+          className={`flex-1 py-2.5 px-4 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            activeTab === 'qr'
+              ? 'bg-white text-indigo-700 shadow-xs border border-slate-200/60'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Camera className="w-4 h-4" />
+          <span>Scan QR Code</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('otp');
+            stopCamera();
+          }}
+          className={`flex-1 py-2.5 px-4 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            activeTab === 'otp'
+              ? 'bg-white text-indigo-700 shadow-xs border border-slate-200/60'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <KeyRound className="w-4 h-4" />
+          <span>Enter 6-Digit OTP</span>
+        </button>
+      </div>
+
+      {/* ── 3. Completely Separate Layouts Based on activeTab ───────────────── */}
+      <div className="w-full">
+        {/* ================================================================= */}
+        {/* LAYOUT 1: QR SCANNER SELECTED (activeTab === 'qr')                */}
+        {/* ================================================================= */}
+        {activeTab === 'qr' && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-5 animate-in fade-in duration-200">
+            {/* Header */}
+            <div className="text-center space-y-1">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 mx-auto flex items-center justify-center text-indigo-600 shadow-xs">
+                <Camera className="w-6 h-6" />
+              </div>
+              <h2 className="text-base font-bold text-slate-900">Scan Attendee Pass QR Code</h2>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                Align the attendee's ticket QR code in the viewfinder or upload a pass image.
+              </p>
             </div>
 
-            {/* Mode 1: 6-Digit OTP */}
-            {activeMode === 'OTP' && (
-              <form onSubmit={handleOtpSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                    Enter Attendee's 6-Digit Check-in OTP
-                  </label>
-                  <p className="text-xs text-slate-500 mb-3">
-                    Ask the attendee for the 6-digit code shown on their digital pass.
-                  </p>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      maxLength={10}
-                      value={otpInput}
-                      onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, ''))}
-                      placeholder="e.g. 482910"
-                      className="w-full px-4 py-3 text-2xl font-mono font-bold tracking-widest text-center bg-slate-50 border-2 border-indigo-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-600"
-                    />
-                  </div>
-                </div>
-
-                {/* Quick Keypad Helper */}
-                <div className="grid grid-cols-3 gap-2">
-                  {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'].map((k) => (
-                    <button
-                      key={k}
-                      type="button"
-                      onClick={() => {
-                        if (k === 'C') setOtpInput('');
-                        else if (k === '⌫') setOtpInput((prev) => prev.slice(0, -1));
-                        else if (otpInput.length < 6) setOtpInput((prev) => prev + k);
-                      }}
-                      className="py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-sm rounded-xl transition-all cursor-pointer"
-                    >
-                      {k}
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={otpInput.length < 4 || isVerifying}
-                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold text-sm rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
-                >
-                  {isVerifying ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Verifying Admission...
-                    </>
-                  ) : (
-                    <>
-                      <ShieldCheck className="w-4 h-4" /> Verify & Admit Attendee
-                    </>
-                  )}
-                </button>
-              </form>
-            )}
-
-            {/* Mode 2: QR Scanner Station */}
-            {activeMode === 'QR' && (
-              <div className="space-y-4">
-                {/* QR Method Sub-Tabs */}
-                <div className="flex items-center gap-2 border-b border-slate-100 pb-3 overflow-x-auto">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQrSubTab('CAMERA');
-                      setVerificationResult(null);
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                      qrSubTab === 'CAMERA'
-                        ? 'bg-indigo-600 text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    <Camera className="w-3.5 h-3.5" /> Camera Scanner
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQrSubTab('FILE');
-                      setVerificationResult(null);
-                      stopCameraScanner();
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                      qrSubTab === 'FILE'
-                        ? 'bg-indigo-600 text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    <Upload className="w-3.5 h-3.5" /> Upload QR Image
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQrSubTab('GENERATOR');
-                      setVerificationResult(null);
-                      stopCameraScanner();
-                      loadRecentPasses();
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                      qrSubTab === 'GENERATOR'
-                        ? 'bg-indigo-600 text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    <Sparkles className="w-3.5 h-3.5" /> Node.js QR Passes
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQrSubTab('MANUAL');
-                      setVerificationResult(null);
-                      stopCameraScanner();
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                      qrSubTab === 'MANUAL'
-                        ? 'bg-indigo-600 text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    <Ticket className="w-3.5 h-3.5" /> Manual / Barcode
-                  </button>
-                </div>
-
-                {/* Sub-tab 1: Live Camera Scanner */}
-                {qrSubTab === 'CAMERA' && (
-                  <div className="space-y-4">
-                    <div className="relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 text-white flex flex-col items-center justify-center min-h-[300px]">
-                      {/* Html5Qrcode viewfinder element */}
-                      <div
-                        id="volunteer-camera-viewport"
-                        className={`w-full overflow-hidden ${isCameraActive ? 'block' : 'hidden'}`}
-                        style={{ minHeight: '300px' }}
-                      />
-
-                      {!isCameraActive && (
-                        <div className="p-8 text-center space-y-3">
-                          <div className="w-16 h-16 rounded-2xl bg-indigo-500/20 text-indigo-400 mx-auto flex items-center justify-center">
-                            <Camera className="w-8 h-8" />
-                          </div>
-                          <div>
-                            <h4 className="font-bold text-base text-white">Live Camera QR Scanner</h4>
-                            <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
-                              Hold the attendee's ticket QR code up to your camera to admit them in real time.
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={startCameraScanner}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
-                          >
-                            <Camera className="w-4 h-4" /> Start Camera Scanner
-                          </button>
-                        </div>
-                      )}
-
-                      {isCameraActive && (
-                        <div className="absolute top-3 right-3 z-10">
-                          <button
-                            type="button"
-                            onClick={stopCameraScanner}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600/90 hover:bg-rose-700 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
-                          >
-                            <CameraOff className="w-3.5 h-3.5" /> Stop Camera
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    {cameraError && (
-                      <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2">
-                        <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-                        <span>{cameraError}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Sub-tab 2: Scan from Image/File */}
-                {qrSubTab === 'FILE' && (
-                  <div className="space-y-4">
-                    <label className="border-2 border-dashed border-indigo-200 hover:border-indigo-400 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 bg-indigo-50/30 hover:bg-indigo-50/60 transition-all cursor-pointer group">
-                      <div className="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <FileImage className="w-7 h-7" />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm font-bold text-slate-800">
-                          Click to upload QR pass screenshot or ticket photo
-                        </p>
-                        <p className="text-xs text-slate-500 mt-1">
-                          Accepts PNG, JPG, WEBP. Decoded immediately via scanner engine.
-                        </p>
-                      </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                )}
-
-                {/* Sub-tab 3: Node.js QR Passes & Attendee Desk */}
-                {qrSubTab === 'GENERATOR' && (
-                  <div className="space-y-4">
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-                          Generate Custom Attendance QR (via Node.js 'qrcode' library)
-                        </span>
-                      </div>
-                      <form onSubmit={handleGenerateCustomQr} className="flex gap-2">
-                        <input
-                          type="text"
-                          value={customQrInput}
-                          onChange={(e) => setCustomQrInput(e.target.value)}
-                          placeholder="Enter booking # or CAMPUSMITRA:TKT-...:OTP"
-                          className="flex-1 px-3 py-2 text-xs font-mono rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                        <button
-                          type="submit"
-                          disabled={!customQrInput.trim() || isGeneratingCustomQr}
-                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer"
-                        >
-                          {isGeneratingCustomQr ? 'Generating...' : 'Generate QR'}
-                        </button>
-                      </form>
-
-                      {generatedCustomQr && (
-                        <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row items-center gap-4 bg-white p-3 rounded-lg">
-                          <img
-                            src={generatedCustomQr.dataUrl}
-                            alt="Node.js QR Code"
-                            className="w-28 h-28 border border-slate-200 rounded-lg shadow-xs"
-                          />
-                          <div className="flex-1 space-y-1.5 text-xs text-center sm:text-left">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                              Generated by Node.js qrcode
-                            </span>
-                            <p className="font-mono text-slate-700 break-all">{generatedCustomQr.payload}</p>
-                            <button
-                              type="button"
-                              onClick={() => handleVerify(generatedCustomQr.payload)}
-                              disabled={isVerifying}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs cursor-pointer"
-                            >
-                              <Zap className="w-3.5 h-3.5" /> Quick Admit Scanned QR
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Recent Passes List with Generated QR Codes */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                          Registered Attendee Passes ({recentPasses.length})
-                        </span>
-                        <button
-                          type="button"
-                          onClick={loadRecentPasses}
-                          disabled={isLoadingPasses}
-                          className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer"
-                        >
-                          <RefreshCw className={`w-3 h-3 ${isLoadingPasses ? 'animate-spin' : ''}`} />
-                          Refresh Passes
-                        </button>
-                      </div>
-
-                      {recentPasses.length === 0 ? (
-                        <p className="text-xs text-slate-400 py-3 text-center">No active passes found.</p>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[280px] overflow-y-auto pr-1">
-                          {recentPasses.map((pass) => (
-                            <div
-                              key={pass.id}
-                              className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between gap-2 hover:border-indigo-300 transition-all text-xs"
-                            >
-                              <div className="space-y-0.5 min-w-0">
-                                <div className="font-bold text-slate-900 truncate">
-                                  {pass.user?.fullName || 'Attendee'}
-                                </div>
-                                <div className="text-[10px] text-slate-500 font-mono">
-                                  #{pass.bookingNumber} • OTP: <strong className="text-indigo-600">{pass.otpCode || '123456'}</strong>
-                                </div>
-                                <div>
-                                  {pass.checkedInAt ? (
-                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                      Admitted
-                                    </span>
-                                  ) : (
-                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                      Pending Admission
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="flex flex-col gap-1 shrink-0">
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedPassModal(pass)}
-                                  className="p-1.5 text-slate-600 hover:text-indigo-600 bg-slate-50 hover:bg-indigo-50 border border-slate-200 rounded-lg cursor-pointer transition-colors"
-                                  title="View QR Code Pass"
-                                >
-                                  <QrCode className="w-4 h-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleVerify(pass.qrPayload || `CAMPUSMITRA:${pass.bookingNumber}:${pass.otpCode}`)
-                                  }
-                                  disabled={isVerifying}
-                                  className="px-2 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] shadow-xs cursor-pointer transition-colors"
-                                >
-                                  Admit
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Sub-tab 4: Manual QR Payload Input */}
-                {qrSubTab === 'MANUAL' && (
-                  <form onSubmit={handleQrSubmit} className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                        Scan or Paste QR Pass Payload / Ticket Code
-                      </label>
-                      <p className="text-xs text-slate-500 mb-3">
-                        Scan barcode/QR code with handheld scanner or paste pass string (e.g.{' '}
-                        <code className="text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded">TKT-2026-XXXXX</code>).
-                      </p>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={qrInput}
-                          onChange={(e) => setQrInput(e.target.value)}
-                          placeholder="Paste QR payload or TKT-2026-XXXX"
-                          className="w-full px-4 py-3 text-sm font-mono bg-slate-50 border-2 border-indigo-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-600"
-                        />
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={!qrInput.trim() || isVerifying}
-                      className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold text-sm rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
-                    >
-                      {isVerifying ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" /> Verifying Pass...
-                        </>
-                      ) : (
-                        <>
-                          <QrCode className="w-4 h-4" /> Verify QR & Admit
-                        </>
-                      )}
-                    </button>
-                  </form>
-                )}
-              </div>
-            )}
-
-            {/* Verification Result Notification Card */}
-            {verificationResult && (
+            {/* Viewfinder Viewport Covering Fully */}
+            <div className="relative w-full aspect-[4/3] sm:aspect-video bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 shadow-inner">
+              {/* html5-qrcode video viewport container - isolated in absolute box */}
               <div
-                className={`p-5 rounded-2xl border text-sm transition-all animate-fadeIn ${
-                  verificationResult.status === 'success'
-                    ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950'
-                    : verificationResult.status === 'duplicate'
-                    ? 'bg-amber-50/90 border-amber-300 text-amber-950'
-                    : 'bg-rose-50/90 border-rose-300 text-rose-950'
+                className={`absolute inset-0 w-full h-full overflow-hidden ${
+                  isCameraActive ? 'z-10 block' : 'z-0 opacity-0 pointer-events-none'
                 }`}
               >
-                <div className="flex items-start gap-3">
-                  {verificationResult.status === 'success' && (
-                    <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0">
-                      <Check className="w-5 h-5 stroke-[3]" />
-                    </div>
-                  )}
-                  {verificationResult.status === 'duplicate' && (
-                    <div className="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center flex-shrink-0">
-                      <AlertTriangle className="w-5 h-5" />
-                    </div>
-                  )}
-                  {verificationResult.status === 'error' && (
-                    <div className="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center flex-shrink-0">
-                      <XCircle className="w-5 h-5" />
-                    </div>
-                  )}
-
-                  <div className="flex-1 space-y-1">
-                    <div className="font-extrabold text-base">
-                      {verificationResult.status === 'success'
-                        ? '✅ Admission Approved!'
-                        : verificationResult.status === 'duplicate'
-                        ? '⚠️ Already Admitted (Duplicate Entry)'
-                        : '❌ Invalid Pass / Code'}
-                    </div>
-                    <p className="text-xs opacity-90">{verificationResult.message}</p>
-
-                    {verificationResult.booking && (
-                      <div className="mt-3 pt-3 border-t border-black/10 text-xs space-y-1 font-medium">
-                        <div>
-                          Attendee: <strong>{verificationResult.booking.user?.fullName || 'Student'}</strong> (
-                          {verificationResult.booking.user?.email || 'NMIT'})
-                        </div>
-                        <div>
-                          Event: <strong>{verificationResult.booking.event?.title}</strong>
-                        </div>
-                        <div>
-                          Pass: <strong>#{verificationResult.booking.bookingNumber}</strong> • Seats:{' '}
-                          <strong>{verificationResult.booking.quantity}</strong>
-                        </div>
-                        {verificationResult.booking.checkedInAt && (
-                          <div className="text-amber-800 font-bold">
-                            Admitted At: {new Date(verificationResult.booking.checkedInAt).toLocaleTimeString()}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Column: Live Door Activity Feed */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-indigo-600" />
-                <h3 className="font-bold text-slate-900 text-sm">Live Check-in Activity</h3>
-              </div>
-              <span className="text-[11px] font-semibold text-slate-500">
-                {recentCheckins.length} verified
-              </span>
-            </div>
-
-            {recentCheckins.length === 0 ? (
-              <div className="py-12 text-center text-slate-400 space-y-2">
-                <Ticket className="w-10 h-10 mx-auto text-slate-300" />
-                <p className="text-xs">No attendees checked in yet today.</p>
-                <p className="text-[11px] text-slate-400">
-                  Scan a QR code pass or enter an OTP code on the left to admit attendees.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
-                {recentCheckins.map((entry, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between text-xs"
-                  >
-                    <div className="space-y-0.5">
-                      <div className="font-bold text-slate-900">
-                        {entry.user?.fullName || 'Attendee'}
-                      </div>
-                      <div className="text-[11px] text-slate-500">
-                        {entry.event?.title || 'Campus Event'}
-                      </div>
-                      <div className="text-[10px] text-indigo-600 font-mono">
-                        #{entry.bookingNumber} • {entry.quantity} Pass{entry.quantity > 1 ? 'es' : ''}
-                      </div>
-                    </div>
-
-                    <div className="text-right flex flex-col items-end gap-1">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                        Admitted
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-mono">
-                        {new Date(entry.verifiedAt || Date.now()).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit',
-                        })}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Selected Pass Modal with Node.js Generated QR Code */}
-      {selectedPassModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 max-w-sm w-full space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <QrCode className="w-4 h-4 text-indigo-600" />
-                Node.js Pass QR Code
-              </h3>
-              <button
-                type="button"
-                onClick={() => setSelectedPassModal(null)}
-                className="text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer"
-              >
-                ✕ Close
-              </button>
-            </div>
-
-            <div className="flex flex-col items-center text-center space-y-3">
-              {selectedPassModal.qrCodeDataUrl ? (
-                <img
-                  src={selectedPassModal.qrCodeDataUrl}
-                  alt="Pass QR Code"
-                  className="w-48 h-48 border border-slate-200 rounded-xl shadow-xs"
+                <div
+                  id={cameraViewportId}
+                  className="w-full h-full [&_video]:w-full [&_video]:h-full [&_video]:object-cover"
+                  style={{ width: '100%', height: '100%' }}
                 />
-              ) : (
-                <div className="w-48 h-48 bg-slate-100 flex items-center justify-center rounded-xl font-mono text-xs">
-                  Generating QR...
+              </div>
+
+              {/* Scanning Reticle Frame */}
+              {isCameraActive && (
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 z-20">
+                  <div className="w-52 h-52 sm:w-64 sm:h-64 relative border-2 border-indigo-400/60 rounded-2xl shadow-lg">
+                    <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-indigo-500 rounded-tl-lg" />
+                    <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-indigo-500 rounded-tr-lg" />
+                    <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-indigo-500 rounded-bl-lg" />
+                    <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-indigo-500 rounded-br-lg" />
+                    <div className="absolute left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-indigo-400 to-transparent shadow-[0_0_10px_#818cf8] animate-pulse" />
+                  </div>
                 </div>
               )}
 
-              <div>
-                <h4 className="font-bold text-slate-900 text-sm">
-                  {selectedPassModal.user?.fullName || 'Attendee Pass'}
-                </h4>
-                <p className="text-xs text-slate-500 font-mono mt-0.5">
-                  #{selectedPassModal.bookingNumber} • OTP:{' '}
-                  <span className="font-bold text-indigo-600">{selectedPassModal.otpCode || '123456'}</span>
-                </p>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Generated via Node.js 'qrcode' library for live door attendance.
-                </p>
-              </div>
+              {/* Processing Overlay */}
+              {isProcessingScan && (
+                <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-30 text-white">
+                  <Loader2 className="w-10 h-10 text-indigo-400 animate-spin" />
+                  <p className="text-xs font-bold tracking-wider uppercase text-indigo-200">
+                    Verifying Pass in Database...
+                  </p>
+                </div>
+              )}
 
-              <div className="w-full pt-2 flex gap-2">
+              {/* Standby State */}
+              {!isCameraActive && !cameraError && (
+                <div className="absolute inset-0 z-20 p-6 sm:p-8 text-center space-y-4 bg-slate-50 w-full h-full flex flex-col items-center justify-center">
+                  <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
+                    <Camera className="w-8 h-8" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-base font-bold text-slate-900">Camera Viewfinder</h3>
+                    <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                      Click below to activate camera and scan attendee QR entry passes.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={startCamera}
+                    className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-sm transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <Camera className="w-4 h-4" />
+                    <span>Start Camera</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Camera Error / Permission Fallback State - Covers entire viewport */}
+              {cameraError && (
+                <div className="absolute inset-0 z-20 p-6 sm:p-8 text-center space-y-4 bg-slate-50 w-full h-full flex flex-col items-center justify-center">
+                  <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shadow-sm">
+                    <CameraOff className="w-7 h-7" />
+                  </div>
+                  <div className="space-y-1 max-w-md">
+                    <h3 className="text-base font-bold text-slate-900">Camera Unavailable</h3>
+                    <p className="text-xs text-slate-600">
+                      Camera permission is disabled or not supported on this device. You can verify attendees instantly using OTP.
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-center gap-2 pt-1 w-full max-w-md justify-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTab('otp');
+                        stopCamera();
+                      }}
+                      className="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <KeyRound className="w-4 h-4" />
+                      <span>Switch to OTP Verification</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={startCamera}
+                      className="w-full sm:w-auto px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Retry Camera</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* QR Camera Action Controls Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs">
+              <div className="flex items-center gap-2">
+                {isCameraActive ? (
+                  <button
+                    type="button"
+                    onClick={stopCamera}
+                    className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-rose-50 text-rose-600 flex items-center gap-1.5 font-bold transition-colors cursor-pointer shadow-sm"
+                  >
+                    <CameraOff className="w-4 h-4" />
+                    <span>Stop Camera</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={startCamera}
+                    className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 flex items-center gap-1.5 font-bold transition-colors cursor-pointer shadow-sm"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Retry Camera</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
-                  onClick={() => {
-                    const code =
-                      selectedPassModal.qrPayload ||
-                      `CAMPUSMITRA:${selectedPassModal.bookingNumber}:${selectedPassModal.otpCode}`;
-                    setSelectedPassModal(null);
-                    handleVerify(code);
-                  }}
-                  disabled={isVerifying}
-                  className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                  onClick={toggleCameraFacing}
+                  className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 flex items-center gap-1.5 font-bold transition-colors cursor-pointer shadow-sm"
                 >
-                  <UserCheck className="w-4 h-4 inline mr-1" /> Quick Admit Now
+                  <FlipHorizontal className="w-4 h-4 text-indigo-600" />
+                  <span>Switch Camera</span>
                 </button>
               </div>
+
+              <label className="px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 flex items-center gap-1.5 font-bold transition-colors cursor-pointer shadow-sm">
+                <Upload className="w-4 h-4 text-indigo-600" />
+                <span>Upload QR Image</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* ================================================================= */}
+        {/* LAYOUT 2: ENTER 6-DIGIT OTP SELECTED (activeTab === 'otp')        */}
+        {/* Completely hides all camera elements, controls, errors & streams */}
+        {/* ================================================================= */}
+        {activeTab === 'otp' && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in duration-200">
+            {/* Clean OTP Interface Header */}
+            <div className="text-center space-y-1">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 mx-auto flex items-center justify-center text-indigo-600 shadow-xs">
+                <KeyRound className="w-6 h-6" />
+              </div>
+              <h2 className="text-lg font-bold text-slate-900">Verify Attendee OTP</h2>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                Enter the 6-digit OTP displayed on the attendee's event pass.
+              </p>
+            </div>
+
+            <form onSubmit={handleOtpSubmit} className="space-y-4 max-w-md mx-auto">
+              <div className="space-y-2">
+                <div className="relative">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    autoFocus
+                    placeholder="• • • • • •"
+                    value={otpValue}
+                    onChange={(e) => handleOtpChange(e.target.value)}
+                    className={`w-full text-center py-4 px-4 rounded-xl bg-slate-50 border-2 font-mono font-black text-3xl tracking-widest text-indigo-950 placeholder-slate-300 focus:outline-none focus:bg-white transition-all shadow-inner ${
+                      otpValidationError
+                        ? 'border-rose-400 focus:border-rose-500'
+                        : 'border-indigo-200 focus:border-indigo-600'
+                    }`}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={handlePasteOtp}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 shadow-2xs transition-colors flex items-center gap-1 cursor-pointer"
+                    title="Paste 6-digit OTP from clipboard"
+                  >
+                    <Copy className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Paste</span>
+                  </button>
+                </div>
+
+                {/* Validation Error Message */}
+                {otpValidationError && (
+                  <p className="text-xs text-rose-600 font-medium text-center animate-in fade-in">
+                    {otpValidationError}
+                  </p>
+                )}
+              </div>
+
+              {/* Verify & Check In Button with Loading State */}
+              <button
+                type="submit"
+                disabled={isSubmittingOtp || isProcessingScan || otpValue.length !== 6}
+                className="w-full py-3.5 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isSubmittingOtp || isProcessingScan ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Verifying OTP in Database...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-5 h-5 text-white" />
+                    <span>Verify & Check In</span>
+                  </>
+                )}
+              </button>
+
+              <div className="text-center pt-1">
+                <span className="text-[11px] text-slate-400">
+                  {otpValue.length}/6 digits entered • Numeric input only
+                </span>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* ── 4. Immediate Check-in Result Display (Both Methods) ───────────── */}
+        {verificationResult && (
+          <div
+            className={`mt-6 rounded-2xl p-4 sm:p-5 border shadow-xs transition-all animate-in fade-in slide-in-from-top-3 space-y-3 ${
+              verificationResult.status === 'success'
+                ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950'
+                : verificationResult.status === 'duplicate'
+                ? 'bg-amber-50/90 border-amber-300 text-amber-950'
+                : verificationResult.status === 'wrong_event'
+                ? 'bg-blue-50/90 border-blue-300 text-blue-950'
+                : 'bg-rose-50/90 border-rose-300 text-rose-950'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                {verificationResult.status === 'success' ? (
+                  <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <CheckCircle2 className="w-6 h-6 stroke-[2.5]" />
+                  </div>
+                ) : verificationResult.status === 'duplicate' ? (
+                  <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <AlertTriangle className="w-6 h-6 stroke-[2.5]" />
+                  </div>
+                ) : (
+                  <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <XCircle className="w-6 h-6 stroke-[2.5]" />
+                  </div>
+                )}
+
+                <div>
+                  <div className="text-[10px] font-black tracking-wider uppercase opacity-80">
+                    {verificationResult.status === 'success'
+                      ? 'ADMISSION APPROVED • DATABASE STORED'
+                      : verificationResult.status === 'duplicate'
+                      ? 'ALREADY CHECKED IN • DUPLICATE'
+                      : verificationResult.status === 'wrong_event'
+                      ? 'WRONG EVENT GATE'
+                      : 'VERIFICATION REJECTED'}
+                  </div>
+                  <div className="text-sm sm:text-base font-bold leading-tight mt-0.5">
+                    {verificationResult.message}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setVerificationResult(null)}
+                className="w-7 h-7 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-700 text-xs font-bold flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                title="Dismiss result"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Attendee Details Card on Successful or Duplicate Verification */}
+            {verificationResult.booking && (
+              <div className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-2xs space-y-1.5 text-xs text-slate-800">
+                <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
+                  <span className="font-mono font-bold text-indigo-700">
+                    #{verificationResult.booking.bookingNumber}
+                  </span>
+                  <span className="text-[11px] text-slate-500">
+                    Check-in: {verificationResult.timestamp}
+                  </span>
+                </div>
+
+                <div className="font-bold text-slate-900 text-sm">
+                  {verificationResult.booking.user?.fullName || verificationResult.booking.user?.username || 'Attendee'}
+                </div>
+                <div className="text-[11px] text-slate-500 truncate">
+                  {verificationResult.booking.event?.title}
+                </div>
+
+                <div className="pt-1.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-600">
+                    Seats: <strong>{verificationResult.booking.quantity} Pass(es)</strong>
+                  </span>
+                  <span className="font-bold text-emerald-700 flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" /> Database Recorded
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
+
+export default VolunteerScanner;

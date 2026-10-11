@@ -1228,7 +1228,7 @@ export class EventService {
   /**
    * Verify Ticket for Volunteer Door Check-in (supports Camera QR Scan or 6-Digit OTP)
    */
-  async verifyCheckinTicket(rawCode: string) {
+  async verifyCheckinTicket(rawCode: string, targetEventId?: string) {
     let cleanCode = (rawCode || '').trim();
 
     if (!cleanCode) {
@@ -1274,43 +1274,91 @@ export class EventService {
 
     const uniqueTerms = Array.from(new Set(searchTerms.filter(Boolean)));
 
-    // Try finding by bookingNumber, otpCode, or id across all extracted candidates
-    const booking = await prisma.booking.findFirst({
-      where: {
-        OR: uniqueTerms.flatMap((term) => [
-          { bookingNumber: { equals: term } },
-          { otpCode: { equals: term } },
-          { id: { equals: term } },
-        ]),
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            username: true,
-            avatarUrl: true,
-            phone: true,
+    const orClauses = uniqueTerms.flatMap((term) => [
+      { bookingNumber: { equals: term } },
+      { otpCode: { equals: term } },
+      { id: { equals: term } },
+    ]);
+
+    let booking: any = null;
+
+    // If targetEventId is provided, first prioritize finding the booking in this event
+    if (targetEventId && targetEventId !== 'ALL') {
+      booking = await prisma.booking.findFirst({
+        where: {
+          eventId: targetEventId,
+          OR: orClauses,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              username: true,
+              avatarUrl: true,
+              phone: true,
+            },
+          },
+          event: {
+            select: {
+              id: true,
+              title: true,
+              venue: true,
+              startAt: true,
+              category: true,
+            },
           },
         },
-        event: {
-          select: {
-            id: true,
-            title: true,
-            venue: true,
-            startAt: true,
-            category: true,
+      });
+    }
+
+    // If not found in target event or no target event specified, search across all bookings
+    if (!booking) {
+      booking = await prisma.booking.findFirst({
+        where: {
+          OR: orClauses,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              username: true,
+              avatarUrl: true,
+              phone: true,
+            },
+          },
+          event: {
+            select: {
+              id: true,
+              title: true,
+              venue: true,
+              startAt: true,
+              category: true,
+            },
           },
         },
-      },
-    });
+      });
+    }
 
     if (!booking) {
       return {
         success: false,
         verified: false,
         message: `Invalid pass or OTP code "${cleanCode}". No active registration found.`,
+      };
+    }
+
+    // Check if targetEventId is specified and booking belongs to a different event
+    if (targetEventId && targetEventId !== 'ALL' && booking.eventId !== targetEventId) {
+      return {
+        success: false,
+        verified: false,
+        wrongEvent: true,
+        booking,
+        message: `⚠️ WRONG EVENT: Pass #${booking.bookingNumber} is registered for "${booking.event.title}", not the selected event!`,
       };
     }
 

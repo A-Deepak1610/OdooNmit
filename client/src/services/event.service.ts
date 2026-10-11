@@ -376,21 +376,30 @@ export const eventService = {
   },
 
   // 14. Verify Check-in for Volunteer Door Station (via QR code or 6-digit OTP)
-  async verifyCheckinTicket(code: string): Promise<{
+  async verifyCheckinTicket(code: string, eventId?: string): Promise<{
     success: boolean;
     verified: boolean;
     alreadyCheckedIn?: boolean;
+    wrongEvent?: boolean;
     booking?: any;
     message: string;
   }> {
-    const res = await apiClient.post<{
-      success: boolean;
-      verified: boolean;
-      alreadyCheckedIn?: boolean;
-      booking?: any;
-      message: string;
-    }>('/events/tickets/verify-checkin', { code });
-    return res.data;
+    try {
+      const res = await apiClient.post<{
+        success: boolean;
+        verified: boolean;
+        alreadyCheckedIn?: boolean;
+        wrongEvent?: boolean;
+        booking?: any;
+        message: string;
+      }>('/events/tickets/verify-checkin', { code, eventId });
+      return res.data;
+    } catch (err: any) {
+      if (err.response?.data) {
+        return err.response.data;
+      }
+      throw err;
+    }
   },
 
   // 15. Generate Authentic Ticket QR Code via Node.js 'qrcode' library
@@ -412,6 +421,21 @@ export const eventService = {
       data: any[];
     }>(`/events/tickets/recent-passes?limit=${limit}`);
     return res.data.data;
+  },
+
+  // 17. Send email announcement to attendees with check-in filter
+  async sendEventAnnouncementEmail(
+    eventId: string,
+    payload: {
+      subject: string;
+      message: string;
+      filter?: 'ALL' | 'CHECKED_IN' | 'NOT_CHECKED_IN';
+      audienceFilter?: 'ALL' | 'CHECKED_IN' | 'PENDING';
+      priority?: string;
+    }
+  ): Promise<any> {
+    const res = await apiClient.post(`/events/${eventId}/announcement-email`, payload);
+    return res.data;
   },
 };
 

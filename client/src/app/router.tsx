@@ -228,7 +228,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'tickets',
-            element: <EventsTicketingModule />,
+            element: <EventsTicketingModule initialTab="my-tickets" />,
           },
           {
             path: 'merchandise',
@@ -270,7 +270,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'tickets',
-            element: <EventsTicketingModule />,
+            element: <EventsTicketingModule initialTab="my-tickets" />,
           },
           {
             path: 'merchandise',
