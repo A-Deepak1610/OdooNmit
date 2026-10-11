@@ -982,6 +982,7 @@ export const MerchandiseTaskModule: React.FC = () => {
                       </div>
 
                       {/* Category Tag */}
+                      {/* Category Tag */}
                       <span
                         style={{
                           position: 'absolute',
