@@ -1,6 +1,7 @@
 import { PrismaClient, EventStatus, RoleType } from '@prisma/client';
 import { v7 as uuidv7 } from 'uuid';
 import { ticketReservationService } from './ticket-reservation.service.js';
+import { emailService } from '../../common/services/email.service.js';
 
 const prisma = new PrismaClient();
 
@@ -1228,6 +1229,201 @@ export class EventService {
       alreadyCheckedIn: false,
       booking: updated,
       message: `✅ Admission Approved! Welcome ${booking.user.fullName} (${booking.quantity} seat${booking.quantity > 1 ? 's' : ''}).`,
+    };
+  }
+
+  /**
+   * Send Email Announcement to Registered Event Attendees with Check-in Status Filter
+   */
+  async sendEventAnnouncementEmail(
+    eventId: string,
+    organizerUserId: string,
+    payload: {
+      subject: string;
+      message: string;
+      filter: 'ALL' | 'CHECKED_IN' | 'NOT_CHECKED_IN';
+      priority?: string;
+    }
+  ) {
+    if (!payload.subject || !payload.subject.trim()) {
+      throw new Error('Announcement subject is required.');
+    }
+    if (!payload.message || !payload.message.trim()) {
+      throw new Error('Announcement message content is required.');
+    }
+
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      include: {
+        organization: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!event) {
+      throw new Error('Event not found.');
+    }
+
+    // Fetch organizer info for the email sender signature
+    let senderName = 'Event Organizing Committee';
+    try {
+      const organizer = await prisma.user.findUnique({
+        where: { id: organizerUserId },
+        select: { fullName: true },
+      });
+      if (organizer?.fullName) {
+        senderName = `${organizer.fullName} (Event Organizer)`;
+      }
+    } catch {
+      // fallback
+    }
+
+    // Build booking filter query based on requested filter
+    const whereClause: any = {
+      eventId,
+      status: { in: ['CONFIRMED', 'RESERVED'] },
+    };
+
+    if (payload.filter === 'CHECKED_IN') {
+      whereClause.checkedInAt = { not: null };
+    } else if (payload.filter === 'NOT_CHECKED_IN') {
+      whereClause.checkedInAt = null;
+    }
+
+    const bookings = await prisma.booking.findMany({
+      where: whereClause,
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    // Valid unique recipients
+    const validRecipientsMap = new Map<
+      string,
+      {
+        userId: string;
+        name: string;
+        email: string;
+        bookingNumber: string;
+        isCheckedIn: boolean;
+      }
+    >();
+
+    for (const b of bookings) {
+      if (b.user?.email && b.user.email.includes('@')) {
+        const emailLower = b.user.email.toLowerCase().trim();
+        if (!validRecipientsMap.has(emailLower)) {
+          validRecipientsMap.set(emailLower, {
+            userId: b.user.id,
+            name: b.user.fullName || 'Attendee',
+            email: b.user.email.trim(),
+            bookingNumber: b.bookingNumber,
+            isCheckedIn: b.checkedInAt !== null,
+          });
+        }
+      }
+    }
+
+    const recipientsList = Array.from(validRecipientsMap.values());
+
+    if (recipientsList.length === 0) {
+      return {
+        success: true,
+        totalRecipients: 0,
+        sentCount: 0,
+        failedCount: 0,
+        eventTitle: event.title,
+        filter: payload.filter,
+        recipients: [],
+        message: 'No registered attendees matched the selected filter.',
+      };
+    }
+
+    // Dispatch email announcements via Nodemailer
+    let sentCount = 0;
+    let failedCount = 0;
+    const recipientResults: { name: string; email: string; isCheckedIn: boolean; status: 'SENT' | 'FAILED' }[] = [];
+
+    // Send emails sequentially or in parallel
+    for (const item of recipientsList) {
+      try {
+        await emailService.sendEventAnnouncementEmail({
+          recipientEmail: item.email,
+          recipientName: item.name,
+          eventTitle: event.title,
+          venue: event.venue,
+          startAt: event.startAt,
+          subject: payload.subject.trim(),
+          message: payload.message.trim(),
+          senderName,
+          filterType: payload.filter,
+          bookingNumber: item.bookingNumber,
+          isCheckedIn: item.isCheckedIn,
+        });
+        sentCount++;
+        recipientResults.push({
+          name: item.name,
+          email: item.email,
+          isCheckedIn: item.isCheckedIn,
+          status: 'SENT',
+        });
+      } catch (err: any) {
+        console.error(`Failed to send announcement email to ${item.email}:`, err.message);
+        failedCount++;
+        recipientResults.push({
+          name: item.name,
+          email: item.email,
+          isCheckedIn: item.isCheckedIn,
+          status: 'FAILED',
+        });
+      }
+    }
+
+    // Record in database announcement log
+    try {
+      await prisma.announcement.create({
+        data: {
+          id: uuidv7(),
+          organizationId: event.organizationId,
+          authorId: organizerUserId,
+          title: `[${event.title}] ${payload.subject.trim()}`,
+          content: `${payload.message.trim()}\n\n(Sent via Nodemailer to ${
+            payload.filter === 'ALL'
+              ? 'All Registered Attendees'
+              : payload.filter === 'CHECKED_IN'
+              ? 'Checked-In Attendees Only'
+              : 'Pending Check-In Attendees Only'
+          })`,
+          category: 'EVENT',
+          isPinned: false,
+        },
+      });
+    } catch (e: any) {
+      console.warn('Could not record announcement in database table:', e.message);
+    }
+
+    return {
+      success: true,
+      totalRecipients: recipientsList.length,
+      sentCount,
+      failedCount,
+      eventTitle: event.title,
+      filter: payload.filter,
+      recipients: recipientResults,
+      message: `Announcement email successfully dispatched via Nodemailer to ${sentCount} recipient(s)${
+        failedCount > 0 ? ` (${failedCount} failed)` : ''
+      }.`,
     };
   }
 }

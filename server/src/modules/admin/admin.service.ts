@@ -793,6 +793,8 @@ export class AdminService {
 
       const data = (await response.json()) as {
         question: string;
+        original_question?: string;
+        corrected_question?: string;
         sql: string;
         answer: string;
         results: Array<Record<string, any>>;
@@ -807,6 +809,8 @@ export class AdminService {
 
       return {
         query: data.question,
+        originalQuery: data.original_question || queryText.trim(),
+        correctedQuery: data.corrected_question || data.question,
         interpretedIntent: data.answer,
         sqlQuery: data.sql,
         summaryMetrics: [

@@ -23,6 +23,24 @@ SQL_GENERATION_PROMPT = ChatPromptTemplate.from_messages([
     ("human", "{question}"),
 ])
 
+SPELL_CORRECTION_SYSTEM_PROMPT = """You are a query spelling and typo corrector for a campus database natural language assistant.
+Your task is to correct misspellings, typos, and grammatical errors in the user's natural language database query before it is passed to a database retrieval system.
+
+CRITICAL RULES:
+1. Fix all typos, misspellings, and garbled words (for example, fix 'queuries' to 'queries', 'hw many usrs regstered' to 'how many users registered', 'complnts' to 'complaints', 'studnets' to 'students', 'clb' to 'club', 'admn' to 'admin', 'electons' to 'elections').
+2. Preserve the user's exact semantic intent and meaning.
+3. Preserve all domain-specific terms, table/entity concepts, IDs, numbers, and proper nouns.
+4. DO NOT answer the question.
+5. DO NOT write or generate SQL statements.
+6. Output ONLY the corrected query string. Do NOT add greetings, preamble, quotes, markdown formatting, explanations, or conversational filler.
+7. If the query already has correct spelling, return the query as is.
+"""
+
+SPELL_CORRECTION_PROMPT = ChatPromptTemplate.from_messages([
+    ("system", SPELL_CORRECTION_SYSTEM_PROMPT),
+    ("human", "{query}"),
+])
+
 ANSWER_EXPLANATION_SYSTEM_PROMPT = """You are a helpful, professional administrative assistant for the CampusMitra platform.
 Your task is to explain database query results in natural, conversational English to the system administrator.
 
@@ -43,3 +61,4 @@ ANSWER_EXPLANATION_PROMPT = ChatPromptTemplate.from_messages([
         "Query Results: {results}\n"
     ),
 ])
+
