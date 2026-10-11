@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
+import {  
   Sparkles,
   ChevronDown,
   ChevronUp,
@@ -140,14 +140,14 @@ export const AdminDbAssistantPage: React.FC = () => {
         prev.map((item) =>
           item.id === interactionId
             ? {
-                ...item,
-                isLoading: false,
-                answer: resultData!.answer || 'No natural language response provided.',
-                sql: resultData!.sql || '',
-                correctedQuestion:
-                  resultData!.corrected_question ||
-                  (resultData!.question !== item.question ? resultData!.question : undefined),
-              }
+              ...item,
+              isLoading: false,
+              answer: resultData!.answer || 'No natural language response provided.',
+              sql: resultData!.sql || '',
+              correctedQuestion:
+                resultData!.corrected_question ||
+                (resultData!.question !== item.question ? resultData!.question : undefined),
+            }
             : item
         )
       );
@@ -156,12 +156,12 @@ export const AdminDbAssistantPage: React.FC = () => {
         prev.map((item) =>
           item.id === interactionId
             ? {
-                ...item,
-                isLoading: false,
-                error:
-                  err.message ||
-                  'Failed to connect to the query assistant. Please ensure the server is running.',
-              }
+              ...item,
+              isLoading: false,
+              error:
+                err.message ||
+                'Failed to connect to the query assistant. Please ensure the server is running.',
+            }
             : item
         )
       );
@@ -257,7 +257,7 @@ export const AdminDbAssistantPage: React.FC = () => {
                 </div>
                 {item.correctedQuestion &&
                   item.correctedQuestion.trim().toLowerCase() !==
-                    item.question.trim().toLowerCase() && (
+                  item.question.trim().toLowerCase() && (
                     <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100 text-xs font-medium text-indigo-700">
                       <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                       <span>Corrected via Groq: &ldquo;{item.correctedQuestion}&rdquo;</span>

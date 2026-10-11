@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import {
   Ticket,
   PieChart,
@@ -32,10 +32,28 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
   initialTab = 'events',
 }) => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const tabFromQuery = searchParams.get('tab') as any;
+
+  const resolveCurrentTab = (): 'events' | 'analytics' | 'revenue' | 'volunteers' | 'checkin' => {
+    const path = location.pathname;
+    if (path.includes('/revenue')) return 'revenue';
+    if (path.includes('/volunteers') || path.includes('/tasks')) return 'volunteers';
+    if (path.includes('/checkin') || path.includes('/attendees') || path.includes('/scanner')) return 'checkin';
+    if (path.includes('/analytics')) return 'analytics';
+    if (path.includes('/events')) return 'events';
+    return tabFromQuery || initialTab;
+  };
+
   const [activeTab, setActiveTab] = useState<'events' | 'analytics' | 'revenue' | 'volunteers' | 'checkin'>(
-    tabFromQuery || initialTab
+    resolveCurrentTab()
   );
+
+  // Keep activeTab strictly in sync whenever the route URL or initialTab changes
+  useEffect(() => {
+    setActiveTab(resolveCurrentTab());
+  }, [location.pathname, initialTab, tabFromQuery]);
 
   const [events, setEvents] = useState<CampusEventItem[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string>('');
@@ -346,7 +364,10 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
       {/* Navigation Tab Bar matching Image Theme */}
       <div className="flex items-center gap-1.5 border-b border-slate-200 overflow-x-auto pb-1">
         <button
-          onClick={() => setActiveTab('events')}
+          onClick={() => {
+            setActiveTab('events');
+            navigate('/organizer/events');
+          }}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
             activeTab === 'events'
               ? 'bg-indigo-600 text-white shadow-xs'
@@ -358,7 +379,10 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
         </button>
 
         <button
-          onClick={() => setActiveTab('analytics')}
+          onClick={() => {
+            setActiveTab('analytics');
+            navigate('/organizer/analytics');
+          }}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
             activeTab === 'analytics'
               ? 'bg-indigo-600 text-white shadow-xs'
@@ -370,7 +394,10 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
         </button>
 
         <button
-          onClick={() => setActiveTab('revenue')}
+          onClick={() => {
+            setActiveTab('revenue');
+            navigate('/organizer/revenue');
+          }}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
             activeTab === 'revenue'
               ? 'bg-indigo-600 text-white shadow-xs'
@@ -382,7 +409,10 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
         </button>
 
         <button
-          onClick={() => setActiveTab('volunteers')}
+          onClick={() => {
+            setActiveTab('volunteers');
+            navigate('/organizer/volunteers');
+          }}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
             activeTab === 'volunteers'
               ? 'bg-indigo-600 text-white shadow-xs'
@@ -394,7 +424,10 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
         </button>
 
         <button
-          onClick={() => setActiveTab('checkin')}
+          onClick={() => {
+            setActiveTab('checkin');
+            navigate('/organizer/checkin');
+          }}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
             activeTab === 'checkin'
               ? 'bg-indigo-600 text-white shadow-xs'

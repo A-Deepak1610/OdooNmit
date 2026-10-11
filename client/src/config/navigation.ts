@@ -303,15 +303,6 @@ export const navigationConfig: NavigationItem[] = [
     allowedRoles: [ROLES.EVENT_ORGANIZER],
     group: 'EVENT OPERATIONS',
   },
-  {
-    id: 'organizer-support',
-    label: 'Help \u0026 Support Desk',
-    path: '/organizer/support',
-    icon: HelpCircle,
-    allowedRoles: [ROLES.EVENT_ORGANIZER],
-    group: 'EVENT OPERATIONS',
-    badge: 'Queries',
-  },
 
   // ===========================================================================
   // 3. TREASURER NAVIGATION
