@@ -19,7 +19,11 @@ eventRouter.get('/:id/attendees', (req, res) => eventController.getEventAttendee
 // 2. Protected routes requiring authentication
 eventRouter.use(authenticateJwt);
 
-// User ticket passes & Booking
+// User ticket passes & Booking (Protected by authenticateJwt)
+eventRouter.post('/:id/reserve', (req, res) => eventController.reserveTicket(req, res));
+eventRouter.post('/:id/confirm-booking', (req, res) => eventController.confirmBooking(req, res));
+eventRouter.post('/:id/release-reservation', (req, res) => eventController.releaseReservation(req, res));
+eventRouter.get('/reservation-status/:token', (req, res) => eventController.getReservationStatus(req, res));
 eventRouter.post('/:id/book', (req, res) => eventController.bookTicket(req, res));
 
 // Door Check-in Verification (by QR code string or 6-digit OTP)

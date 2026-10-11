@@ -1,7 +1,9 @@
 import { PrismaClient, EventStatus, RoleType } from '@prisma/client';
 import { v7 as uuidv7 } from 'uuid';
+import { ticketReservationService } from './ticket-reservation.service.js';
 
 const prisma = new PrismaClient();
+
 
 export class EventService {
   /**
@@ -897,119 +899,51 @@ export class EventService {
   }
 
   /**
-   * Book Event Ticket (Member or Non-Member price, Mock Payment simulation, OTP & QR Generation)
+   * Book Event Ticket (Concurrency-safe via Redis 5-min booking window reservation)
    */
   async bookTicket(
     userId: string,
     eventId: string,
-    data: { quantity?: number; paymentMethod?: string }
+    data: { quantity?: number; paymentMethod?: string; bookingWindowToken?: string }
   ) {
-    const qty = Math.max(1, Math.min(10, Number(data.quantity) || 1));
+    // If client supplied a valid booking window token, confirm that reservation directly
+    if (data.bookingWindowToken) {
+      const confirmResult = await ticketReservationService.confirmBooking(userId, eventId, {
+        bookingWindowToken: data.bookingWindowToken,
+        paymentMethod: data.paymentMethod,
+      });
 
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-      include: { organization: true },
-    });
-
-    if (!event) {
-      throw new Error('Event not found.');
+      return {
+        ...confirmResult.booking,
+        payment: confirmResult.payment,
+        qrPayload: confirmResult.qrPayload,
+        otpCode: confirmResult.otpCode,
+        isMemberPriceApplied:
+          confirmResult.booking.unitPrice === confirmResult.booking.event?.memberPrice,
+      };
     }
 
-    if (event.remainingSeats < qty) {
-      throw new Error(`Only ${event.remainingSeats} seat(s) remaining for this event.`);
-    }
+    // Otherwise, perform atomic reserve + confirm pipeline through Redis
+    const reservation = await ticketReservationService.reserveTicket(
+      userId,
+      eventId,
+      data.quantity
+    );
 
-    // Check if user is a member of this club/organization
-    const membershipRole = await prisma.userRole.findFirst({
-      where: {
-        userId,
-        organizationId: event.organizationId,
-        role: { in: [RoleType.MEMBER, RoleType.PRESIDENT, RoleType.TREASURER, RoleType.EVENT_ORGANIZER, RoleType.VOLUNTEER] },
-      },
-    });
-
-    const isMember = !!membershipRole;
-    const unitPrice = isMember ? event.memberPrice : event.nonMemberPrice;
-    const totalAmount = unitPrice * qty;
-
-    // 6-digit verification OTP
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const bookingNumber = `TKT-2026-${Math.floor(10000 + Math.random() * 90000)}`;
-
-    // Create Booking
-    const booking = await prisma.booking.create({
-      data: {
-        id: uuidv7(),
-        bookingNumber,
-        userId,
-        eventId,
-        quantity: qty,
-        unitPrice,
-        totalAmount,
-        currency: 'INR',
-        status: 'CONFIRMED',
-        confirmedAt: new Date(),
-        otpCode,
-      },
-      include: {
-        event: {
-          include: { organization: true },
-        },
-        user: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            username: true,
-            phone: true,
-            avatarUrl: true,
-          },
-        },
-      },
-    });
-
-    // Create Mock Payment record
-    const mockPayId = `mock_pay_${Math.random().toString(36).substring(2, 10)}`;
-    await prisma.payment.create({
-      data: {
-        id: uuidv7(),
-        userId,
-        bookingId: booking.id,
-        status: 'CAPTURED',
-        amount: totalAmount,
-        currency: 'INR',
-        razorpayPaymentId: mockPayId,
-        razorpayOrderId: `mock_order_${Math.random().toString(36).substring(2, 10)}`,
-        capturedAt: new Date(),
-      },
-    });
-
-    // Decrement remaining seats
-    await prisma.event.update({
-      where: { id: eventId },
-      data: {
-        remainingSeats: Math.max(0, event.remainingSeats - qty),
-      },
-    });
-
-    // Generate User Notification
-    await prisma.notification.create({
-      data: {
-        id: uuidv7(),
-        userId,
-        title: `🎟️ Ticket Confirmed: ${event.title}`,
-        message: `Your booking #${booking.bookingNumber} is confirmed! OTP: ${otpCode}. Venue: ${event.venue}. Present your QR code at the door.`,
-        type: 'TICKET_CONFIRMED',
-        link: '/member/tickets',
-      },
+    const confirmResult = await ticketReservationService.confirmBooking(userId, eventId, {
+      bookingWindowToken: reservation.bookingWindowToken,
+      paymentMethod: data.paymentMethod,
     });
 
     return {
-      ...booking,
-      isMemberPriceApplied: isMember,
-      qrPayload: `CAMPUSMITRA:${booking.bookingNumber}:${otpCode}`,
+      ...confirmResult.booking,
+      payment: confirmResult.payment,
+      qrPayload: confirmResult.qrPayload,
+      otpCode: confirmResult.otpCode,
+      isMemberPriceApplied: reservation.isMemberPriceApplied,
     };
   }
+
 
   /**
    * Get Current User's Tickets / Passes

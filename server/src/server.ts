@@ -1,12 +1,21 @@
 import { app } from './app.js';
 import { ENV } from './config/env.js';
 import { prisma } from './config/prisma.js';
+import { redis } from './config/redis.js';
 import { initSqlBotServer, stopSqlBotServer } from './config/sql-bot.js';
 
 async function bootstrap() {
   try {
     await prisma.$connect();
     console.log('✅ Connected to TiDB MySQL Database successfully.');
+
+    // Connect to Redis for ticket reservation concurrency
+    try {
+      await redis.connect();
+      console.log(`✅ Connected to Redis cache & concurrency engine at ${ENV.REDIS_URL}`);
+    } catch (rErr: any) {
+      console.warn('⚠️ Redis initial connection notice:', rErr.message);
+    }
 
     // Initialize Python SQL Chatbot server on port 8001
     await initSqlBotServer();
@@ -20,6 +29,9 @@ async function bootstrap() {
     const shutdown = async () => {
       console.log('⏳ Gracefully shutting down...');
       stopSqlBotServer();
+      try {
+        await redis.quit();
+      } catch (_) {}
       server.close(async () => {
         await prisma.$disconnect();
         console.log('🛑 Server and Database connections closed.');

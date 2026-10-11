@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { eventService } from './event.service.js';
+import { ticketReservationService } from './ticket-reservation.service.js';
+
 
 const getUserId = (req: Request): string => {
   const user = (req as any).user;
@@ -147,12 +149,83 @@ export class EventController {
     }
   }
 
+  async reserveTicket(req: Request, res: Response) {
+    try {
+      const userId = getUserId(req);
+      const { id: eventId } = req.params;
+      const { quantity } = req.body;
+      const data = await ticketReservationService.reserveTicket(userId, eventId, quantity);
+      res.status(201).json({
+        success: true,
+        data,
+        message: data.message,
+      });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  async confirmBooking(req: Request, res: Response) {
+    try {
+      const userId = getUserId(req);
+      const { id: eventId } = req.params;
+      const { bookingWindowToken, paymentMethod, razorpayPaymentId, razorpayOrderId } = req.body;
+      const data = await ticketReservationService.confirmBooking(userId, eventId, {
+        bookingWindowToken,
+        paymentMethod,
+        razorpayPaymentId,
+        razorpayOrderId,
+      });
+      res.status(200).json({
+        success: true,
+        data,
+        message: data.message,
+      });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  async releaseReservation(req: Request, res: Response) {
+    try {
+      const userId = getUserId(req);
+      const { id: eventId } = req.params;
+      const { bookingWindowToken } = req.body;
+      const data = await ticketReservationService.releaseReservation(
+        userId,
+        eventId,
+        bookingWindowToken
+      );
+      res.json({
+        success: true,
+        data,
+        message: data.message,
+      });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  async getReservationStatus(req: Request, res: Response) {
+    try {
+      const { token } = req.params;
+      const data = await ticketReservationService.getReservationStatus(token);
+      res.json({ success: true, data });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
   async bookTicket(req: Request, res: Response) {
     try {
       const userId = getUserId(req);
       const { id: eventId } = req.params;
-      const { quantity, paymentMethod } = req.body;
-      const data = await eventService.bookTicket(userId, eventId, { quantity, paymentMethod });
+      const { quantity, paymentMethod, bookingWindowToken } = req.body;
+      const data = await eventService.bookTicket(userId, eventId, {
+        quantity,
+        paymentMethod,
+        bookingWindowToken,
+      });
       res.status(201).json({
         success: true,
         data,

@@ -269,8 +269,81 @@ export const eventService = {
     return res.data.data;
   },
 
-  // 12. Book Event Ticket with Mock Payment
-  async bookTicket(eventId: string, data: { quantity: number; paymentMethod?: string }): Promise<{
+  // 12. Reserve Event Ticket (Redis 5-minute concurrency lock)
+  async reserveTicket(
+    eventId: string,
+    quantity: number
+  ): Promise<{
+    success: boolean;
+    data: {
+      bookingWindowToken: string;
+      bookingId: string;
+      bookingNumber: string;
+      eventId: string;
+      eventTitle: string;
+      quantity: number;
+      unitPrice: number;
+      totalAmount: number;
+      isMemberPriceApplied: boolean;
+      expiresAt: string;
+      remainingSeconds: number;
+      remainingSeatsInPool: number;
+      message: string;
+    };
+    message: string;
+  }> {
+    const res = await apiClient.post(`/events/${eventId}/reserve`, { quantity });
+    return res.data;
+  },
+
+  // 12b. Confirm Booking using Booking Window Token
+  async confirmBooking(
+    eventId: string,
+    data: {
+      bookingWindowToken: string;
+      paymentMethod?: string;
+    }
+  ): Promise<{
+    data: any;
+    message: string;
+  }> {
+    const res = await apiClient.post(`/events/${eventId}/confirm-booking`, data);
+    return res.data;
+  },
+
+  // 12c. Release / Cancel Active Reservation
+  async releaseReservation(
+    eventId: string,
+    bookingWindowToken: string
+  ): Promise<{
+    success: boolean;
+    data?: any;
+    message: string;
+  }> {
+    const res = await apiClient.post(`/events/${eventId}/release-reservation`, {
+      bookingWindowToken,
+    });
+    return res.data;
+  },
+
+  // 12d. Check Reservation Status / TTL
+  async getReservationStatus(token: string): Promise<{
+    success: boolean;
+    data: {
+      valid: boolean;
+      remainingSeconds: number;
+      reservation: any | null;
+    };
+  }> {
+    const res = await apiClient.get(`/events/reservation-status/${token}`);
+    return res.data;
+  },
+
+  // Legacy / Direct Book Event Ticket
+  async bookTicket(
+    eventId: string,
+    data: { quantity: number; paymentMethod?: string; bookingWindowToken?: string }
+  ): Promise<{
     data: any;
     message: string;
   }> {
@@ -280,6 +353,7 @@ export const eventService = {
     );
     return res.data;
   },
+
 
   // 13. Get Current User's Booked Tickets & QR Passes
   async getMyTickets(): Promise<any[]> {
