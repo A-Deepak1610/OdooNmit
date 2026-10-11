@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 enum RoleType {
@@ -116,9 +117,6 @@ model User {
   announcements          Announcement[]
 
   // Event booking and Razorpay
-  bookings Booking[]
-  payments Payment[]
-  // Added for event booking and Razorpay
   bookings       Booking[]
   payments       Payment[]
   inchargeEvents Event[]                 @relation("EventIncharge")
@@ -162,11 +160,7 @@ model Organization {
   duesRecords            DuesRecord[]
   merchProducts          MerchProduct[]
   studentMerchOrders     StudentMerchOrder[]
-
-  // Added for event & merchandise management
-  events             Event[]
-  merchProducts      MerchProduct[]
-  studentMerchOrders StudentMerchOrder[]
+  payments               Payment[]
 
   @@map("organizations")
 }
@@ -180,8 +174,6 @@ model UserRole {
   assignedAt     DateTime      @default(now())
   duesPaid       Boolean?      @default(false)
   validUntil     DateTime?
-  validUntil     DateTime?
-  duesPaid       Boolean       @default(true)
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
@@ -353,19 +345,6 @@ model Event {
   prizes         String?      @db.Text
   analyticsData  String?      @db.LongText
   inchargeId     String?
-  remainingSeats Int         @default(50)
-  memberPrice    Int         // INR paise
-  nonMemberPrice Int         // INR paise
-  category       String      @default("Hackathon")
-  domain         String      @default("AI/ML")
-  mode           String      @default("offline")
-  teamsCount     Int         @default(0)
-  prizes         String?     @db.Text
-  analyticsData  String?     @db.LongText
-  inchargeId     String?
-  status         EventStatus @default(DRAFT)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   incharge     User?        @relation("EventIncharge", fields: [inchargeId], references: [id], onDelete: SetNull)
@@ -414,8 +393,6 @@ model Booking {
   otpCode              String?            @db.VarChar(10)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
-  checkedInAt          DateTime?
-  otpCode              String?            @db.VarChar(10)
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Restrict)
   event    Event     @relation(fields: [eventId], references: [id], onDelete: Restrict)
@@ -431,6 +408,7 @@ model Payment {
   id                 String        @id
   userId             String
   bookingId          String?
+  organizationId     String?
   status             PaymentStatus @default(CREATED)
   amount             Int           // INR paise
   currency           String        @default("INR") @db.VarChar(3)
@@ -446,11 +424,13 @@ model Payment {
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Restrict)
-  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  booking      Booking?      @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@index([bookingId])
+  @@index([organizationId])
   @@index([status])
   @@map("payments")
 }
@@ -498,23 +478,6 @@ model Announcement {
   @@index([authorId])
   @@index([createdAt])
   @@map("announcements")
-}
-
-model EventTask {
-  id           String    @id
-  eventId      String
-  title        String
-  description  String?   @db.Text
-  assignedToId String?
-  priority     String    @default("MEDIUM")
-  status       String    @default("PENDING")
-  deadline     DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @default(now())
-
-  @@index([assignedToId], map: "idx_event_tasks_assignedToId")
-  @@index([eventId], map: "idx_event_tasks_eventId")
-  @@map("event_tasks")
 }
 
 // =============================================================================
@@ -729,7 +692,6 @@ model MerchProduct {
   memberPrice       Int?
   sku               String
   status            String   @default("ACTIVE") // ACTIVE, DRAFT, ARCHIVED
-  status            String   @default("ACTIVE")
   lowStockThreshold Int      @default(10)
   variants          Json
   stockHistory      Json?
@@ -747,7 +709,6 @@ model StudentMerchOrder {
   id                 String   @id
   organizationId     String
   orderNumber        String   @unique
-  orderNumber        String
   orderDate          String
   studentName        String
   studentId          String

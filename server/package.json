@@ -13,7 +13,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
-    "seed:clubs": "tsx prisma/seed-clubs.ts"
+    "seed:clubs": "tsx prisma/seed-clubs.ts",
+    "test": "tsx --test src/modules/payment/payment.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -26,6 +27,7 @@
     "jsonwebtoken": "^9.0.2",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "razorpay": "^2.9.8",
     "uuid": "^11.0.3",
     "zod": "^3.24.1"
   },

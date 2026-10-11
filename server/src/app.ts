@@ -10,6 +10,7 @@ import { presidentRouter } from './modules/president/president.routes.js';
 import { treasurerRouter } from './modules/treasurer/treasurer.routes.js';
 import { eventRouter } from './modules/event/event.routes.js';
 import { merchandiseRouter } from './modules/merchandise/merchandise.routes.js';
+import { paymentRouter } from './modules/payment/payment.routes.js';
 import { errorHandler } from './common/middlewares/error.middleware.js';
 
 export const app = express();
@@ -21,7 +22,13 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.use(express.json());
+app.use(
+  express.json({
+    verify: (req: any, _res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/health', (req, res) => {
@@ -31,6 +38,10 @@ app.get('/health', (req, res) => {
     service: ENV.APP_NAME,
   });
 });
+
+// Payment gateway routes (Razorpay order creation & webhook)
+app.use('/api/payment', paymentRouter);
+app.use('/api/v1/payment', paymentRouter);
 
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);

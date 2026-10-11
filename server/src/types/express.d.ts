@@ -5,6 +5,7 @@ declare global {
     interface User extends TokenPayload {}
     interface Request {
       user?: TokenPayload;
+      rawBody?: Buffer;
     }
   }
 }

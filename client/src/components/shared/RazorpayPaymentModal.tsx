@@ -8,8 +8,10 @@ import {
   CheckCircle2,
   Building,
   Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import { PaymentReceipt } from '../../stores/club.store';
+import { apiClient } from '../../services/api-client';
 
 interface RazorpayPaymentModalProps {
   isOpen: boolean;
@@ -19,6 +21,8 @@ interface RazorpayPaymentModalProps {
   amount: number;
   payerName?: string;
   payerEmail?: string;
+  organizationId?: string;
+  bookingId?: string;
   onSuccess: (receipt: PaymentReceipt) => void;
 }
 
@@ -30,6 +34,8 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
   amount,
   payerName = 'Deepak Kumar',
   payerEmail = 'deepaka.ad24@bitsathy.ac.in',
+  organizationId,
+  bookingId,
   onSuccess,
 }) => {
   const [activeTab, setActiveTab] = useState<'UPI' | 'CARD' | 'NETBANKING'>('UPI');
@@ -42,19 +48,78 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
 
   const [paymentStatus, setPaymentStatus] = useState<'IDLE' | 'PROCESSING' | 'SUCCESS'>('IDLE');
   const [generatedReceipt, setGeneratedReceipt] = useState<PaymentReceipt | null>(null);
+  const [isLaunchingRazorpay, setIsLaunchingRazorpay] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleLaunchOfficialRazorpay = () => {
-    const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_Tm4KSE4i6vVkvs';
+  const handleLaunchOfficialRazorpay = async () => {
+    setIsLaunchingRazorpay(true);
+    setErrorMessage(null);
 
+    // 1. Ensure Razorpay Checkout SDK script is loaded in DOM
+    if (typeof (window as any).Razorpay !== 'function') {
+      const scriptReady = await new Promise<boolean>((resolve) => {
+        const existing = document.getElementById('razorpay-checkout-script');
+        if (existing) {
+          existing.addEventListener('load', () => resolve(true));
+          existing.addEventListener('error', () => resolve(false));
+          setTimeout(() => resolve(typeof (window as any).Razorpay === 'function'), 2000);
+          return;
+        }
+        const s = document.createElement('script');
+        s.id = 'razorpay-checkout-script';
+        s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        s.onload = () => resolve(true);
+        s.onerror = () => resolve(false);
+        document.body.appendChild(s);
+      });
+
+      if (!scriptReady && typeof (window as any).Razorpay !== 'function') {
+        setIsLaunchingRazorpay(false);
+        setErrorMessage('Could not load Razorpay Checkout SDK. Please check your network.');
+        handleProcessPayment(activeTab);
+        return;
+      }
+    }
+
+    let razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_Tm4KSE4i6vVkvs';
+    let orderId: string | undefined;
+    let paymentAmountPaise = Math.round(amount * 100);
+    let paymentCurrency = 'INR';
+
+    // 2. Call authenticated backend /api/payment/create-order API
+    try {
+      const payload: any = { purpose };
+      if (organizationId) payload.organizationId = organizationId;
+      if (bookingId) payload.bookingId = bookingId;
+
+      const res = await apiClient.post('/payment/create-order', payload);
+      const resData = res.data?.data || res.data;
+      if (resData) {
+        orderId = resData.order_id || resData.orderId || resData.id;
+        if (resData.key_id || resData.keyId) razorpayKey = resData.key_id || resData.keyId;
+        if (resData.amount) paymentAmountPaise = resData.amount;
+        if (resData.currency) paymentCurrency = resData.currency;
+      }
+    } catch (orderErr: any) {
+      console.warn('Backend Razorpay order creation notice:', orderErr);
+      const msg = orderErr?.response?.data?.message || orderErr?.message;
+      if (msg && (orderErr?.response?.status === 400 || orderErr?.response?.status === 409 || orderErr?.response?.status === 404)) {
+        setIsLaunchingRazorpay(false);
+        setErrorMessage(msg);
+        return;
+      }
+    }
+
+    // 3. Open official Razorpay Checkout popup using returned order_id, amount, currency, and Key ID
     if (typeof (window as any).Razorpay === 'function') {
       try {
-        const options = {
+        const options: any = {
           key: razorpayKey,
-          amount: Math.round(amount * 100), // in paise
-          currency: 'INR',
-          name: 'Skyline Student Association',
+          amount: paymentAmountPaise, // in paise
+          currency: paymentCurrency,
+          name: 'CampusMitra',
           description: purpose || title || 'Campus Organization Payment',
           image: window.location.origin + '/logo.png',
           prefill: {
@@ -64,18 +129,32 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
           },
           notes: {
             purpose: purpose,
-            organization: 'Skyline Student Association',
+            organizationId: organizationId || '',
+            bookingId: bookingId || '',
             system: 'Campus Mitra Odoo-NMIT',
           },
           theme: {
             color: '#1e3a8a',
           },
-          handler: function (response: any) {
+          handler: async function (response: any) {
+            // Verify payment signature with backend
+            try {
+              if (response.razorpay_order_id && response.razorpay_payment_id && response.razorpay_signature) {
+                await apiClient.post('/payment/verify', {
+                  orderId: response.razorpay_order_id,
+                  paymentId: response.razorpay_payment_id,
+                  signature: response.razorpay_signature,
+                });
+              }
+            } catch (verErr) {
+              console.warn('Signature verification notice:', verErr);
+            }
+
             const receipt: PaymentReceipt = {
               paymentId: response.razorpay_payment_id || `pay_${Date.now()}`,
-              orderId: response.razorpay_order_id || `order_${Date.now()}`,
+              orderId: response.razorpay_order_id || orderId || `order_${Date.now()}`,
               amount,
-              currency: 'INR',
+              currency: paymentCurrency,
               purpose,
               payerName,
               payerEmail,
@@ -86,6 +165,7 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
 
             setGeneratedReceipt(receipt);
             setPaymentStatus('SUCCESS');
+            setIsLaunchingRazorpay(false);
 
             setTimeout(() => {
               onSuccess(receipt);
@@ -96,23 +176,32 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
           modal: {
             ondismiss: function () {
               console.log('Official Razorpay dialog closed by user');
+              setIsLaunchingRazorpay(false);
             },
           },
         };
 
+        if (orderId) {
+          options.order_id = orderId;
+        }
+
         const rzpInstance = new (window as any).Razorpay(options);
         rzpInstance.on('payment.failed', function (resp: any) {
           console.error('Razorpay payment failed:', resp.error);
-          alert(`Payment Failed: ${resp.error?.description || 'Gateway error'}`);
+          setIsLaunchingRazorpay(false);
+          setErrorMessage(`Payment Failed: ${resp.error?.description || 'Gateway error'}`);
         });
         rzpInstance.open();
+        setIsLaunchingRazorpay(false);
         return;
-      } catch (err) {
+      } catch (err: any) {
         console.warn('Failed to open official Razorpay window, using in-modal fallback:', err);
+        setIsLaunchingRazorpay(false);
       }
     }
 
-    // Fallback if SDK blocked or network offline
+    // Fallback if SDK blocked or offline
+    setIsLaunchingRazorpay(false);
     handleProcessPayment(activeTab);
   };
 
@@ -643,11 +732,33 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
               </div>
             )}
 
+            {/* Error notice if backend order API fails */}
+            {errorMessage && (
+              <div
+                style={{
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '8px',
+                  padding: '10px 14px',
+                  color: '#b91c1c',
+                  fontSize: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <AlertCircle style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
             {/* Single Payment Action Button */}
             <div style={{ marginTop: '8px' }}>
               <button
                 type="button"
+                id="modal-pay-now-button"
                 onClick={handleLaunchOfficialRazorpay}
+                disabled={isLaunchingRazorpay}
                 style={{
                   width: '100%',
                   padding: '14px',
@@ -657,7 +768,8 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                   borderRadius: '10px',
                   fontSize: '15px',
                   fontWeight: 700,
-                  cursor: 'pointer',
+                  cursor: isLaunchingRazorpay ? 'not-allowed' : 'pointer',
+                  opacity: isLaunchingRazorpay ? 0.75 : 1,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -666,8 +778,17 @@ export const RazorpayPaymentModal: React.FC<RazorpayPaymentModalProps> = ({
                   transition: 'opacity 0.2s',
                 }}
               >
-                <Lock style={{ width: '16px', height: '16px' }} />
-                <span>Pay ₹{amount.toLocaleString('en-IN')}</span>
+                {isLaunchingRazorpay ? (
+                  <>
+                    <Loader2 style={{ width: '16px', height: '16px', animation: 'spin 1s linear infinite' }} />
+                    <span>Opening Razorpay Checkout...</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock style={{ width: '16px', height: '16px' }} />
+                    <span>Pay Now • ₹{amount.toLocaleString('en-IN')}</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

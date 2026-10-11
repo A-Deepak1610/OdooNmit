@@ -13,7 +13,7 @@ import {
   X,
   MailCheck,
   ShoppingBag,
-  CreditCard,
+  CreditCard
 } from 'lucide-react';
 import {
   studentService,
@@ -185,6 +185,8 @@ export const StudentModulePage: React.FC = () => {
       (c.category && c.category.toLowerCase().includes(clubSearch.toLowerCase()))
     );
   });
+
+
 
   return (
     <div className="text-slate-800 pb-12">
