@@ -10,6 +10,7 @@ import {
   Users,
   ShieldCheck,
   CreditCard,
+  QrCode,
   Tag,
   KeyRound,
   Check,
@@ -20,10 +21,14 @@ import {
   Filter,
   Eye,
   Lock,
+  AlertCircle,
+  RefreshCw,
+  Zap,
+  Timer,
 } from 'lucide-react';
+
 import { useAuthStore } from '../../../stores/auth.store';
 import { eventService, CampusEventItem } from '../../../services/event.service';
-import { paymentService } from '../../../services/payment.service';
 import { RealQrCode } from '../../shared/RealQrCode';
 
 export const EventsTicketingModule: React.FC = () => {
@@ -44,8 +49,17 @@ export const EventsTicketingModule: React.FC = () => {
   const [viewingEvent, setViewingEvent] = useState<CampusEventItem | null>(null);
   const [bookingEvent, setBookingEvent] = useState<CampusEventItem | null>(null);
   const [ticketQuantity, setTicketQuantity] = useState<number>(1);
+  const [paymentMethod, setPaymentMethod] = useState<'campus_pay' | 'upi_mock' | 'student_id'>('campus_pay');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState<any | null>(null);
+
+
+  // Redis Concurrency Ticket Reservation State (5-min window)
+  const [reservationData, setReservationData] = useState<any | null>(null);
+  const [reservationRemainingSeconds, setReservationRemainingSeconds] = useState<number>(300);
+  const [isReserving, setIsReserving] = useState<boolean>(false);
+  const [reservationError, setReservationError] = useState<string | null>(null);
+  const [reservationExpired, setReservationExpired] = useState<boolean>(false);
 
   // Load events
   const loadEvents = async () => {
@@ -78,61 +92,115 @@ export const EventsTicketingModule: React.FC = () => {
     loadMyTickets();
   }, []);
 
+  // 5-minute Countdown Timer Effect
+  useEffect(() => {
+    if (!reservationData || reservationExpired) return;
+
+    const interval = setInterval(() => {
+      setReservationRemainingSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setReservationExpired(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [reservationData, reservationExpired]);
+
+  const formatTimer = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  // Start Redis atomic reservation
+  const handleStartReservation = async (event: CampusEventItem, qty: number) => {
+    setIsReserving(true);
+    setReservationError(null);
+    setReservationExpired(false);
+    try {
+      const res = await eventService.reserveTicket(event.id, qty);
+      setReservationData(res.data);
+      setReservationRemainingSeconds(res.data.remainingSeconds || 300);
+    } catch (err: any) {
+      setReservationError(err.message || 'Failed to hold tickets. They may be sold out.');
+      setReservationData(null);
+    } finally {
+      setIsReserving(false);
+    }
+  };
+
   const handleOpenBooking = (event: CampusEventItem) => {
     setBookingEvent(event);
     setTicketQuantity(1);
     setViewingEvent(null);
+    setReservationData(null);
+    setReservationError(null);
+    setReservationExpired(false);
+    handleStartReservation(event, 1);
+  };
+
+  const handleQuantityChange = async (newQty: number) => {
+    if (!bookingEvent) return;
+    setTicketQuantity(newQty);
+    // Release previous reservation if active
+    if (reservationData?.bookingWindowToken) {
+      eventService
+        .releaseReservation(bookingEvent.id, reservationData.bookingWindowToken)
+        .catch(() => {});
+    }
+    handleStartReservation(bookingEvent, newQty);
+  };
+
+  const handleCloseBooking = () => {
+    if (bookingEvent && reservationData?.bookingWindowToken) {
+      eventService
+        .releaseReservation(bookingEvent.id, reservationData.bookingWindowToken)
+        .catch(() => {});
+    }
+    setBookingEvent(null);
+    setReservationData(null);
+    setReservationError(null);
+    setReservationExpired(false);
   };
 
   const handleConfirmMockBooking = async () => {
     if (!bookingEvent) return;
+    if (reservationExpired) {
+      alert('Your 5-minute booking window has expired. Please re-reserve your seats.');
+      return;
+    }
+    if (!reservationData?.bookingWindowToken) {
+      alert('No active ticket reservation token found. Please re-reserve.');
+      return;
+    }
+
     setIsProcessingPayment(true);
     try {
-      const unitPrice = isMember
-        ? Number(bookingEvent.memberPriceINR)
-        : Number(bookingEvent.nonMemberPriceINR);
-      const totalAmount = unitPrice * ticketQuantity;
-
-      const res = await eventService.bookTicket(bookingEvent.id, {
-        quantity: ticketQuantity,
-        paymentMethod: 'RAZORPAY',
+      const res = await eventService.confirmBooking(bookingEvent.id, {
+        bookingWindowToken: reservationData.bookingWindowToken,
+        paymentMethod,
       });
-
-      if (totalAmount > 0) {
-        // Launch real Razorpay Checkout
-        await paymentService.openCheckout({
-          bookingId: res.data.id,
-          organizationId: bookingEvent.organizationId,
-          purpose: `Admission Pass: ${bookingEvent.title} (${ticketQuantity}x)`,
-          amount: totalAmount,
-          payerName: user?.name || 'Student Member',
-          payerEmail: user?.email || 'student@campusmitra.edu',
-          onSuccess: () => {
-            setConfirmedBooking(res.data);
-            setBookingEvent(null);
-            loadMyTickets();
-            loadEvents();
-          },
-          onError: (err) => {
-            alert(err?.description || err?.message || 'Payment was not completed.');
-          },
-          onDismiss: () => {
-            // Dismissed by user
-          },
-        });
-      } else {
-        // Free ticket directly issued
-        setConfirmedBooking(res.data);
-        setBookingEvent(null);
-        loadMyTickets();
-        loadEvents();
-      }
+      setConfirmedBooking(res.data.booking || res.data);
+      setBookingEvent(null);
+      setReservationData(null);
+      setReservationExpired(false);
+      // Refresh tickets and events
+      loadMyTickets();
+      loadEvents();
     } catch (err: any) {
       alert(err.message || 'Failed to complete ticket booking.');
+      if (err.message?.toLowerCase().includes('expired')) {
+        setReservationExpired(true);
+      }
     } finally {
       setIsProcessingPayment(false);
     }
   };
+
 
   // Filtered Events
   const filteredEvents = (events || []).filter((ev) => {
@@ -625,18 +693,28 @@ export const EventsTicketingModule: React.FC = () => {
         </div>
       )}
 
-      {/* BOOK PASS & BULK MOCK PAYMENT MODAL */}
+      {/* BOOK PASS & BULK MOCK PAYMENT MODAL WITH REDIS CONCURRENCY LOCK */}
       {bookingEvent && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
           <div className="bg-white rounded-2xl max-w-md w-full max-h-[88vh] border border-slate-200 shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header (Fixed) */}
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-white flex-shrink-0">
               <div>
-                <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Fast Checkout</span>
-                <h3 className="text-base font-bold text-slate-900 leading-tight">Book Event Entry Pass</h3>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider flex items-center gap-1">
+                    <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
+                    Redis Concurrency Shield
+                  </span>
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    Race-Proof
+                  </span>
+                </div>
+                <h3 className="text-base font-bold text-slate-900 leading-tight">
+                  Reserve & Book Entry Pass
+                </h3>
               </div>
               <button
-                onClick={() => setBookingEvent(null)}
+                onClick={handleCloseBooking}
                 className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors text-xs font-bold"
               >
                 ✕
@@ -647,10 +725,13 @@ export const EventsTicketingModule: React.FC = () => {
             <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 flex-1 text-xs">
               {/* Event Summary Card */}
               <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/80 space-y-1">
-                <div className="font-bold text-slate-900 text-sm line-clamp-1">{bookingEvent.title}</div>
+                <div className="font-bold text-slate-900 text-sm line-clamp-1">
+                  {bookingEvent.title}
+                </div>
                 <div className="flex items-center gap-3 text-[11px] text-slate-500">
                   <span className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3 text-indigo-500" /> {new Date(bookingEvent.startAt).toLocaleDateString()}
+                    <Calendar className="w-3 h-3 text-indigo-500" />{' '}
+                    {new Date(bookingEvent.startAt).toLocaleDateString()}
                   </span>
                   <span className="flex items-center gap-1 truncate">
                     <MapPin className="w-3 h-3 text-indigo-500" /> {bookingEvent.venue}
@@ -658,12 +739,97 @@ export const EventsTicketingModule: React.FC = () => {
                 </div>
               </div>
 
+              {/* REDIS 5-MINUTE RESERVATION LOCK STATUS CARD */}
+              {isReserving ? (
+                <div className="bg-indigo-50/70 border border-indigo-200 rounded-xl p-3 flex items-center gap-3 text-indigo-900 animate-pulse">
+                  <Loader2 className="w-4 h-4 text-indigo-600 animate-spin flex-shrink-0" />
+                  <div>
+                    <div className="font-bold text-xs">Securing Redis Concurrency Lock...</div>
+                    <div className="text-[11px] text-indigo-700">
+                      Atomically holding {ticketQuantity} seat(s) to eliminate double-booking.
+                    </div>
+                  </div>
+                </div>
+              ) : reservationError ? (
+                <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 text-rose-900 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-bold text-xs">Reservation Error</div>
+                      <div className="text-[11px] text-rose-700">{reservationError}</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleStartReservation(bookingEvent, ticketQuantity)}
+                    className="w-full py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <RefreshCw className="w-3 h-3" /> Retry Reserving
+                  </button>
+                </div>
+              ) : reservationExpired ? (
+                <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 text-amber-950 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <Timer className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-bold text-xs">Booking Window Expired</div>
+                      <div className="text-[11px] text-amber-800">
+                        The 5-minute seat reservation has lapsed. Your held tickets have been returned
+                        to the pool.
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleStartReservation(bookingEvent, ticketQuantity)}
+                    className="w-full py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-[11px] flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <RefreshCw className="w-3 h-3" /> Re-hold Seats (New 5m Window)
+                  </button>
+                </div>
+              ) : reservationData ? (
+                <div className="bg-gradient-to-r from-indigo-50/90 via-purple-50/70 to-emerald-50/80 border border-indigo-200/90 rounded-xl p-3 space-y-2 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                      </span>
+                      <span className="font-bold text-slate-800 text-[11px] flex items-center gap-1">
+                        <Lock className="w-3 h-3 text-indigo-600" /> Seats Held Exclusively
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1 font-mono font-extrabold text-xs px-2 py-0.5 rounded-md bg-indigo-600 text-white shadow-xs">
+                      <Timer className="w-3 h-3" />
+                      <span>{formatTimer(reservationRemainingSeconds)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[10px] text-slate-600 pt-1 border-t border-indigo-100/80">
+                    <span className="text-slate-500">Booking Window Token:</span>
+                    <span className="font-mono font-bold text-indigo-700 bg-white/80 px-1.5 py-0.5 rounded border border-indigo-200/60 truncate max-w-[200px]">
+                      {reservationData.bookingWindowToken}
+                    </span>
+                  </div>
+
+                  <div className="text-[10px] text-slate-500 leading-tight">
+                    Protected by atomic Redis lock with 300s TTL. No other buyer can take this ticket while your countdown is active.
+                  </div>
+                </div>
+              ) : null}
+
               {/* Role & Discount Banner */}
               {isMember ? (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 flex items-center gap-2 text-[11px] text-emerald-800">
                   <Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                   <span>
-                    <strong>Member Rate Active:</strong> ₹{bookingEvent.memberPriceINR}/pass (Save ₹{Math.max(0, Number(bookingEvent.nonMemberPriceINR) - Number(bookingEvent.memberPriceINR))})
+                    <strong>Member Rate Active:</strong> ₹{bookingEvent.memberPriceINR}/pass (Save ₹
+                    {Math.max(
+                      0,
+                      Number(bookingEvent.nonMemberPriceINR) - Number(bookingEvent.memberPriceINR)
+                    )}
+                    )
                   </span>
                 </div>
               ) : (
@@ -685,12 +851,13 @@ export const EventsTicketingModule: React.FC = () => {
                     <button
                       key={qty}
                       type="button"
-                      onClick={() => setTicketQuantity(qty)}
+                      onClick={() => handleQuantityChange(qty)}
+                      disabled={isReserving}
                       className={`py-1.5 rounded-lg text-xs font-bold transition-all border ${
                         ticketQuantity === qty
                           ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
                           : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                      }`}
+                      } disabled:opacity-50`}
                     >
                       {qty} {qty === 1 ? 'Pass' : 'Passes'}
                     </button>
@@ -703,22 +870,55 @@ export const EventsTicketingModule: React.FC = () => {
                 <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
                   Payment Mode
                 </label>
-                <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center gap-3 text-xs">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200/60 flex items-center justify-center text-indigo-700 flex-shrink-0">
-                    <Lock className="w-4 h-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-bold text-slate-900 leading-tight">
-                      Online Gateway Checkout
-                    </div>
-                    <div className="text-[10px] text-slate-500 truncate mt-0.5">
-                      UPI, Credit/Debit Cards, NetBanking & Wallets
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-bold border border-emerald-200 flex-shrink-0">
-                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                    <span>256-Bit SSL</span>
-                  </div>
+                <div className="space-y-1.5">
+                  {[
+                    {
+                      id: 'campus_pay',
+                      title: 'Campus Mitra 1-Click Pay',
+                      desc: 'Instant mock sandbox checkout',
+                      icon: Sparkles,
+                    },
+                    {
+                      id: 'upi_mock',
+                      title: 'UPI / QR Mock Pay',
+                      desc: 'Simulated UPI app checkout',
+                      icon: QrCode,
+                    },
+                    {
+                      id: 'student_id',
+                      title: 'Student ID Smart Wallet',
+                      desc: 'Deduct from campus ID card',
+                      icon: CreditCard,
+                    },
+                  ].map((pm) => {
+                    const Icon = pm.icon;
+                    return (
+                      <label
+                        key={pm.id}
+                        onClick={() => setPaymentMethod(pm.id as any)}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border cursor-pointer transition-all ${
+                          paymentMethod === pm.id
+                            ? 'border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-500'
+                            : 'border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="payment_method"
+                          checked={paymentMethod === pm.id}
+                          onChange={() => {}}
+                          className="text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5"
+                        />
+                        <Icon className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
+                        <div className="flex-1 text-left min-w-0">
+                          <div className="text-xs font-bold text-slate-900 leading-tight">
+                            {pm.title}
+                          </div>
+                          <div className="text-[10px] text-slate-500 truncate">{pm.desc}</div>
+                        </div>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -732,7 +932,9 @@ export const EventsTicketingModule: React.FC = () => {
                 return (
                   <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/80 space-y-1 text-xs">
                     <div className="flex justify-between text-slate-600">
-                      <span>Pass ({ticketQuantity} × ₹{unitPrice})</span>
+                      <span>
+                        Pass ({ticketQuantity} × ₹{unitPrice})
+                      </span>
                       <span className="font-medium text-slate-800">₹{totalAmount}</span>
                     </div>
                     <div className="flex justify-between text-slate-600">
@@ -752,7 +954,7 @@ export const EventsTicketingModule: React.FC = () => {
             <div className="p-3.5 sm:p-4 border-t border-slate-100 bg-slate-50/80 flex items-center gap-2.5 flex-shrink-0">
               <button
                 type="button"
-                onClick={() => setBookingEvent(null)}
+                onClick={handleCloseBooking}
                 className="w-24 py-2.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl transition-all"
               >
                 Cancel
@@ -760,18 +962,34 @@ export const EventsTicketingModule: React.FC = () => {
               <button
                 type="button"
                 onClick={handleConfirmMockBooking}
-                disabled={isProcessingPayment}
-                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 disabled:bg-indigo-400"
+                disabled={
+                  isProcessingPayment ||
+                  isReserving ||
+                  reservationExpired ||
+                  !reservationData ||
+                  !!reservationError
+                }
+                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 disabled:bg-indigo-400 disabled:cursor-not-allowed"
               >
                 {isProcessingPayment ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Connecting to Gateway...
+                    Processing Payment...
+                  </>
+                ) : isReserving ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Holding Seats...
+                  </>
+                ) : reservationExpired ? (
+                  <>
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    Reservation Expired
                   </>
                 ) : (
                   <>
                     <ShieldCheck className="w-3.5 h-3.5" />
-                    Pay & Issue Pass
+                    Pay & Issue Pass ({formatTimer(reservationRemainingSeconds)})
                   </>
                 )}
               </button>
@@ -779,6 +997,7 @@ export const EventsTicketingModule: React.FC = () => {
           </div>
         </div>
       )}
+
 
       {/* BOOKING SUCCESS PASS CONFIRMATION POPUP */}
       {confirmedBooking && (

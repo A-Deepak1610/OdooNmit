@@ -391,8 +391,10 @@ model Booking {
   confirmedAt          DateTime?
   checkedInAt          DateTime?
   otpCode              String?            @db.VarChar(10)
+  bookingToken         String?            @unique @db.VarChar(128)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
+
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Restrict)
   event    Event     @relation(fields: [eventId], references: [id], onDelete: Restrict)
