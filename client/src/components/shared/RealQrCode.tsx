@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { QrCode as QrIcon, CheckCircle2, Copy } from 'lucide-react';
+import { eventService } from '../../services/event.service';
 
 interface RealQrCodeProps {
   value: string;
@@ -11,8 +12,8 @@ interface RealQrCodeProps {
 }
 
 /**
- * RealQrCode renders an authentic, scannable QR code generated from the real-time payload.
- * Any smartphone camera can scan this QR code to view the ticket verification data!
+ * RealQrCode renders an authentic, scannable QR code generated from the real-time payload
+ * using the Node.js 'qrcode' library on the backend server.
  */
 export const RealQrCode: React.FC<RealQrCodeProps> = ({
   value,
@@ -25,11 +26,35 @@ export const RealQrCode: React.FC<RealQrCodeProps> = ({
   const [copied, setCopied] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [qrSrc, setQrSrc] = useState<string>('');
 
-  // Encode full payload URL or verification token
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&margin=10&data=${encodeURIComponent(
-    value
-  )}`;
+  useEffect(() => {
+    let isMounted = true;
+    setImageLoaded(false);
+    setImageError(false);
+
+    if (!value) return;
+
+    // Generate authentic QR code using the Node.js 'qrcode' backend library
+    eventService
+      .generateTicketQrCode(value, size)
+      .then((res) => {
+        if (isMounted && res.dataUrl) {
+          setQrSrc(res.dataUrl);
+          setImageLoaded(true);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          // Fallback to client data URI or SVG if network issue
+          setImageError(true);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [value, size]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(value);
@@ -82,13 +107,13 @@ export const RealQrCode: React.FC<RealQrCodeProps> = ({
                 animation: 'spin 1s linear infinite',
               }}
             />
-            <span>Generating QR...</span>
+            <span>Generating QR via Node.js...</span>
           </div>
         )}
 
-        {!imageError ? (
+        {!imageError && qrSrc ? (
           <img
-            src={qrUrl}
+            src={qrSrc}
             alt={`Authentic QR Code: ${label || value}`}
             width={size}
             height={size}

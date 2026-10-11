@@ -17,6 +17,11 @@ eventRouter.get('/:id', optionalAuthenticateJwt, (req, res) => eventController.g
 eventRouter.post('/:id/view', optionalAuthenticateJwt, (req, res) => eventController.recordView(req, res));
 eventRouter.get('/:id/attendees', (req, res) => eventController.getEventAttendees(req, res));
 
+// QR Code Generation & Passes (Powered by Node.js 'qrcode' library)
+eventRouter.all('/tickets/generate-qr', (req, res) => eventController.generateQrCode(req, res));
+eventRouter.get('/tickets/recent-passes', (req, res) => eventController.getRecentTickets(req, res));
+eventRouter.post('/tickets/verify-checkin', (req, res) => eventController.verifyCheckinTicket(req, res));
+
 // 2. Protected routes requiring authentication
 eventRouter.use(authenticateJwt);
 

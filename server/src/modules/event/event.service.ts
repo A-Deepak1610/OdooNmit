@@ -1,5 +1,6 @@
 import { PrismaClient, EventStatus, RoleType } from '@prisma/client';
 import { v7 as uuidv7 } from 'uuid';
+import QRCode from 'qrcode';
 import { ticketReservationService } from './ticket-reservation.service.js';
 import { emailService } from '../../common/services/email.service.js';
 
@@ -1110,7 +1111,84 @@ export class EventService {
 
 
   /**
-   * Get Current User's Tickets / Passes
+   * Generate Authentic QR Code Data URL using Node.js 'qrcode' library
+   */
+  async generateTicketQrCode(payload: string, options?: { size?: number }) {
+    if (!payload?.trim()) {
+      throw new Error('Payload is required to generate QR code.');
+    }
+    const cleanPayload = payload.trim();
+    const width = options?.size || 300;
+    const dataUrl = await QRCode.toDataURL(cleanPayload, {
+      errorCorrectionLevel: 'H',
+      type: 'image/png',
+      margin: 2,
+      width,
+      color: {
+        dark: '#0f172a',
+        light: '#ffffff',
+      },
+    });
+
+    return {
+      payload: cleanPayload,
+      dataUrl,
+    };
+  }
+
+  /**
+   * Fetch recent tickets/passes with generated QR codes for Volunteer Desk
+   */
+  async getRecentEventTickets(limit = 15) {
+    const bookings = await prisma.booking.findMany({
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            username: true,
+            phone: true,
+          },
+        },
+        event: {
+          select: {
+            id: true,
+            title: true,
+            venue: true,
+            startAt: true,
+          },
+        },
+      },
+    });
+
+    return await Promise.all(
+      bookings.map(async (b) => {
+        const qrPayload = `CAMPUSMITRA:${b.bookingNumber}:${b.otpCode || '123456'}`;
+        let qrCodeDataUrl = '';
+        try {
+          qrCodeDataUrl = await QRCode.toDataURL(qrPayload, {
+            errorCorrectionLevel: 'M',
+            margin: 2,
+            width: 250,
+            color: { dark: '#0f172a', light: '#ffffff' },
+          });
+        } catch {
+          // ignore
+        }
+        return {
+          ...b,
+          qrPayload,
+          qrCodeDataUrl,
+        };
+      })
+    );
+  }
+
+  /**
+   * Get Current User's Tickets / Passes with Node.js generated QR codes
    */
   async getMyTickets(userId: string) {
     const bookings = await prisma.booking.findMany({
@@ -1124,36 +1202,86 @@ export class EventService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return bookings.map((b) => ({
-      ...b,
-      qrPayload: `CAMPUSMITRA:${b.bookingNumber}:${b.otpCode || '123456'}`,
-    }));
+    return await Promise.all(
+      bookings.map(async (b) => {
+        const qrPayload = `CAMPUSMITRA:${b.bookingNumber}:${b.otpCode || '123456'}`;
+        let qrCodeDataUrl = '';
+        try {
+          qrCodeDataUrl = await QRCode.toDataURL(qrPayload, {
+            errorCorrectionLevel: 'H',
+            margin: 2,
+            width: 250,
+            color: { dark: '#0f172a', light: '#ffffff' },
+          });
+        } catch {
+          // fallback
+        }
+        return {
+          ...b,
+          qrPayload,
+          qrCodeDataUrl,
+        };
+      })
+    );
   }
 
   /**
-   * Verify Ticket for Volunteer Door Check-in (supports QR Scan or 6-Digit OTP)
+   * Verify Ticket for Volunteer Door Check-in (supports Camera QR Scan or 6-Digit OTP)
    */
   async verifyCheckinTicket(rawCode: string) {
     let cleanCode = (rawCode || '').trim();
-    if (cleanCode.startsWith('CAMPUSMITRA:')) {
-      const parts = cleanCode.split(':');
-      if (parts.length >= 2) {
-        cleanCode = parts[1]; // bookingNumber
-      }
-    }
 
     if (!cleanCode) {
       throw new Error('Please provide a valid Ticket Pass number, QR code, or 6-digit OTP.');
     }
 
-    // Try finding by bookingNumber, otpCode, or id
+    const searchTerms: string[] = [cleanCode];
+
+    // 1. JSON QR payload
+    if (cleanCode.startsWith('{') && cleanCode.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(cleanCode);
+        if (parsed.bookingNumber) searchTerms.push(String(parsed.bookingNumber));
+        if (parsed.code) searchTerms.push(String(parsed.code));
+        if (parsed.otpCode) searchTerms.push(String(parsed.otpCode));
+      } catch {
+        // ignore
+      }
+    }
+
+    // 2. URL parameters
+    if (cleanCode.includes('?')) {
+      try {
+        const urlParams = new URLSearchParams(cleanCode.split('?')[1]);
+        const paramCode = urlParams.get('code') || urlParams.get('ticket') || urlParams.get('booking');
+        if (paramCode) searchTerms.push(paramCode);
+      } catch {
+        // ignore
+      }
+    }
+
+    // 3. CAMPUSMITRA:BOOKING:OTP
+    if (cleanCode.startsWith('CAMPUSMITRA:')) {
+      const parts = cleanCode.split(':');
+      parts.forEach((p) => {
+        if (p.trim()) searchTerms.push(p.trim());
+      });
+    }
+
+    // Also strip '#' if present
+    const additionalTerms = searchTerms.map((t) => t.replace(/^#/, '')).filter((t) => t.length > 0);
+    searchTerms.push(...additionalTerms);
+
+    const uniqueTerms = Array.from(new Set(searchTerms.filter(Boolean)));
+
+    // Try finding by bookingNumber, otpCode, or id across all extracted candidates
     const booking = await prisma.booking.findFirst({
       where: {
-        OR: [
-          { bookingNumber: { equals: cleanCode } },
-          { otpCode: { equals: cleanCode } },
-          { id: { equals: cleanCode } },
-        ],
+        OR: uniqueTerms.flatMap((term) => [
+          { bookingNumber: { equals: term } },
+          { otpCode: { equals: term } },
+          { id: { equals: term } },
+        ]),
       },
       include: {
         user: {

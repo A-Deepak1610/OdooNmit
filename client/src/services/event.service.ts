@@ -393,39 +393,25 @@ export const eventService = {
     return res.data;
   },
 
-  // 15. Send Email Announcement to Registered Attendees with Check-in Filter via Nodemailer
-  async sendEventAnnouncementEmail(
-    eventId: string,
-    payload: {
-      subject: string;
-      message: string;
-      filter: 'ALL' | 'CHECKED_IN' | 'NOT_CHECKED_IN';
-      priority?: string;
-    }
-  ): Promise<{
-    success: boolean;
-    totalRecipients: number;
-    sentCount: number;
-    failedCount: number;
-    eventTitle: string;
-    filter: string;
-    recipients: { name: string; email: string; isCheckedIn: boolean; status: 'SENT' | 'FAILED' }[];
-    message: string;
+  // 15. Generate Authentic Ticket QR Code via Node.js 'qrcode' library
+  async generateTicketQrCode(payload: string, size = 300): Promise<{
+    payload: string;
+    dataUrl: string;
   }> {
     const res = await apiClient.post<{
       success: boolean;
-      data: {
-        success: boolean;
-        totalRecipients: number;
-        sentCount: number;
-        failedCount: number;
-        eventTitle: string;
-        filter: string;
-        recipients: { name: string; email: string; isCheckedIn: boolean; status: 'SENT' | 'FAILED' }[];
-        message: string;
-      };
-      message: string;
-    }>(`/events/${eventId}/announcement-email`, payload);
+      data: { payload: string; dataUrl: string };
+    }>('/events/tickets/generate-qr', { payload, size });
+    return res.data.data;
+  },
+
+  // 16. Get recent passes with generated QR codes for door volunteer desk
+  async getRecentPasses(limit = 15): Promise<any[]> {
+    const res = await apiClient.get<{
+      success: boolean;
+      data: any[];
+    }>(`/events/tickets/recent-passes?limit=${limit}`);
     return res.data.data;
   },
 };
+

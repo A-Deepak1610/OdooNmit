@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { eventService } from './event.service.js';
 import { ticketReservationService } from './ticket-reservation.service.js';
+import type { ParamsDictionary } from 'express-serve-static-core';
+import type { ParsedQs } from 'qs';
 
 
 const getUserId = (req: Request): string => {
@@ -9,6 +11,9 @@ const getUserId = (req: Request): string => {
 };
 
 export class EventController {
+  sendEventAnnouncementEmail(req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>, number>): void {
+    throw new Error('Method not implemented.');
+  }
   async getEvents(req: Request, res: Response) {
     try {
       const { search, status, domain, category, organizationId, inchargeId, postedDate, sortBy } = req.query;
@@ -273,24 +278,25 @@ export class EventController {
     }
   }
 
-  async sendEventAnnouncementEmail(req: Request, res: Response) {
+  async generateQrCode(req: Request, res: Response) {
     try {
-      const userId = getUserId(req);
-      const { id: eventId } = req.params;
-      const { subject, message, filter = 'ALL', priority = 'NORMAL' } = req.body;
-
-      const result = await eventService.sendEventAnnouncementEmail(eventId, userId, {
-        subject,
-        message,
-        filter,
-        priority,
-      });
-
-      res.status(200).json({
+      const payload = (req.body?.payload || req.query?.payload || req.body?.code || req.query?.code || '') as string;
+      const size = Number(req.body?.size || req.query?.size) || 300;
+      const result = await eventService.generateTicketQrCode(payload, { size });
+      res.json({
         success: true,
         data: result,
-        message: result.message,
       });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  async getRecentTickets(req: Request, res: Response) {
+    try {
+      const limit = Number(req.query?.limit) || 15;
+      const data = await eventService.getRecentEventTickets(limit);
+      res.json({ success: true, data });
     } catch (err: any) {
       res.status(400).json({ success: false, message: err.message });
     }
