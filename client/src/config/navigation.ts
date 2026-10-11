@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Wallet,
   Package,
+  DollarSign,
 } from 'lucide-react';
 
 /**
