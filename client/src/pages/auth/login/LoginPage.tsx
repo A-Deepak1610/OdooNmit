@@ -193,8 +193,8 @@ export const LoginPage: React.FC = () => {
 
     // Normalize identifier to match backend seeded domain
     let finalIdentifier = targetEmail.trim();
-    if (finalIdentifier.endsWith('@campusflow.test')) {
-      finalIdentifier = finalIdentifier.replace('@campusflow.test', '@campusmitra.edu');
+    if (finalIdentifier.endsWith('@CampusMitra.test')) {
+      finalIdentifier = finalIdentifier.replace('@CampusMitra.test', '@campusmitra.edu');
     }
 
     try {
@@ -348,7 +348,7 @@ export const LoginPage: React.FC = () => {
           </div>
 
           <h1 className="text-2xl font-black tracking-tight text-slate-900">
-            CampusFlow
+            CampusMitra
           </h1>
           <p className="text-xs sm:text-sm font-bold text-[#5c52e8] mt-1">
             Be the true you. Be found.
@@ -414,9 +414,8 @@ export const LoginPage: React.FC = () => {
                 type="button"
                 onClick={() => handlePersonaSelect(item)}
                 disabled={loading}
-                className={`border border-slate-200/90 hover:border-slate-300 hover:bg-slate-50/80 bg-white rounded-xl py-2 px-2 flex items-center justify-center gap-1.5 transition-all text-xs font-semibold text-slate-700 shadow-[0_1px_2px_rgba(0,0,0,0.02)] cursor-pointer disabled:opacity-60 ${
-                  isSelected ? 'ring-2 ring-indigo-400 bg-indigo-50/50' : ''
-                }`}
+                className={`border border-slate-200/90 hover:border-slate-300 hover:bg-slate-50/80 bg-white rounded-xl py-2 px-2 flex items-center justify-center gap-1.5 transition-all text-xs font-semibold text-slate-700 shadow-[0_1px_2px_rgba(0,0,0,0.02)] cursor-pointer disabled:opacity-60 ${isSelected ? 'ring-2 ring-indigo-400 bg-indigo-50/50' : ''
+                  }`}
               >
                 <Icon className={`h-4 w-4 shrink-0 ${item.iconColor}`} />
                 <span className="truncate">{item.label}</span>

@@ -197,6 +197,46 @@ export class AdminController {
       return sendError(res, err.message, 500);
     }
   }
+
+  // 6. Central Announcements
+  async getAnnouncements(req: Request, res: Response) {
+    try {
+      const data = await adminService.getAnnouncements();
+      return sendSuccess(res, data, 'Announcements loaded');
+    } catch (err: any) {
+      return sendError(res, err.message, 500);
+    }
+  }
+
+  async createAnnouncement(req: Request, res: Response) {
+    try {
+      const adminId = req.user?.userId;
+      const data = await adminService.createAnnouncement(adminId!, req.body);
+      return sendSuccess(res, data, 'Announcement published successfully', 201);
+    } catch (err: any) {
+      return sendError(res, err.message, 400);
+    }
+  }
+
+  async updateAnnouncement(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const data = await adminService.updateAnnouncement(id, req.body);
+      return sendSuccess(res, data, 'Announcement updated');
+    } catch (err: any) {
+      return sendError(res, err.message, 400);
+    }
+  }
+
+  async deleteAnnouncement(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const data = await adminService.deleteAnnouncement(id);
+      return sendSuccess(res, data, 'Announcement deleted');
+    } catch (err: any) {
+      return sendError(res, err.message, 400);
+    }
+  }
 }
 
 export const adminController = new AdminController();

@@ -14,6 +14,7 @@ import { MembershipModule } from '../components/modules/memberships/MembershipMo
 import { MerchandiseTaskModule } from '../components/modules/merchandise/MerchandiseTaskModule';
 import { AnnouncementBoardModule } from '../components/modules/announcements/AnnouncementBoardModule';
 import { ElectionsVotingModule } from '../components/modules/elections/ElectionsVotingModule';
+import { SupportHelpDeskModule } from '../components/modules/support/SupportHelpDeskModule';
 import {
   VolunteerDashboard,
   VolunteerTasks,
@@ -164,6 +165,10 @@ export const router = createBrowserRouter([
     path: '/voting',
     element: <ModuleRedirect subpath="elections" />,
   },
+  {
+    path: '/support',
+    element: <ModuleRedirect subpath="support" />,
+  },
 
 
   // ---------------------------------------------------------------------------
@@ -228,6 +233,14 @@ export const router = createBrowserRouter([
             path: 'merchandise',
             element: <MerchandiseTaskModule />,
           },
+          {
+            path: 'announcements',
+            element: <AnnouncementBoardModule />,
+          },
+          {
+            path: 'support',
+            element: <SupportHelpDeskModule />,
+          },
         ],
       },
 
@@ -269,6 +282,10 @@ export const router = createBrowserRouter([
           {
             path: 'voting',
             element: <ElectionsVotingModule />,
+          },
+          {
+            path: 'support',
+            element: <SupportHelpDeskModule />,
           },
         ],
       },
@@ -320,6 +337,10 @@ export const router = createBrowserRouter([
             path: 'profile',
             element: <VolunteerProfile />,
           },
+          {
+            path: 'support',
+            element: <SupportHelpDeskModule />,
+          },
         ],
       },
 
@@ -365,6 +386,10 @@ export const router = createBrowserRouter([
           {
             path: 'tasks',
             element: <Navigate to="/organizer/volunteers" replace />,
+          },
+          {
+            path: 'support',
+            element: <SupportHelpDeskModule />,
           },
         ],
       },
@@ -432,6 +457,10 @@ export const router = createBrowserRouter([
             path: 'audit-history',
             element: <TreasurerModulePage />,
           },
+          {
+            path: 'support',
+            element: <SupportHelpDeskModule />,
+          },
         ],
       },
 
@@ -474,6 +503,10 @@ export const router = createBrowserRouter([
             path: 'merchandise',
             element: <MerchandiseTaskModule />,
           },
+          {
+            path: 'support',
+            element: <SupportHelpDeskModule />,
+          },
         ],
       },
 
@@ -509,6 +542,10 @@ export const router = createBrowserRouter([
           {
             path: 'assistant',
             element: <AdminDashboardPage />,
+          },
+          {
+            path: 'support',
+            element: <SupportHelpDeskModule />,
           },
         ],
       },

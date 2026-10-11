@@ -11,6 +11,7 @@ import { treasurerRouter } from './modules/treasurer/treasurer.routes.js';
 import { eventRouter } from './modules/event/event.routes.js';
 import { merchandiseRouter } from './modules/merchandise/merchandise.routes.js';
 import { paymentRouter } from './modules/payment/payment.routes.js';
+import { supportRouter } from './modules/support/support.routes.js';
 import { errorHandler } from './common/middlewares/error.middleware.js';
 
 export const app = express();
@@ -97,6 +98,7 @@ app.use('/api/v1/president', presidentRouter);
 app.use('/api/v1/treasurer', treasurerRouter);
 app.use('/api/v1/events', eventRouter);
 app.use('/api/v1/merchandise', merchandiseRouter);
+app.use('/api/v1/support', supportRouter);
 
 app.use('*', (req, res) => {
   res.status(404).json({

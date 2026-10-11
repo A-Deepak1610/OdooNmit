@@ -166,6 +166,40 @@ export class StudentService {
     }>('/student/membership/renew');
     return res.data;
   }
+
+  /**
+   * 5. Announcements Feed (Platform Broadcasts & Club Notices)
+   */
+  async getAnnouncements(): Promise<StudentAnnouncementItem[]> {
+    const res = await apiClient.get<{ success: boolean; data: StudentAnnouncementItem[] }>('/student/announcements');
+    return res.data.data;
+  }
+}
+
+export interface StudentAnnouncementItem {
+  id: string;
+  organizationId: string;
+  authorId: string;
+  title: string;
+  content: string;
+  category: string;
+  isPinned: boolean;
+  isMemberOnly: boolean;
+  createdAt: string;
+  updatedAt: string;
+  organization?: {
+    id: string;
+    name: string;
+    slug: string;
+    logoUrl: string | null;
+    category?: string | null;
+  };
+  author?: {
+    id: string;
+    fullName: string;
+    username: string;
+    avatarUrl: string | null;
+  };
 }
 
 export interface MembershipDuesStatus {

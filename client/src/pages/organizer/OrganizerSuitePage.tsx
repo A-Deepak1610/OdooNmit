@@ -50,6 +50,14 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
   const [attendeeSearch, setAttendeeSearch] = useState('');
   const [checkinFilter, setCheckinFilter] = useState<'ALL' | 'CHECKED_IN' | 'PENDING'>('ALL');
 
+  // Direct Door Pass / OTP Verification State
+  const [doorPassCode, setDoorPassCode] = useState('');
+  const [verifyingPass, setVerifyingPass] = useState(false);
+  const [passFeedback, setPassFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Active selected event
+  const selectedEvent = events.find((e) => e.id === selectedEventId) || events[0] || null;
+
   // Task Modal state
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [taskForm, setTaskForm] = useState({
@@ -128,6 +136,59 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
     }
   };
 
+  const handleVerifyDoorPass = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!doorPassCode.trim()) return;
+    setVerifyingPass(true);
+    setPassFeedback(null);
+    try {
+      const res = await eventService.verifyCheckinTicket(doorPassCode.trim());
+      if (res.success) {
+        setPassFeedback({ type: 'success', message: res.message });
+        setDoorPassCode('');
+        // Refresh attendee roster & overview
+        if (selectedEventId) {
+          const att = await eventService.getEventAttendees(selectedEventId);
+          setAttendeeRoster(att);
+        }
+        const ov = await eventService.getOrganizerOverview();
+        setOverview(ov);
+        showToast('Ticket verified and attendee admitted!');
+      } else {
+        setPassFeedback({
+          type: 'error',
+          message: res.message || 'Verification failed. Code not found.',
+        });
+      }
+    } catch (err: any) {
+      setPassFeedback({
+        type: 'error',
+        message: err.message || 'Error processing ticket pass verification',
+      });
+    } finally {
+      setVerifyingPass(false);
+    }
+  };
+
+  // Compute live real hourly check-in distribution from actual checkedInAt timestamps
+  const hourlyVelocity = React.useMemo(() => {
+    const buckets: { [label: string]: number } = {};
+    const checkedAttendees = (attendeeRoster?.attendees || []).filter(
+      (a: any) => a.checkedInAt !== null
+    );
+
+    if (checkedAttendees.length === 0) return [];
+
+    checkedAttendees.forEach((att: any) => {
+      const d = new Date(att.checkedInAt);
+      const hour = d.getHours();
+      const label = `${hour % 12 === 0 ? 12 : hour % 12} ${hour >= 12 ? 'PM' : 'AM'}`;
+      buckets[label] = (buckets[label] || 0) + 1;
+    });
+
+    return Object.entries(buckets).map(([hour, count]) => ({ hour, count }));
+  }, [attendeeRoster]);
+
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!taskForm.title.trim() || !taskForm.eventId) {
@@ -172,8 +233,6 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
       showToast('Failed to update task status', 'error');
     }
   };
-
-  const selectedEvent = events.find((e) => e.id === selectedEventId) || events[0];
 
   return (
     <div className="space-y-6">
@@ -230,7 +289,7 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
             <span className="text-xs font-bold text-slate-500">Events Managed</span>
             <Calendar className="w-4 h-4 text-indigo-600" />
           </div>
-          <div className="text-2xl font-black text-slate-900">{overview?.totalEvents || events.length}</div>
+          <div className="text-2xl font-black text-slate-900">{overview?.totalEvents ?? events.length}</div>
           <div className="text-[11px] text-slate-400">Total in calendar</div>
         </div>
 
@@ -239,8 +298,8 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
             <span className="text-xs font-bold text-slate-500">Tickets Booked</span>
             <Ticket className="w-4 h-4 text-purple-600" />
           </div>
-          <div className="text-2xl font-black text-slate-900">{overview?.totalTicketsSold || 647}</div>
-          <div className="text-[11px] text-slate-400">{overview?.totalRemainingSeats || 388} seats remaining</div>
+          <div className="text-2xl font-black text-slate-900">{overview?.totalTicketsSold ?? 0}</div>
+          <div className="text-[11px] text-slate-400">{overview?.totalRemainingSeats ?? 0} seats remaining</div>
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
@@ -248,7 +307,7 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
             <span className="text-xs font-bold text-slate-500">Fee Collected</span>
             <DollarSign className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="text-2xl font-black text-emerald-700">₹{overview?.totalRevenueINR?.toLocaleString() || '2,172'}</div>
+          <div className="text-2xl font-black text-emerald-700">₹{(overview?.totalRevenueINR ?? 0).toLocaleString()}</div>
           <div className="text-[11px] text-slate-400">Settled to club books</div>
         </div>
 
@@ -257,8 +316,8 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
             <span className="text-xs font-bold text-slate-500">Live Checked-in</span>
             <UserCheck className="w-4 h-4 text-blue-600" />
           </div>
-          <div className="text-2xl font-black text-blue-700">{overview?.totalCheckedIn || 16}</div>
-          <div className="text-[11px] text-slate-400">{overview?.turnoutRate || 67}% verified turnout</div>
+          <div className="text-2xl font-black text-blue-700">{overview?.totalCheckedIn ?? 0}</div>
+          <div className="text-[11px] text-slate-400">{overview?.turnoutRate ?? 0}% verified turnout</div>
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
@@ -266,8 +325,8 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
             <span className="text-xs font-bold text-slate-500">Volunteer Tasks</span>
             <Users className="w-4 h-4 text-amber-600" />
           </div>
-          <div className="text-2xl font-black text-slate-900">{overview?.tasksSummary?.total || 30}</div>
-          <div className="text-[11px] text-slate-400">{overview?.tasksSummary?.completed || 10} completed</div>
+          <div className="text-2xl font-black text-slate-900">{overview?.tasksSummary?.total ?? 0}</div>
+          <div className="text-[11px] text-slate-400">{overview?.tasksSummary?.completed ?? 0} completed</div>
         </div>
       </div>
 
@@ -399,7 +458,7 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
             <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
               <div className="text-xs font-bold text-slate-500 mb-1">Total Fees Collected</div>
               <div className="text-3xl font-black text-emerald-700">
-                ₹{revenueData?.summary?.totalCollectedINR?.toLocaleString() || '2,172'}
+                ₹{(revenueData?.summary?.totalCollectedINR ?? 0).toLocaleString()}
               </div>
               <div className="text-xs text-emerald-600 font-semibold mt-1">100% Verified in database</div>
             </div>
@@ -407,7 +466,7 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
             <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
               <div className="text-xs font-bold text-slate-500 mb-1">Member Discounts Granted</div>
               <div className="text-3xl font-black text-indigo-700">
-                ₹{revenueData?.summary?.memberSavingsINR?.toLocaleString() || '600'}
+                ₹{(revenueData?.summary?.memberSavingsINR ?? 0).toLocaleString()}
               </div>
               <div className="text-xs text-indigo-600 font-semibold mt-1">Direct club member savings</div>
             </div>
@@ -415,7 +474,7 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
             <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
               <div className="text-xs font-bold text-slate-500 mb-1">Pending Inflows</div>
               <div className="text-3xl font-black text-amber-700">
-                ₹{revenueData?.summary?.totalPendingINR?.toLocaleString() || '0'}
+                ₹{(revenueData?.summary?.totalPendingINR ?? 0).toLocaleString()}
               </div>
               <div className="text-xs text-amber-600 font-semibold mt-1">Awaiting checkout capture</div>
             </div>
@@ -750,23 +809,23 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
               <div className="text-xs font-bold text-slate-500 mb-1">Current Checked Users</div>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-black text-indigo-700">
-                  {attendeeRoster?.checkedInCount || 4}
+                  {attendeeRoster?.checkedInCount ?? 0}
                 </span>
                 <span className="text-sm font-bold text-slate-400">
-                  / {attendeeRoster?.totalCount || 6} Registered
+                  / {attendeeRoster?.totalCount ?? 0} Registered
                 </span>
               </div>
               <div className="w-full bg-slate-100 h-2.5 rounded-full mt-3 overflow-hidden">
                 <div
                   className="bg-indigo-600 h-full rounded-full transition-all duration-500"
                   style={{
-                    width: `${attendeeRoster?.checkinPercentage || 67}%`,
+                    width: `${attendeeRoster?.checkinPercentage ?? 0}%`,
                   }}
                 />
               </div>
               <div className="flex justify-between items-center text-[11px] text-slate-500 font-semibold mt-1.5">
                 <span>Turnout Progress</span>
-                <span className="text-indigo-600 font-bold">{attendeeRoster?.checkinPercentage || 67}%</span>
+                <span className="text-indigo-600 font-bold">{attendeeRoster?.checkinPercentage ?? 0}%</span>
               </div>
             </div>
 
@@ -774,40 +833,110 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
               <div className="text-xs font-bold text-slate-500 mb-1">Venue & Timing</div>
               <div className="text-sm font-bold text-slate-900 flex items-center gap-1.5 mt-1">
                 <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
-                <span className="truncate">{selectedEvent?.venue || 'Main Auditorium'}</span>
+                <span className="truncate">{selectedEvent?.venue || 'Main Campus Venue'}</span>
               </div>
               <div className="text-xs text-slate-500 flex items-center gap-1.5 mt-2">
                 <Clock className="w-3.5 h-3.5 text-indigo-500" />
-                <span>Doors Open 08:30 AM • Entry Permitted</span>
+                <span>
+                  {selectedEvent?.startAt
+                    ? new Date(selectedEvent.startAt).toLocaleDateString([], {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : 'Scheduled Event'}
+                </span>
               </div>
               <div className="mt-3">
                 <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  Registration Counter 1 Active
+                  Live Admission Desk Active
                 </span>
               </div>
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
               <div className="text-xs font-bold text-slate-500 mb-1">Hourly Check-in Velocity</div>
-              <div className="flex items-end gap-2 h-16 pt-2">
-                <div className="flex-1 flex flex-col items-center gap-1">
-                  <div className="w-full bg-indigo-200 rounded-t h-4" />
-                  <span className="text-[9px] text-slate-400">8 AM</span>
+              {hourlyVelocity.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-20 text-slate-400 text-center">
+                  <Clock className="w-5 h-5 text-slate-300 mb-1" />
+                  <span className="text-xs font-bold text-slate-600">Awaiting Admissions</span>
+                  <span className="text-[10px] text-slate-400">0 check-ins recorded yet</span>
                 </div>
-                <div className="flex-1 flex flex-col items-center gap-1">
-                  <div className="w-full bg-indigo-400 rounded-t h-8" />
-                  <span className="text-[9px] text-slate-400">9 AM</span>
+              ) : (
+                <div className="flex items-end gap-2 h-20 pt-2">
+                  {hourlyVelocity.map((h) => {
+                    const maxH = Math.max(1, ...hourlyVelocity.map((x) => x.count));
+                    const heightPercent = Math.max(25, Math.round((h.count / maxH) * 100));
+                    return (
+                      <div key={h.hour} className="flex-1 flex flex-col items-center gap-1">
+                        <span className="text-[9px] font-black text-indigo-600">{h.count}</span>
+                        <div
+                          className="w-full bg-indigo-600 rounded-t transition-all duration-300"
+                          style={{ height: `${heightPercent}%` }}
+                        />
+                        <span className="text-[9px] text-slate-500 font-bold">{h.hour}</span>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="flex-1 flex flex-col items-center gap-1">
-                  <div className="w-full bg-indigo-600 rounded-t h-12" />
-                  <span className="text-[9px] text-slate-400 font-bold text-indigo-600">10 AM</span>
-                </div>
-                <div className="flex-1 flex flex-col items-center gap-1">
-                  <div className="w-full bg-indigo-300 rounded-t h-6" />
-                  <span className="text-[9px] text-slate-400">11 AM</span>
-                </div>
-              </div>
+              )}
             </div>
+          </div>
+
+          {/* Quick Door Scanner & OTP Ticket Pass Input */}
+          <div className="bg-gradient-to-r from-indigo-900 to-slate-900 p-5 rounded-2xl text-white shadow-md space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-black flex items-center gap-2 text-white">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  Door Pass & OTP Entrance Verification
+                </h3>
+                <p className="text-xs text-slate-300">
+                  Scan attendee QR code string, booking pass #, or enter 6-digit door OTP to admit attendees instantly.
+                </p>
+              </div>
+              <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 self-start sm:self-auto">
+                Door Desk Active
+              </span>
+            </div>
+
+            <form onSubmit={handleVerifyDoorPass} className="flex flex-col sm:flex-row items-center gap-2">
+              <div className="relative flex-1 w-full">
+                <input
+                  type="text"
+                  placeholder="Enter ticket booking # (e.g., CM-...), QR code, or 6-digit OTP..."
+                  value={doorPassCode}
+                  onChange={(e) => setDoorPassCode(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/10 text-white placeholder-slate-400 text-xs font-mono border border-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={verifyingPass || !doorPassCode.trim()}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-black text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {verifyingPass ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                <span>Verify & Check In</span>
+              </button>
+            </form>
+
+            {passFeedback && (
+              <div
+                className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                  passFeedback.type === 'success'
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                    : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                }`}
+              >
+                {passFeedback.type === 'success' ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                )}
+                <span>{passFeedback.message}</span>
+              </div>
+            )}
           </div>
 
           {/* Attendee Roster & Manual Instant Check-in Toggle */}

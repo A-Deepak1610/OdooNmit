@@ -1,42 +1,42 @@
 import { apiClient } from './api-client';
 
 export interface EventAnalyticsData {
-  pageViews: number;
-  uniqueVisitors: number;
-  avgTimeOnPage: string;
-  conversionRate: string;
-  locationsCount: number;
-  geographicDistribution: Array<{
+  pageViews?: number;
+  uniqueVisitors?: number;
+  registrationTrend?: Array<{
+    date: string;
+    count: number;
+  }>;
+  avgTimeOnPage?: string;
+  conversionRate?: string;
+  locationsCount?: number;
+  geographicDistribution?: Array<{
     city: string;
     state: string;
     teams: number;
     lat?: number;
     lng?: number;
   }>;
-  domainDistribution: Record<string, number>;
-  registrationStatus: {
+  domainDistribution?: Record<string, number>;
+  registrationStatus?: {
     approved: number;
     pending: number;
     rejected: number;
   };
-  departmentWise: Record<string, number>;
-  participatingColleges: Array<{
+  departmentWise?: Record<string, number>;
+  participatingColleges?: Array<{
     college: string;
     city: string;
     teams: number;
   }>;
-  yearWise: Record<string, number>;
-  registrationTrend: Array<{
-    date: string;
-    count: number;
-  }>;
-  domainWinRates: Array<{
+  yearWise?: Record<string, number>;
+  domainWinRates?: Array<{
     domain: string;
     participated: number;
     wins: number;
     rate: string;
   }>;
-  averageWinRate: string;
+  averageWinRate?: string;
 }
 
 export interface EventTaskItem {
@@ -69,6 +69,10 @@ export interface CampusEventItem {
   mode: 'offline' | 'online' | 'hybrid';
   startAt: string;
   endAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+  checkedInCount?: number;
+  totalBookingsCount?: number;
   totalSeats: number;
   remainingSeats: number;
   teamsCount: number;
@@ -107,6 +111,8 @@ export const eventService = {
     category?: string;
     organizationId?: string;
     inchargeId?: string;
+    postedDate?: string;
+    sortBy?: string;
   }): Promise<CampusEventItem[]> {
     const res = await apiClient.get<{ success: boolean; data: CampusEventItem[] }>('/events', {
       params,
@@ -117,6 +123,14 @@ export const eventService = {
   // 2. Get event details with full analytics and volunteer tasks
   async getEventById(id: string): Promise<CampusEventItem> {
     const res = await apiClient.get<{ success: boolean; data: CampusEventItem }>(`/events/${id}`);
+    return res.data.data;
+  },
+
+  // Record real page view count for event
+  async recordView(id: string): Promise<{ pageViews: number; uniqueVisitors: number }> {
+    const res = await apiClient.post<{ success: boolean; data: { pageViews: number; uniqueVisitors: number } }>(
+      `/events/${id}/view`
+    );
     return res.data.data;
   },
 

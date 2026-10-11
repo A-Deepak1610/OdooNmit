@@ -5,7 +5,6 @@ import {
   TrendingUp,
   BarChart3,
   Users,
-  CreditCard,
   Plus,
   CheckCircle2,
   AlertCircle,
@@ -22,14 +21,12 @@ import {
 import { useAuthStore } from '../../../stores/auth.store';
 import { useClubStore } from '../../../stores/club.store';
 import { ROLES } from '../../../config/roles';
-import { RazorpayPaymentModal } from '../../shared/RazorpayPaymentModal';
 import { RealQrCode } from '../../shared/RealQrCode';
 import {
   merchandiseService,
   MerchProduct,
   MerchOrder,
   MerchAnalyticsResponse,
-  EventFinanceResponse,
   CreateProductPayload,
 } from '../../../services/merchandise.service';
 
@@ -111,14 +108,15 @@ export const MerchandiseTaskModule: React.FC = () => {
   const { user, role } = useAuthStore();
   const { fundraiserTasks, addTask, updateTaskStatus } = useClubStore();
 
+  const isPresident = role === ROLES.PRESIDENT || user?.roles?.includes('PRESIDENT');
   const isCampusLeadOrAdmin =
-    role === ROLES.PRESIDENT ||
+    isPresident ||
     role === ROLES.ADMIN ||
     role === ROLES.TREASURER ||
     role === ROLES.EVENT_ORGANIZER;
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'store' | 'orders' | 'analytics' | 'event-finance' | 'tasks'>('store');
+  const [activeTab, setActiveTab] = useState<'store' | 'orders' | 'analytics' | 'tasks'>('store');
 
   // Backend Data State
   const [loading, setLoading] = useState(true);
@@ -126,7 +124,6 @@ export const MerchandiseTaskModule: React.FC = () => {
   const [isMember, setIsMember] = useState(false);
   const [orders, setOrders] = useState<MerchOrder[]>([]);
   const [analytics, setAnalytics] = useState<MerchAnalyticsResponse | null>(null);
-  const [eventFinance, setEventFinance] = useState<EventFinanceResponse | null>(null);
 
   // Filter & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -141,6 +138,7 @@ export const MerchandiseTaskModule: React.FC = () => {
     quantity: number;
   } | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   // Success / Pickup Pass Modal State
   const [confirmedOrder, setConfirmedOrder] = useState<{
@@ -214,16 +212,12 @@ export const MerchandiseTaskModule: React.FC = () => {
     }
   };
 
-  // 3. Fetch analytics & event finance if lead/admin
+  // 3. Fetch analytics if lead/admin or president
   const loadAnalytics = async () => {
-    if (!isCampusLeadOrAdmin) return;
+    if (!isCampusLeadOrAdmin && !isPresident) return;
     try {
-      const [analyticsData, financeData] = await Promise.all([
-        merchandiseService.getMerchandiseAnalytics(),
-        merchandiseService.getEventFinanceRecord(),
-      ]);
+      const analyticsData = await merchandiseService.getMerchandiseAnalytics();
       setAnalytics(analyticsData);
-      setEventFinance(financeData);
     } catch (err: any) {
       console.error('Failed to load analytics:', err);
     }
@@ -242,10 +236,13 @@ export const MerchandiseTaskModule: React.FC = () => {
   // Tab change handler
   const handleTabChange = (tab: typeof activeTab) => {
     setActiveTab(tab);
-    if (tab === 'analytics' || tab === 'event-finance') {
+    if (tab === 'analytics') {
       loadAnalytics();
     } else if (tab === 'orders') {
       loadOrders();
+      if (isPresident || isCampusLeadOrAdmin) {
+        loadAnalytics();
+      }
     } else if (tab === 'store') {
       loadProducts();
     }
@@ -270,15 +267,16 @@ export const MerchandiseTaskModule: React.FC = () => {
     setIsPaymentModalOpen(true);
   };
 
-  // Confirm order with mock payment and backend order placement
+  // Confirm order and backend order placement (simple Buy Now, zero Razorpay dependency)
   const handleConfirmOrder = async () => {
-    if (!checkoutProduct) return;
+    if (!checkoutProduct || isPlacingOrder) return;
+    setIsPlacingOrder(true);
     try {
       const res = await merchandiseService.placeOrder({
         productId: checkoutProduct.product.id,
         variantSize: checkoutProduct.size,
         quantity: checkoutProduct.quantity,
-        paymentMethod: 'ONLINE_UPI',
+        paymentMethod: 'CAMPUS_DESK',
         notes: `Pickup by student at campus desk`,
       });
 
@@ -305,6 +303,8 @@ export const MerchandiseTaskModule: React.FC = () => {
         type: 'error',
         message: err.response?.data?.message || err.message || 'Failed to place order.',
       });
+    } finally {
+      setIsPlacingOrder(false);
     }
   };
 
@@ -495,16 +495,17 @@ export const MerchandiseTaskModule: React.FC = () => {
             </div>
 
             <h1 style={{ fontSize: '26px', fontWeight: 800, margin: '0 0 6px 0', letterSpacing: '-0.5px' }}>
-              Campus Merchandise, Goodies & Operations
+              {isPresident ? 'Merchandise Products & Store Operations' : 'Campus Merchandise & Official Goodies'}
             </h1>
             <p style={{ fontSize: '14px', color: '#c7d2fe', margin: 0, maxWidth: '640px', lineHeight: 1.5 }}>
-              Official club apparel, Odoo swag, live stock allocation with size specifications, digital QR pickup
-              passes, and comprehensive financial records for merchandise and events.
+              {isPresident
+                ? 'Manage club merchandise catalog, add new products, track incoming student orders, and review store finances.'
+                : 'Official club apparel, Odoo swag, live stock allocation with size specifications, and digital QR pickup passes.'}
             </p>
           </div>
 
           {/* Quick Lead Actions */}
-          {isCampusLeadOrAdmin && (
+          {(isPresident || isCampusLeadOrAdmin) && (
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <button
                 onClick={() => setShowCreateModal(true)}
@@ -512,16 +513,16 @@ export const MerchandiseTaskModule: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  padding: '10px 18px',
-                  borderRadius: '10px',
-                  background: '#10b981',
+                  padding: '11px 20px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                   color: 'white',
                   border: 'none',
-                  fontWeight: 700,
+                  fontWeight: 800,
                   fontSize: '13px',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)',
-                  transition: 'transform 0.15s',
+                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
+                  transition: 'all 0.15s',
                 }}
               >
                 <Plus style={{ width: '16px', height: '16px' }} />
@@ -530,6 +531,92 @@ export const MerchandiseTaskModule: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* President Store Stats Banner */}
+        {isPresident && (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '14px',
+              marginTop: '22px',
+              borderTop: '1px solid rgba(255, 255, 255, 0.15)',
+              paddingTop: '20px',
+            }}
+          >
+            <div
+              style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                backdropFilter: 'blur(8px)',
+                borderRadius: '12px',
+                padding: '14px 18px',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+              }}
+            >
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#c7d2fe', textTransform: 'uppercase' }}>
+                Orders Received
+              </div>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: 'white', marginTop: '4px' }}>
+                {analytics?.overview?.totalOrders ?? orders.length} Orders
+              </div>
+              <div style={{ fontSize: '11px', color: '#a5b4fc', marginTop: '2px' }}>Total student orders received</div>
+            </div>
+
+            <div
+              style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                backdropFilter: 'blur(8px)',
+                borderRadius: '12px',
+                padding: '14px 18px',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+              }}
+            >
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#c7d2fe', textTransform: 'uppercase' }}>
+                Total Order Values
+              </div>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: '#86efac', marginTop: '4px' }}>
+                ₹{(analytics?.overview?.totalRevenue ?? orders.reduce((s, o) => s + o.orderTotal, 0)).toLocaleString()}
+              </div>
+              <div style={{ fontSize: '11px', color: '#a5b4fc', marginTop: '2px' }}>Gross merchandise sales</div>
+            </div>
+
+            <div
+              style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                backdropFilter: 'blur(8px)',
+                borderRadius: '12px',
+                padding: '14px 18px',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+              }}
+            >
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#c7d2fe', textTransform: 'uppercase' }}>
+                Configured Products
+              </div>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: 'white', marginTop: '4px' }}>
+                {products.length} Products
+              </div>
+              <div style={{ fontSize: '11px', color: '#a5b4fc', marginTop: '2px' }}>Active in club catalog</div>
+            </div>
+
+            <div
+              style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                backdropFilter: 'blur(8px)',
+                borderRadius: '12px',
+                padding: '14px 18px',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+              }}
+            >
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#c7d2fe', textTransform: 'uppercase' }}>
+                Stock Outflow / Units Sold
+              </div>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: '#fde047', marginTop: '4px' }}>
+                {orders.reduce((s, o) => s + o.quantity, 0)} Units
+              </div>
+              <div style={{ fontSize: '11px', color: '#a5b4fc', marginTop: '2px' }}>Fulfilled or awaiting pickup</div>
+            </div>
+          </div>
+        )}
 
         {/* Dynamic Navigation Tabs */}
         <div
@@ -562,7 +649,7 @@ export const MerchandiseTaskModule: React.FC = () => {
             }}
           >
             <ShoppingBag style={{ width: '15px', height: '15px' }} />
-            Merchandise Store ({products.length})
+            {isPresident ? `Products & Stock (${products.length})` : `Merchandise Store (${products.length})`}
           </button>
 
           <button
@@ -582,72 +669,54 @@ export const MerchandiseTaskModule: React.FC = () => {
             }}
           >
             <Package style={{ width: '15px', height: '15px' }} />
-            My Orders ({orders.length})
+            {isPresident
+              ? `Orders Received (${analytics?.overview?.totalOrders ?? orders.length})`
+              : `My Orders (${orders.length})`}
           </button>
 
-          {isCampusLeadOrAdmin && (
-            <>
-              <button
-                onClick={() => handleTabChange('analytics')}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  background: activeTab === 'analytics' ? 'white' : 'transparent',
-                  color: activeTab === 'analytics' ? '#1e1b4b' : '#c7d2fe',
-                  fontSize: '13px',
-                  fontWeight: activeTab === 'analytics' ? 700 : 500,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                <TrendingUp style={{ width: '15px', height: '15px' }} />
-                Merchandise Analytics & Finance
-              </button>
-
-              <button
-                onClick={() => handleTabChange('event-finance')}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  background: activeTab === 'event-finance' ? 'white' : 'transparent',
-                  color: activeTab === 'event-finance' ? '#1e1b4b' : '#c7d2fe',
-                  fontSize: '13px',
-                  fontWeight: activeTab === 'event-finance' ? 700 : 500,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                <DollarSign style={{ width: '15px', height: '15px' }} />
-                Event Finance Records
-              </button>
-            </>
+          {(isPresident || isCampusLeadOrAdmin) && (
+            <button
+              onClick={() => handleTabChange('analytics')}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: 'none',
+                background: activeTab === 'analytics' ? 'white' : 'transparent',
+                color: activeTab === 'analytics' ? '#1e1b4b' : '#c7d2fe',
+                fontSize: '13px',
+                fontWeight: activeTab === 'analytics' ? 700 : 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <TrendingUp style={{ width: '15px', height: '15px' }} />
+              Merchandise Finance & Records
+            </button>
           )}
 
-          <button
-            onClick={() => handleTabChange('tasks')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '8px',
-              border: 'none',
-              background: activeTab === 'tasks' ? 'white' : 'transparent',
-              color: activeTab === 'tasks' ? '#1e1b4b' : '#c7d2fe',
-              fontSize: '13px',
-              fontWeight: activeTab === 'tasks' ? 700 : 500,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <Layers style={{ width: '15px', height: '15px' }} />
-            Bake Sale Fundraiser Tasks ({progressPercent}%)
-          </button>
+          {!isPresident && (
+            <button
+              onClick={() => handleTabChange('tasks')}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: 'none',
+                background: activeTab === 'tasks' ? 'white' : 'transparent',
+                color: activeTab === 'tasks' ? '#1e1b4b' : '#c7d2fe',
+                fontSize: '13px',
+                fontWeight: activeTab === 'tasks' ? 700 : 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <Layers style={{ width: '15px', height: '15px' }} />
+              Bake Sale Fundraiser Tasks ({progressPercent}%)
+            </button>
+          )}
         </div>
       </div>
 
@@ -913,6 +982,7 @@ export const MerchandiseTaskModule: React.FC = () => {
                       </div>
 
                       {/* Category Tag */}
+                      {/* Category Tag */}
                       <span
                         style={{
                           position: 'absolute',
@@ -1045,28 +1115,49 @@ export const MerchandiseTaskModule: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Order Button */}
-                        <button
-                          disabled={isOutOfStock}
-                          onClick={() => handleInitiateOrder(product)}
-                          style={{
-                            padding: '9px 16px',
-                            borderRadius: '8px',
-                            border: 'none',
-                            background: isOutOfStock ? '#e2e8f0' : '#4338ca',
-                            color: isOutOfStock ? '#94a3b8' : 'white',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            cursor: isOutOfStock ? 'not-allowed' : 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            transition: 'background 0.2s',
-                          }}
-                        >
-                          <CreditCard style={{ width: '14px', height: '14px' }} />
-                          {isOutOfStock ? 'Sold Out' : 'Order Now'}
-                        </button>
+                        {/* Buy Now Button or Stock Indicator for President */}
+                        {isPresident ? (
+                          <div
+                            style={{
+                              padding: '8px 14px',
+                              borderRadius: '8px',
+                              background: isOutOfStock ? '#fef2f2' : '#f0fdf4',
+                              color: isOutOfStock ? '#b91c1c' : '#15803d',
+                              fontSize: '12px',
+                              fontWeight: 800,
+                              border: isOutOfStock ? '1px solid #fecaca' : '1px solid #bbf7d0',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                            }}
+                          >
+                            <Package style={{ width: '14px', height: '14px' }} />
+                            {isOutOfStock ? 'Sold Out' : `${onHandStock} In Stock`}
+                          </div>
+                        ) : (
+                          <button
+                            disabled={isOutOfStock}
+                            onClick={() => handleInitiateOrder(product)}
+                            style={{
+                              padding: '9px 18px',
+                              borderRadius: '10px',
+                              border: 'none',
+                              background: isOutOfStock ? '#e2e8f0' : 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+                              color: isOutOfStock ? '#94a3b8' : 'white',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              boxShadow: isOutOfStock ? 'none' : '0 2px 4px rgba(79, 70, 229, 0.25)',
+                              transition: 'all 0.2s',
+                            }}
+                          >
+                            <ShoppingBag style={{ width: '14px', height: '14px' }} />
+                            {isOutOfStock ? 'Sold Out' : 'Buy Now'}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1093,15 +1184,19 @@ export const MerchandiseTaskModule: React.FC = () => {
           >
             <div>
               <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#1e293b', margin: 0 }}>
-                My Merchandise Orders & Pickup Passes
+                {isPresident ? 'All Student Merchandise Orders Received' : 'My Merchandise Orders & Pickup Passes'}
               </h2>
               <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
-                Present the digital QR pass or 6-digit order OTP at the club executive desk during campus hours to
-                claim your merchandise.
+                {isPresident
+                  ? 'Real-time record of merchandise orders placed by campus students and club members.'
+                  : 'Present the digital QR pass or 6-digit order OTP at the club executive desk during campus hours to claim your merchandise.'}
               </p>
             </div>
             <button
-              onClick={loadOrders}
+              onClick={() => {
+                loadOrders();
+                if (isPresident) loadAnalytics();
+              }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -1121,136 +1216,157 @@ export const MerchandiseTaskModule: React.FC = () => {
             </button>
           </div>
 
-          {orders.length === 0 ? (
-            <div style={{ padding: '60px', textAlign: 'center', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-              <Package style={{ width: '40px', height: '40px', color: '#94a3b8', margin: '0 auto 12px auto' }} />
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b' }}>No orders placed yet</h3>
-              <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px' }}>
-                Browse our official Odoo merchandise store and order with member discounts.
-              </p>
-              <button
-                onClick={() => setActiveTab('store')}
-                style={{
-                  padding: '9px 18px',
-                  borderRadius: '8px',
-                  background: '#4338ca',
-                  color: 'white',
-                  border: 'none',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                Go to Merchandise Shop
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {orders.map((o) => {
-                const isFulfilled = o.fulfillmentStatus === 'COMPLETED';
-                return (
-                  <div
-                    key={o.id}
-                    style={{
-                      background: 'white',
-                      borderRadius: '12px',
-                      border: '1px solid #e2e8f0',
-                      padding: '18px 22px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                      gap: '16px',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <div
-                        style={{
-                          width: '48px',
-                          height: '48px',
-                          borderRadius: '10px',
-                          background: isFulfilled ? '#dcfce7' : '#e0e7ff',
-                          color: isFulfilled ? '#15803d' : '#4338ca',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                        }}
-                      >
-                        <ShoppingBag style={{ width: '24px', height: '24px' }} />
+          {(() => {
+            const displayOrders = (isPresident && analytics?.recentOrders && analytics.recentOrders.length > 0)
+              ? analytics.recentOrders
+              : orders;
+
+            if (displayOrders.length === 0) {
+              return (
+                <div style={{ padding: '60px', textAlign: 'center', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <Package style={{ width: '40px', height: '40px', color: '#94a3b8', margin: '0 auto 12px auto' }} />
+                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b' }}>
+                    {isPresident ? 'No student orders received yet' : 'No orders placed yet'}
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px' }}>
+                    {isPresident
+                      ? 'Student orders placed online will appear here with pickup passes and revenue records.'
+                      : 'Browse our official Odoo merchandise store and order with member discounts.'}
+                  </p>
+                  {!isPresident && (
+                    <button
+                      onClick={() => setActiveTab('store')}
+                      style={{
+                        padding: '9px 18px',
+                        borderRadius: '8px',
+                        background: '#4338ca',
+                        color: 'white',
+                        border: 'none',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Go to Merchandise Shop
+                    </button>
+                  )}
+                </div>
+              );
+            }
+
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {displayOrders.map((o) => {
+                  const isFulfilled = o.fulfillmentStatus === 'COMPLETED';
+                  return (
+                    <div
+                      key={o.id}
+                      style={{
+                        background: 'white',
+                        borderRadius: '12px',
+                        border: '1px solid #e2e8f0',
+                        padding: '18px 22px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '16px',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div
+                          style={{
+                            width: '48px',
+                            height: '48px',
+                            borderRadius: '10px',
+                            background: isFulfilled ? '#dcfce7' : '#e0e7ff',
+                            color: isFulfilled ? '#15803d' : '#4338ca',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <ShoppingBag style={{ width: '24px', height: '24px' }} />
+                        </div>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>
+                              {o.productName}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                background: '#f1f5f9',
+                                color: '#475569',
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                              }}
+                            >
+                              Size: {o.variantSize}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                background: isFulfilled ? '#ecfdf5' : '#eff6ff',
+                                color: isFulfilled ? '#065f46' : '#1e40af',
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                              }}
+                            >
+                              {isFulfilled ? 'HANDED OVER' : 'READY FOR PICKUP'}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                            Order #{o.orderNumber} • Placed on {new Date(o.createdAt).toLocaleDateString()} • Qty: {o.quantity}
+                            {isPresident && o.studentName && (
+                              <span style={{ marginLeft: '10px', color: '#4338ca', fontWeight: 700 }}>
+                                • Student: {o.studentName} ({o.studentEmail})
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>
-                            {o.productName}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              fontWeight: 700,
-                              background: '#f1f5f9',
-                              color: '#475569',
-                              padding: '2px 8px',
-                              borderRadius: '4px',
-                            }}
-                          >
-                            Size: {o.variantSize}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              fontWeight: 700,
-                              background: isFulfilled ? '#ecfdf5' : '#eff6ff',
-                              color: isFulfilled ? '#065f46' : '#1e40af',
-                              padding: '2px 8px',
-                              borderRadius: '4px',
-                            }}
-                          >
-                            {isFulfilled ? 'HANDED OVER' : 'READY FOR PICKUP'}
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '16px', fontWeight: 800, color: '#1e293b' }}>
+                            ₹{o.orderTotal.toLocaleString()}
+                          </div>
+                          <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700 }}>
+                            Paid via {o.paymentStatus}
                           </span>
                         </div>
-                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-                          Order #{o.orderNumber} • Placed on {new Date(o.createdAt).toLocaleDateString()} • Qty: {o.quantity}
-                        </div>
+
+                        <button
+                          onClick={() => setSelectedViewOrder(o)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 14px',
+                            borderRadius: '8px',
+                            border: '1px solid #4338ca',
+                            background: '#eef2ff',
+                            color: '#4338ca',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <QrCode style={{ width: '14px', height: '14px' }} />
+                          View Pickup Pass
+                        </button>
                       </div>
                     </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#1e293b' }}>
-                          ₹{o.orderTotal.toLocaleString()}
-                        </div>
-                        <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700 }}>
-                          Paid via {o.paymentStatus}
-                        </span>
-                      </div>
-
-                      <button
-                        onClick={() => setSelectedViewOrder(o)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '8px 14px',
-                          borderRadius: '8px',
-                          border: '1px solid #4338ca',
-                          background: '#eef2ff',
-                          color: '#4338ca',
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <QrCode style={{ width: '14px', height: '14px' }} />
-                        View Pickup Pass
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -1777,224 +1893,7 @@ export const MerchandiseTaskModule: React.FC = () => {
         </div>
       )}
 
-      {/* ── TAB 4: SEPARATE EVENT FINANCE RECORD PAGE ─────────── */}
-      {activeTab === 'event-finance' && isCampusLeadOrAdmin && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#1e293b', margin: 0 }}>
-                Campus Event Financial Records & Ticket Proceeds
-              </h2>
-              <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
-                Dedicated financial ledger for campus events: ticket proceeds, seat occupancy, member discount
-                savings, and treasury revenue logs.
-              </p>
-            </div>
-            <button
-              onClick={loadAnalytics}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                background: 'white',
-                fontSize: '12px',
-                fontWeight: 600,
-                color: '#475569',
-                cursor: 'pointer',
-              }}
-            >
-              <RefreshCw style={{ width: '14px', height: '14px' }} />
-              Sync Ledger
-            </button>
-          </div>
 
-          {/* Event KPI Overview */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '16px',
-            }}
-          >
-            <div style={{ background: 'white', borderRadius: '12px', padding: '18px', border: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>GROSS EVENT REVENUE</span>
-                <DollarSign style={{ width: '18px', height: '18px', color: '#10b981' }} />
-              </div>
-              <div style={{ fontSize: '24px', fontWeight: 800, color: '#1e293b', marginTop: '8px' }}>
-                ₹{(eventFinance?.overview?.totalEventRevenue || 0).toLocaleString()}
-              </div>
-              <div style={{ fontSize: '11px', color: '#059669', fontWeight: 600, marginTop: '4px' }}>
-                Verified via Treasury Incomes
-              </div>
-            </div>
-
-            <div style={{ background: 'white', borderRadius: '12px', padding: '18px', border: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>TOTAL TICKETS SOLD</span>
-                <CreditCard style={{ width: '18px', height: '18px', color: '#6366f1' }} />
-              </div>
-              <div style={{ fontSize: '24px', fontWeight: 800, color: '#1e293b', marginTop: '8px' }}>
-                {eventFinance?.overview?.totalTicketsSold || 0}
-              </div>
-              <div style={{ fontSize: '11px', color: '#4f46e5', fontWeight: 600, marginTop: '4px' }}>
-                Across {eventFinance?.overview?.totalEvents || 0} organized events
-              </div>
-            </div>
-
-            <div style={{ background: 'white', borderRadius: '12px', padding: '18px', border: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>MEMBER TICKET SAVINGS</span>
-                <Sparkles style={{ width: '18px', height: '18px', color: '#eab308' }} />
-              </div>
-              <div style={{ fontSize: '24px', fontWeight: 800, color: '#1e293b', marginTop: '8px' }}>
-                ₹{(eventFinance?.overview?.totalMemberTicketSavings || 0).toLocaleString()}
-              </div>
-              <div style={{ fontSize: '11px', color: '#ca8a04', fontWeight: 600, marginTop: '4px' }}>
-                Saved by registered members
-              </div>
-            </div>
-          </div>
-
-          {/* Event-By-Event Financial Ledger Table */}
-          <div
-            style={{
-              background: 'white',
-              borderRadius: '14px',
-              border: '1px solid #e2e8f0',
-              overflow: 'hidden',
-            }}
-          >
-            <div style={{ padding: '18px 22px', borderBottom: '1px solid #f1f5f9' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', margin: 0 }}>
-                Event Financial Ledger & Seat Occupancy
-              </h3>
-              <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0 0 0' }}>
-                Detailed breakdown of tickets sold, member rates, gross proceeds, and attendance efficiency.
-              </p>
-            </div>
-
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                <thead>
-                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
-                    <th style={{ padding: '12px 18px', fontWeight: 700 }}>EVENT TITLE & VENUE</th>
-                    <th style={{ padding: '12px 18px', fontWeight: 700 }}>DATE</th>
-                    <th style={{ padding: '12px 18px', fontWeight: 700 }}>SEATS & TICKETS</th>
-                    <th style={{ padding: '12px 18px', fontWeight: 700 }}>RATES (MBR / REG)</th>
-                    <th style={{ padding: '12px 18px', fontWeight: 700 }}>GROSS PROCEEDS</th>
-                    <th style={{ padding: '12px 18px', fontWeight: 700 }}>OCCUPANCY</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(eventFinance?.events || []).map((ev) => (
-                    <tr key={ev.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '14px 18px' }}>
-                        <div style={{ fontWeight: 700, color: '#1e293b' }}>{ev.title}</div>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>{ev.venue}</div>
-                      </td>
-                      <td style={{ padding: '14px 18px', color: '#475569' }}>
-                        {new Date(ev.startAt).toLocaleDateString()}
-                      </td>
-                      <td style={{ padding: '14px 18px' }}>
-                        <span style={{ fontWeight: 700, color: '#1e293b' }}>{ev.ticketsSold}</span> / {ev.totalSeats} seats
-                      </td>
-                      <td style={{ padding: '14px 18px' }}>
-                        <span style={{ color: '#15803d', fontWeight: 700 }}>₹{ev.memberPriceINR}</span> /{' '}
-                        <span style={{ color: '#1e293b' }}>₹{ev.nonMemberPriceINR}</span>
-                      </td>
-                      <td style={{ padding: '14px 18px', fontWeight: 800, color: '#10b981' }}>
-                        ₹{ev.grossRevenue.toLocaleString()}
-                      </td>
-                      <td style={{ padding: '14px 18px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ width: '60px', height: '6px', borderRadius: '3px', background: '#e2e8f0', overflow: 'hidden' }}>
-                            <div style={{ width: `${ev.occupancyRate}%`, height: '100%', background: '#4338ca' }} />
-                          </div>
-                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>{ev.occupancyRate}%</span>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Recent Event Ticket Bookings */}
-          <div
-            style={{
-              background: 'white',
-              borderRadius: '14px',
-              border: '1px solid #e2e8f0',
-              overflow: 'hidden',
-            }}
-          >
-            <div style={{ padding: '18px 22px', borderBottom: '1px solid #f1f5f9' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', margin: 0 }}>
-                Recent Ticket Bookings & Check-in Status
-              </h3>
-              <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0 0 0' }}>
-                Individual confirmed passes, attendee names, and paid amounts.
-              </p>
-            </div>
-
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                <thead>
-                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
-                    <th style={{ padding: '12px 18px', fontWeight: 700 }}>BOOKING #</th>
-                    <th style={{ padding: '12px 18px', fontWeight: 700 }}>EVENT</th>
-                    <th style={{ padding: '12px 18px', fontWeight: 700 }}>ATTENDEE</th>
-                    <th style={{ padding: '12px 18px', fontWeight: 700 }}>TICKETS</th>
-                    <th style={{ padding: '12px 18px', fontWeight: 700 }}>AMOUNT</th>
-                    <th style={{ padding: '12px 18px', fontWeight: 700 }}>STATUS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(eventFinance?.recentBookings || []).map((b) => (
-                    <tr key={b.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '14px 18px', fontWeight: 700, color: '#1e293b' }}>
-                        {b.bookingNumber}
-                      </td>
-                      <td style={{ padding: '14px 18px', color: '#334155', fontWeight: 600 }}>
-                        {b.eventTitle}
-                      </td>
-                      <td style={{ padding: '14px 18px' }}>
-                        <div style={{ fontWeight: 600, color: '#1e293b' }}>{b.userName}</div>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>{b.userEmail}</div>
-                      </td>
-                      <td style={{ padding: '14px 18px', fontWeight: 600 }}>
-                        {b.quantity} pass(es)
-                      </td>
-                      <td style={{ padding: '14px 18px', fontWeight: 800, color: '#10b981' }}>
-                        ₹{b.totalAmountINR}
-                      </td>
-                      <td style={{ padding: '14px 18px' }}>
-                        <span
-                          style={{
-                            background: '#dcfce7',
-                            color: '#15803d',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            padding: '2px 8px',
-                            borderRadius: '4px',
-                          }}
-                        >
-                          CONFIRMED
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── TAB 5: BAKE SALE FUNDRAISER TASKS ──────────────────── */}
       {activeTab === 'tasks' && (
@@ -2667,18 +2566,264 @@ export const MerchandiseTaskModule: React.FC = () => {
         </div>
       )}
 
-      {/* ── MODAL 3: PAYMENT CHECKOUT ───────────────────────────── */}
+      {/* ── MODAL 3: INSTANT BUY NOW MODAL (NO RAZORPAY NEEDED) ───────────────────────────── */}
       {isPaymentModalOpen && checkoutProduct && (
-        <RazorpayPaymentModal
-          isOpen={isPaymentModalOpen}
-          onClose={() => setIsPaymentModalOpen(false)}
-          title={`Order: ${checkoutProduct.product.name}`}
-          purpose={`Official Club Merchandise Purchase (Size: ${checkoutProduct.size})`}
-          amount={checkoutProduct.unitPrice * checkoutProduct.quantity}
-          payerName={user?.name || 'Deepak Kumar'}
-          payerEmail={user?.email || 'student@campus.edu'}
-          onSuccess={() => handleConfirmOrder()}
-        />
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '20px',
+              maxWidth: '460px',
+              width: '100%',
+              padding: '26px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              border: '1px solid #e2e8f0',
+              position: 'relative',
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ShoppingBag style={{ width: '20px', height: '20px', color: '#4f46e5' }} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                    Buy Merchandise
+                  </h3>
+                  <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0 0' }}>
+                    Instant campus order & digital pickup pass
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPaymentModalOpen(false);
+                  setCheckoutProduct(null);
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  padding: '6px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <X style={{ width: '20px', height: '20px' }} />
+              </button>
+            </div>
+
+            {/* Product Summary Card */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '14px',
+                padding: '14px',
+                background: '#f8fafc',
+                borderRadius: '14px',
+                border: '1px solid #e2e8f0',
+                marginBottom: '18px',
+              }}
+            >
+              <img
+                src={checkoutProduct.product.image || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=300'}
+                alt={checkoutProduct.product.name}
+                style={{ width: '68px', height: '68px', objectFit: 'cover', borderRadius: '10px', flexShrink: 0 }}
+              />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#4f46e5', textTransform: 'uppercase' }}>
+                  {checkoutProduct.product.category}
+                </span>
+                <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#1e293b', margin: '2px 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {checkoutProduct.product.name}
+                </h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748b' }}>
+                  <span style={{ fontWeight: 600 }}>Size: {checkoutProduct.size}</span>
+                  <span>•</span>
+                  <span style={{ fontWeight: 700, color: '#0f172a' }}>₹{checkoutProduct.unitPrice} each</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quantity Selector */}
+            <div style={{ marginBottom: '18px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+                  SELECT QUANTITY:
+                </label>
+                <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700 }}>
+                  In Stock
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '10px', overflow: 'hidden' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (checkoutProduct.quantity > 1) {
+                        setCheckoutProduct({ ...checkoutProduct, quantity: checkoutProduct.quantity - 1 });
+                      }
+                    }}
+                    disabled={checkoutProduct.quantity <= 1}
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      background: '#f8fafc',
+                      border: 'none',
+                      color: checkoutProduct.quantity <= 1 ? '#cbd5e1' : '#1e293b',
+                      fontSize: '16px',
+                      fontWeight: 700,
+                      cursor: checkoutProduct.quantity <= 1 ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    -
+                  </button>
+                  <span style={{ width: '40px', textAlign: 'center', fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                    {checkoutProduct.quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCheckoutProduct({ ...checkoutProduct, quantity: checkoutProduct.quantity + 1 });
+                    }}
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      background: '#f8fafc',
+                      border: 'none',
+                      color: '#1e293b',
+                      fontSize: '16px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
+                <span style={{ fontSize: '12px', color: '#64748b' }}>
+                  Total Units: <strong>{checkoutProduct.quantity}</strong>
+                </span>
+              </div>
+            </div>
+
+            {/* Pricing Breakdown */}
+            <div
+              style={{
+                background: '#f8fafc',
+                borderRadius: '12px',
+                padding: '14px',
+                border: '1px solid #e2e8f0',
+                marginBottom: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                fontSize: '13px',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b' }}>
+                <span>Unit Price</span>
+                <span>₹{checkoutProduct.unitPrice}</span>
+              </div>
+              {isMember && checkoutProduct.product.sellingPrice > checkoutProduct.unitPrice && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#059669', fontWeight: 600 }}>
+                  <span>Member Discount Saved</span>
+                  <span>-₹{(checkoutProduct.product.sellingPrice - checkoutProduct.unitPrice) * checkoutProduct.quantity}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b' }}>
+                <span>Pickup Station</span>
+                <span style={{ color: '#1e293b', fontWeight: 600 }}>Campus Student Association Desk</span>
+              </div>
+              <div
+                style={{
+                  height: '1px',
+                  background: '#e2e8f0',
+                  margin: '4px 0',
+                }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>Total Amount</span>
+                <span style={{ fontSize: '20px', fontWeight: 900, color: '#4f46e5' }}>
+                  ₹{(checkoutProduct.unitPrice * checkoutProduct.quantity).toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPaymentModalOpen(false);
+                  setCheckoutProduct(null);
+                }}
+                disabled={isPlacingOrder}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: '1px solid #cbd5e1',
+                  background: 'white',
+                  color: '#475569',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: isPlacingOrder ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmOrder}
+                disabled={isPlacingOrder}
+                style={{
+                  flex: 2,
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: isPlacingOrder ? '#818cf8' : 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  cursor: isPlacingOrder ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.3)',
+                }}
+              >
+                {isPlacingOrder ? (
+                  <>
+                    <Loader2 style={{ width: '16px', height: '16px', animation: 'spin 1s linear infinite' }} />
+                    Placing Order...
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag style={{ width: '16px', height: '16px' }} />
+                    Buy Now • ₹{(checkoutProduct.unitPrice * checkoutProduct.quantity).toLocaleString()}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── MODAL 4: FUNDRAISER TASK MODAL ──────────────────────── */}

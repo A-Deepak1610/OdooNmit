@@ -22,6 +22,7 @@ import {
   Wallet,
   Package,
   DollarSign,
+  HelpCircle,
 } from 'lucide-react';
 
 /**
@@ -84,6 +85,22 @@ export const navigationConfig: NavigationItem[] = [
     allowedRoles: [ROLES.STUDENT],
     badge: 'Store',
   },
+  {
+    id: 'student-announcements',
+    label: 'Club & Campus Bulletins',
+    path: '/student/announcements',
+    icon: Megaphone,
+    allowedRoles: [ROLES.STUDENT],
+    badge: 'Notices',
+  },
+  {
+    id: 'student-support',
+    label: 'Help & Support Desk',
+    path: '/student/support',
+    icon: HelpCircle,
+    allowedRoles: [ROLES.STUDENT],
+    badge: 'Queries',
+  },
 
   // Member Hub
   {
@@ -142,6 +159,15 @@ export const navigationConfig: NavigationItem[] = [
     allowedRoles: [ROLES.MEMBER],
     group: 'MEMBER HUB',
   },
+  {
+    id: 'member-support',
+    label: 'Help & Support Desk',
+    path: '/member/support',
+    icon: HelpCircle,
+    allowedRoles: [ROLES.MEMBER],
+    group: 'MEMBER HUB',
+    badge: 'Queries',
+  },
 
   // ===========================================================================
   // 5. VOLUNTEER NAVIGATION
@@ -195,6 +221,15 @@ export const navigationConfig: NavigationItem[] = [
     icon: UserCheck,
     allowedRoles: [ROLES.VOLUNTEER],
     group: 'CREDENTIALS',
+  },
+  {
+    id: 'volunteer-support',
+    label: 'Help & Support Desk',
+    path: '/volunteer/support',
+    icon: HelpCircle,
+    allowedRoles: [ROLES.VOLUNTEER],
+    group: 'CREDENTIALS',
+    badge: 'Queries',
   },
 
   // ===========================================================================
@@ -250,6 +285,15 @@ export const navigationConfig: NavigationItem[] = [
     allowedRoles: [ROLES.EVENT_ORGANIZER],
     group: 'EVENT OPERATIONS',
     badge: 'Live',
+  },
+  {
+    id: 'organizer-support',
+    label: 'Help & Support Desk',
+    path: '/organizer/support',
+    icon: HelpCircle,
+    allowedRoles: [ROLES.EVENT_ORGANIZER],
+    group: 'EVENT OPERATIONS',
+    badge: 'Queries',
   },
 
   // ===========================================================================
@@ -321,6 +365,14 @@ export const navigationConfig: NavigationItem[] = [
     icon: ShieldCheck,
     allowedRoles: [ROLES.TREASURER],
   },
+  {
+    id: 'treasurer-support',
+    label: 'Help & Support Desk',
+    path: '/treasurer/support',
+    icon: HelpCircle,
+    allowedRoles: [ROLES.TREASURER],
+    badge: 'Queries',
+  },
 
   // ===========================================================================
   // 2. CLUB PRESIDENT / ORGANIZATION ADMIN NAVIGATION
@@ -376,6 +428,14 @@ export const navigationConfig: NavigationItem[] = [
     icon: ShoppingBag,
     allowedRoles: [ROLES.PRESIDENT],
     badge: 'Store',
+  },
+  {
+    id: 'president-support',
+    label: 'Support & Club Queries',
+    path: '/president/support',
+    icon: HelpCircle,
+    allowedRoles: [ROLES.PRESIDENT],
+    badge: 'Queries',
   },
 
   // ===========================================================================

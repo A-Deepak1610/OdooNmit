@@ -153,6 +153,17 @@ export class StudentController {
       res.status(400).json({ success: false, message: err.message });
     }
   }
+
+  // 5. Announcements Feed
+  async getAnnouncements(req: Request, res: Response) {
+    try {
+      const userId = getUserId(req);
+      const data = await studentService.getAnnouncements(userId);
+      res.json({ success: true, data });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
 }
 
 export const studentController = new StudentController();

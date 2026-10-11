@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { paymentService } from './payment.service.js';
 import { sendError } from '../../common/utils/api-response.util.js';
+import { prisma } from '../../config/prisma.js';
 
 export class PaymentController {
   /**
@@ -15,7 +16,14 @@ export class PaymentController {
         return sendError(res, 'Authentication required. No user token provided.', 401);
       }
 
-      const { organizationId, clubId, bookingId, eventId, purpose } = req.body;
+      let { organizationId, clubId, bookingId, eventId, purpose, productId } = req.body;
+
+      if (!organizationId && !clubId && !bookingId && !eventId && productId) {
+        const prod = await prisma.merchProduct.findUnique({ where: { id: productId } });
+        if (prod?.organizationId) {
+          organizationId = prod.organizationId;
+        }
+      }
 
       if (!organizationId && !clubId && !bookingId && !eventId) {
         return sendError(

@@ -16,6 +16,8 @@ export class EventService {
     category?: string;
     organizationId?: string;
     inchargeId?: string;
+    postedDate?: string;
+    sortBy?: string;
   }) {
     const where: any = {};
 
@@ -41,6 +43,31 @@ export class EventService {
       where.category = params.category;
     }
 
+    // Filter by Event Posted Date (createdAt)
+    if (params?.postedDate && params.postedDate !== 'ALL') {
+      const now = new Date();
+      if (params.postedDate === 'TODAY') {
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        where.createdAt = { gte: startOfToday };
+      } else if (params.postedDate === 'THIS_WEEK') {
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - 7);
+        where.createdAt = { gte: startOfWeek };
+      } else if (params.postedDate === 'THIS_MONTH') {
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        where.createdAt = { gte: startOfMonth };
+      } else if (params.postedDate === 'PAST_MONTH') {
+        const startOfPastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        where.createdAt = { gte: startOfPastMonth };
+      } else if (/^\d{4}-\d{2}-\d{2}$/.test(params.postedDate)) {
+        // Specific posted date YYYY-MM-DD
+        const [y, m, d] = params.postedDate.split('-').map(Number);
+        const dayStart = new Date(y, m - 1, d);
+        const dayEnd = new Date(y, m - 1, d, 23, 59, 59, 999);
+        where.createdAt = { gte: dayStart, lte: dayEnd };
+      }
+    }
+
     if (params?.search && params.search.trim()) {
       const q = params.search.trim();
       where.OR = [
@@ -50,6 +77,16 @@ export class EventService {
         { venue: { contains: q } },
         { description: { contains: q } },
       ];
+    }
+
+    // Sort order: default newest posted first
+    let orderBy: any = { createdAt: 'desc' };
+    if (params?.sortBy === 'createdAt_asc') {
+      orderBy = { createdAt: 'asc' };
+    } else if (params?.sortBy === 'startAt_asc') {
+      orderBy = { startAt: 'asc' };
+    } else if (params?.sortBy === 'startAt_desc') {
+      orderBy = { startAt: 'desc' };
     }
 
     const events = await prisma.event.findMany({
@@ -83,18 +120,73 @@ export class EventService {
             },
           },
         },
+        bookings: {
+          select: {
+            id: true,
+            quantity: true,
+            status: true,
+            createdAt: true,
+            checkedInAt: true,
+          },
+        },
       },
-      orderBy: { startAt: 'asc' },
+      orderBy,
     });
 
     return events.map((e) => {
-      let parsedAnalytics = null;
+      let parsedAnalytics: any = null;
       try {
         if (e.analyticsData) {
           parsedAnalytics = JSON.parse(e.analyticsData);
         }
       } catch {
         parsedAnalytics = null;
+      }
+
+      if (parsedAnalytics) {
+        // Strip legacy static mock keys
+        delete parsedAnalytics.avgTimeOnPage;
+        delete parsedAnalytics.conversionRate;
+        delete parsedAnalytics.locationsCount;
+        delete parsedAnalytics.geographicDistribution;
+        delete parsedAnalytics.domainDistribution;
+        delete parsedAnalytics.registrationStatus;
+        delete parsedAnalytics.departmentWise;
+        delete parsedAnalytics.participatingColleges;
+        delete parsedAnalytics.yearWise;
+        delete parsedAnalytics.domainWinRates;
+        delete parsedAnalytics.averageWinRate;
+
+        // Calculate real registration trend from bookings
+        if (e.bookings) {
+          const activeBookings = (e.bookings || []).filter(
+            (b: any) => b.status === 'RESERVED' || b.status === 'CONFIRMED' || b.checkedInAt != null
+          );
+          activeBookings.sort(
+            (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+          const trendMap = new Map<string, number>();
+          let cum = 0;
+          if (activeBookings.length === 0) {
+            const createdDate = new Date(e.createdAt).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+            });
+            parsedAnalytics.registrationTrend = [{ date: createdDate, count: 0 }];
+          } else {
+            activeBookings.forEach((b: any) => {
+              const d = new Date(b.createdAt).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+              });
+              cum += b.quantity || 1;
+              trendMap.set(d, cum);
+            });
+            parsedAnalytics.registrationTrend = Array.from(trendMap.entries()).map(
+              ([date, count]) => ({ date, count })
+            );
+          }
+        }
       }
 
       // Compute display status badge
@@ -108,8 +200,13 @@ export class EventService {
         displayStatus = 'UPCOMING';
       }
 
+      const checkedInCount = (e.bookings || []).filter((b: any) => b.checkedInAt !== null).length;
+      const totalBookingsCount = (e.bookings || []).filter((b: any) => b.status === 'CONFIRMED' || b.status === 'RESERVED').length;
+
       return {
         ...e,
+        checkedInCount,
+        totalBookingsCount,
         displayStatus,
         memberPriceINR: (e.memberPrice / 100).toFixed(0),
         nonMemberPriceINR: (e.nonMemberPrice / 100).toFixed(0),
@@ -121,7 +218,7 @@ export class EventService {
   /**
    * Get single event with analytics, incharge, tasks, and attendees
    */
-  async getEventById(id: string) {
+  async getEventById(id: string, viewerUserId?: string) {
     const event = await prisma.event.findUnique({
       where: { id },
       include: {
@@ -166,14 +263,84 @@ export class EventService {
       throw new Error('Event not found.');
     }
 
-    let parsedAnalytics = null;
+    let parsedAnalytics: any = {};
     try {
       if (event.analyticsData) {
         parsedAnalytics = JSON.parse(event.analyticsData);
       }
     } catch {
-      parsedAnalytics = null;
+      parsedAnalytics = {};
     }
+
+    // Increment real page views
+    const currentViews = (Number(parsedAnalytics.pageViews) || 0) + 1;
+    parsedAnalytics.pageViews = currentViews;
+
+    // Track real unique visitors by distinct user IDs
+    let viewerList: string[] = Array.isArray(parsedAnalytics.viewerUserIds)
+      ? parsedAnalytics.viewerUserIds
+      : [];
+    if (viewerUserId && !viewerList.includes(viewerUserId)) {
+      viewerList.push(viewerUserId);
+    }
+    if (viewerList.length === 0) {
+      viewerList = [viewerUserId || 'visitor_1'];
+    }
+    parsedAnalytics.viewerUserIds = viewerList;
+    parsedAnalytics.uniqueVisitors = viewerList.length;
+
+    // Compute REAL registration trajectory trend from actual bookings
+    const activeBookings = (event.bookings || []).filter(
+      (b) => b.status === 'RESERVED' || b.status === 'CONFIRMED' || b.checkedInAt != null
+    );
+    activeBookings.sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+
+    const trendMap = new Map<string, number>();
+    let cumulativeTickets = 0;
+
+    if (activeBookings.length === 0) {
+      const createdDateLabel = new Date(event.createdAt).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      });
+      parsedAnalytics.registrationTrend = [{ date: createdDateLabel, count: 0 }];
+    } else {
+      activeBookings.forEach((b) => {
+        const dateLabel = new Date(b.createdAt).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        });
+        cumulativeTickets += b.quantity || 1;
+        trendMap.set(dateLabel, cumulativeTickets);
+      });
+      parsedAnalytics.registrationTrend = Array.from(trendMap.entries()).map(([date, count]) => ({
+        date,
+        count,
+      }));
+    }
+
+    // Strip legacy static mock data fields
+    delete parsedAnalytics.avgTimeOnPage;
+    delete parsedAnalytics.conversionRate;
+    delete parsedAnalytics.locationsCount;
+    delete parsedAnalytics.geographicDistribution;
+    delete parsedAnalytics.domainDistribution;
+    delete parsedAnalytics.registrationStatus;
+    delete parsedAnalytics.departmentWise;
+    delete parsedAnalytics.participatingColleges;
+    delete parsedAnalytics.yearWise;
+    delete parsedAnalytics.domainWinRates;
+    delete parsedAnalytics.averageWinRate;
+
+    // Persist updated analytics in background
+    prisma.event
+      .update({
+        where: { id },
+        data: { analyticsData: JSON.stringify(parsedAnalytics) },
+      })
+      .catch(() => {});
 
     const now = new Date();
     let displayStatus = 'UPCOMING';
@@ -185,12 +352,54 @@ export class EventService {
       displayStatus = 'UPCOMING';
     }
 
+    const checkedInCount = (event.bookings || []).filter((b: any) => b.checkedInAt !== null).length;
+    const totalBookingsCount = (event.bookings || []).filter((b: any) => b.status === 'CONFIRMED' || b.status === 'RESERVED').length;
+
     return {
       ...event,
+      checkedInCount,
+      totalBookingsCount,
       displayStatus,
       memberPriceINR: (event.memberPrice / 100).toFixed(0),
       nonMemberPriceINR: (event.nonMemberPrice / 100).toFixed(0),
       analytics: parsedAnalytics,
+    };
+  }
+
+  /**
+   * Explicitly record a page view for an event
+   */
+  async recordView(id: string, viewerUserId?: string) {
+    const event = await prisma.event.findUnique({
+      where: { id },
+      select: { id: true, analyticsData: true },
+    });
+    if (!event) throw new Error('Event not found.');
+
+    let parsed: any = {};
+    try {
+      if (event.analyticsData) parsed = JSON.parse(event.analyticsData);
+    } catch {}
+
+    parsed.pageViews = (Number(parsed.pageViews) || 0) + 1;
+    let viewers: string[] = Array.isArray(parsed.viewerUserIds) ? parsed.viewerUserIds : [];
+    if (viewerUserId && !viewers.includes(viewerUserId)) {
+      viewers.push(viewerUserId);
+    }
+    if (viewers.length === 0) {
+      viewers = [viewerUserId || 'visitor_1'];
+    }
+    parsed.viewerUserIds = viewers;
+    parsed.uniqueVisitors = viewers.length;
+
+    await prisma.event.update({
+      where: { id },
+      data: { analyticsData: JSON.stringify(parsed) },
+    });
+
+    return {
+      pageViews: parsed.pageViews,
+      uniqueVisitors: parsed.uniqueVisitors,
     };
   }
 
@@ -252,63 +461,17 @@ export class EventService {
     const memberPrice = Math.round(Number(data.memberPriceINR || 0) * 100);
     const nonMemberPrice = Math.round(Number(data.nonMemberPriceINR || 0) * 100);
 
-    // Default analytics blueprint matching Image 2
-    const defaultAnalytics = {
-      pageViews: Math.floor(600 + Math.random() * 600),
-      uniqueVisitors: Math.floor(400 + Math.random() * 400),
-      avgTimeOnPage: '3m 15s',
-      conversionRate: '17.5%',
-      locationsCount: 5,
-      geographicDistribution: [
-        { city: 'Chennai', state: 'Tamil Nadu', teams: 15, lat: 13.0827, lng: 80.2707 },
-        { city: 'Bangalore', state: 'Karnataka', teams: 11, lat: 12.9716, lng: 77.5946 },
-        { city: 'Hyderabad', state: 'Telangana', teams: 7, lat: 17.3850, lng: 78.4867 },
-        { city: 'Mumbai', state: 'Maharashtra', teams: 4, lat: 19.0760, lng: 72.8777 },
-        { city: 'Coimbatore', state: 'Tamil Nadu', teams: 4, lat: 11.0168, lng: 76.9558 },
-      ],
-      domainDistribution: {
-        'AI/ML': 28,
-        'Web Development': 23,
-        IoT: 19,
-        'Mobile Apps': 17,
-        Blockchain: 13,
-      },
-      registrationStatus: {
-        approved: 25,
-        pending: 4,
-        rejected: 1,
-      },
-      departmentWise: {
-        CSE: 45,
-        ISE: 25,
-        ECE: 18,
-        ME: 12,
-        AIML: 10,
-      },
-      participatingColleges: [
-        { college: 'Sathyabama Institute', city: 'Chennai', teams: 8 },
-        { college: 'VIT Chennai', city: 'Chennai', teams: 6 },
-        { college: 'SRM University', city: 'Chennai', teams: 5 },
-        { college: 'RVCE', city: 'Bangalore', teams: 4 },
-        { college: 'BITS Pilani', city: 'Hyderabad', teams: 3 },
-      ],
-      yearWise: {
-        '2nd Year': 30,
-        '3rd Year': 45,
-        '4th Year': 25,
-      },
+    // Clean initial analytics for newly created events (real data only, no static mocks)
+    const initialAnalytics = {
+      pageViews: 1,
+      uniqueVisitors: 1,
+      viewerUserIds: [creatorUserId],
       registrationTrend: [
-        { date: 'Day 1', count: 5 },
-        { date: 'Day 3', count: 12 },
-        { date: 'Day 5', count: 20 },
-        { date: 'Day 7', count: 29 },
+        {
+          date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          count: 0,
+        },
       ],
-      domainWinRates: [
-        { domain: 'AI/ML', participated: 25, wins: 4, rate: '16.0%' },
-        { domain: 'Web Development', participated: 20, wins: 3, rate: '15.0%' },
-        { domain: 'IoT', participated: 15, wins: 2, rate: '13.3%' },
-      ],
-      averageWinRate: '14.8%',
     };
 
     const newEvent = await prisma.event.create({
@@ -335,7 +498,7 @@ export class EventService {
         inchargeId: data.inchargeId || null,
         prizes: data.prizes || null,
         status: EventStatus.PUBLISHED,
-        analyticsData: JSON.stringify(defaultAnalytics),
+        analyticsData: JSON.stringify(initialAnalytics),
       },
       include: {
         organization: true,
