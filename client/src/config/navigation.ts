@@ -295,6 +295,23 @@ export const navigationConfig: NavigationItem[] = [
     group: 'EVENT OPERATIONS',
     badge: 'Queries',
   },
+  {
+    id: 'organizer-broadcast-announcement',
+    label: 'Broadcast Email Announcement',
+    path: '/organizer/broadcast-announcement',
+    icon: Megaphone,
+    allowedRoles: [ROLES.EVENT_ORGANIZER],
+    group: 'EVENT OPERATIONS',
+  },
+  {
+    id: 'organizer-support',
+    label: 'Help \u0026 Support Desk',
+    path: '/organizer/support',
+    icon: HelpCircle,
+    allowedRoles: [ROLES.EVENT_ORGANIZER],
+    group: 'EVENT OPERATIONS',
+    badge: 'Queries',
+  },
 
   // ===========================================================================
   // 3. TREASURER NAVIGATION
@@ -306,7 +323,8 @@ export const navigationConfig: NavigationItem[] = [
   // - View income, expenses, and current balance.
   // - Generate semester financial reports.
   // - Review payment records and financial audit history.
-  // ===========================================================================
+  // ==============================================
+  
   {
     id: 'treasurer-dashboard',
     label: 'Treasury Overview',

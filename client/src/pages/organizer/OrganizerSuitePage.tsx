@@ -17,10 +17,12 @@ import {
   RefreshCw,
   X,
   CreditCard,
+  Mail,
 } from 'lucide-react';
 import { CampusEventItem, eventService } from '../../services/event.service';
 import { EventAnalyticsView } from '../events/EventAnalyticsView';
 import { EventsModulePage } from '../events/EventsModulePage';
+import { EventAnnouncementModal } from '../../components/events/EventAnnouncementModal';
 
 interface OrganizerSuitePageProps {
   initialTab?: 'events' | 'analytics' | 'revenue' | 'volunteers' | 'checkin';
@@ -60,6 +62,7 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
 
   // Task Modal state
   const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [announcementModalOpen, setAnnouncementModalOpen] = useState(false);
   const [taskForm, setTaskForm] = useState({
     eventId: '',
     title: '',
@@ -272,14 +275,24 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={loadData}
-          disabled={isLoading}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-200/80 hover:bg-slate-50 shadow-xs transition-all self-start sm:self-auto"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-indigo-600' : ''}`} />
-          Refresh Data
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={() => setAnnouncementModalOpen(true)}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 shadow-xs transition-all cursor-pointer"
+          >
+            <Mail className="w-3.5 h-3.5" />
+            <span>Broadcast Email Announcement</span>
+          </button>
+
+          <button
+            onClick={loadData}
+            disabled={isLoading}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-200/80 hover:bg-slate-50 shadow-xs transition-all cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-indigo-600' : ''}`} />
+            Refresh Data
+          </button>
+        </div>
       </div>
 
       {/* Top 5 Quick KPI Counters */}
@@ -989,6 +1002,14 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
                   )}
                   )
                 </button>
+
+                <button
+                  onClick={() => setAnnouncementModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-xs transition-all cursor-pointer ml-1"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>Email Attendees</span>
+                </button>
               </div>
             </div>
 
@@ -1208,6 +1229,15 @@ export const OrganizerSuitePage: React.FC<OrganizerSuitePageProps> = ({
           </div>
         </div>
       )}
+
+      {/* Event Announcement Modal for Nodemailer Broadcast */}
+      <EventAnnouncementModal
+        isOpen={announcementModalOpen}
+        onClose={() => setAnnouncementModalOpen(false)}
+        event={selectedEvent}
+        attendees={attendeeRoster?.attendees || []}
+        onSuccess={(msg) => showToast(msg, 'success')}
+      />
     </div>
   );
 };

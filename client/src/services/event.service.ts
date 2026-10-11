@@ -392,4 +392,40 @@ export const eventService = {
     }>('/events/tickets/verify-checkin', { code });
     return res.data;
   },
+
+  // 15. Send Email Announcement to Registered Attendees with Check-in Filter via Nodemailer
+  async sendEventAnnouncementEmail(
+    eventId: string,
+    payload: {
+      subject: string;
+      message: string;
+      filter: 'ALL' | 'CHECKED_IN' | 'NOT_CHECKED_IN';
+      priority?: string;
+    }
+  ): Promise<{
+    success: boolean;
+    totalRecipients: number;
+    sentCount: number;
+    failedCount: number;
+    eventTitle: string;
+    filter: string;
+    recipients: { name: string; email: string; isCheckedIn: boolean; status: 'SENT' | 'FAILED' }[];
+    message: string;
+  }> {
+    const res = await apiClient.post<{
+      success: boolean;
+      data: {
+        success: boolean;
+        totalRecipients: number;
+        sentCount: number;
+        failedCount: number;
+        eventTitle: string;
+        filter: string;
+        recipients: { name: string; email: string; isCheckedIn: boolean; status: 'SENT' | 'FAILED' }[];
+        message: string;
+      };
+      message: string;
+    }>(`/events/${eventId}/announcement-email`, payload);
+    return res.data.data;
+  },
 };

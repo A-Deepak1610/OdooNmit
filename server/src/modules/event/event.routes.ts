@@ -60,3 +60,10 @@ eventRouter.post(
 
 // Volunteer updates task status
 eventRouter.patch('/tasks/:taskId/status', (req, res) => eventController.updateTaskStatus(req, res));
+
+// Send email announcement to registered attendees with check-in filter (Event Organizer, President, Admin)
+eventRouter.post(
+  '/:id/announcement-email',
+  requireRoles(['PRESIDENT', 'EVENT_ORGANIZER', 'ADMIN']),
+  (req, res) => eventController.sendEventAnnouncementEmail(req, res)
+);

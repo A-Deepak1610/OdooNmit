@@ -272,6 +272,29 @@ export class EventController {
       res.status(400).json({ success: false, message: err.message });
     }
   }
+
+  async sendEventAnnouncementEmail(req: Request, res: Response) {
+    try {
+      const userId = getUserId(req);
+      const { id: eventId } = req.params;
+      const { subject, message, filter = 'ALL', priority = 'NORMAL' } = req.body;
+
+      const result = await eventService.sendEventAnnouncementEmail(eventId, userId, {
+        subject,
+        message,
+        filter,
+        priority,
+      });
+
+      res.status(200).json({
+        success: true,
+        data: result,
+        message: result.message,
+      });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
 }
 
 export const eventController = new EventController();

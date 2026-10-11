@@ -27,6 +27,7 @@ import { useAuthStore } from '../stores/auth.store';
 import { ROLES, getDefaultRole, ROLE_DEFAULT_PATHS } from '../config/roles';
 
 import { LandingPage } from '../pages/LandingPage';
+import { BroadcastAnnouncementPage } from '../pages/organizer/BroadcastAnnouncementPage';
 import { PresidentModulePage } from '../pages/president/PresidentModulePage';
 import { TreasurerModulePage } from '../pages/treasurer/TreasurerModulePage';
 import { EventsModulePage } from '../pages/events/EventsModulePage';
@@ -386,6 +387,10 @@ export const router = createBrowserRouter([
           {
             path: 'tasks',
             element: <Navigate to="/organizer/volunteers" replace />,
+          },
+          {
+            path: 'broadcast-announcement',
+            element: <BroadcastAnnouncementPage />,
           },
           {
             path: 'support',
