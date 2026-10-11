@@ -227,6 +227,181 @@ export class EmailService {
       return null;
     }
   }
+
+  /**
+   * Send Event Announcement Email to Registered Attendee using Nodemailer
+   */
+  async sendEventAnnouncementEmail(payload: EventAnnouncementEmailPayload): Promise<any> {
+    const {
+      recipientEmail,
+      recipientName = 'Attendee',
+      eventTitle,
+      venue = 'Campus Venue',
+      startAt,
+      subject,
+      message,
+      senderName = 'Event Organizing Committee',
+      filterType = 'ALL',
+      bookingNumber,
+      isCheckedIn = false,
+    } = payload;
+
+    if (!recipientEmail || !recipientEmail.includes('@')) {
+      console.warn('⚠️ Invalid recipient email provided for announcement dispatch:', recipientEmail);
+      return null;
+    }
+
+    const eventDateStr = startAt
+      ? new Date(startAt).toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : 'Scheduled Event Date';
+
+    // Audience badge based on check-in filter
+    let audienceBadge = '📢 Official Announcement to Registered Attendees';
+    const checkinStatusTag = isCheckedIn
+      ? '<span style="display:inline-block;padding:4px 10px;border-radius:12px;background:#dcfce7;color:#15803d;font-weight:700;font-size:12px;border:1px solid #86efac;">✅ Check-in Verified: Admitted</span>'
+      : '<span style="display:inline-block;padding:4px 10px;border-radius:12px;background:#fef3c7;color:#b45309;font-weight:700;font-size:12px;border:1px solid #fde68a;">⏳ Check-in Pending at Entrance</span>';
+
+    if (filterType === 'CHECKED_IN') {
+      audienceBadge = '🎯 Exclusive Update for Checked-In Attendees';
+    } else if (filterType === 'NOT_CHECKED_IN') {
+      audienceBadge = '⏳ Reminder for Pre-Registered Attendees (Awaiting Entrance)';
+    }
+
+    // Format multiline message cleanly preserving linebreaks
+    const formattedMessage = message
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br/>');
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${subject}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b;">
+  <div style="max-width:600px;margin:30px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,0.06);border:1px solid #e2e8f0;">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#4338ca 100%);padding:32px 28px;color:#ffffff;text-align:left;">
+      <div style="display:inline-block;background:rgba(255,255,255,0.15);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;border:1px solid rgba(255,255,255,0.25);margin-bottom:12px;">
+        ${audienceBadge}
+      </div>
+      <h1 style="margin:0 0 6px 0;font-size:22px;font-weight:800;line-height:1.3;letter-spacing:-0.5px;">
+        ${eventTitle}
+      </h1>
+      <p style="margin:0;font-size:13px;color:#c7d2fe;font-weight:500;">
+        Broadcast from the Event Organizing Desk
+      </p>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:28px;">
+      <!-- Greeting & Status -->
+      <table style="width:100%;margin-bottom:18px;border-bottom:1px solid #f1f5f9;padding-bottom:14px;">
+        <tr>
+          <td style="text-align:left;">
+            <div style="font-size:16px;font-weight:700;color:#0f172a;">
+              Hello, ${recipientName}
+            </div>
+            ${bookingNumber ? `<div style="font-size:12px;color:#64748b;margin-top:2px;">Ticket Pass #${bookingNumber}</div>` : ''}
+          </td>
+          <td style="text-align:right;">
+            ${checkinStatusTag}
+          </td>
+        </tr>
+      </table>
+
+      <!-- Subject Callout -->
+      <div style="background:#f8fafc;border-left:4px solid #4f46e5;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#6366f1;">
+          Subject
+        </div>
+        <div style="font-size:15px;font-weight:700;color:#1e293b;margin-top:2px;">
+          ${subject}
+        </div>
+      </div>
+
+      <!-- Message Content Box -->
+      <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:24px;font-size:14px;line-height:1.7;color:#334155;box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+        ${formattedMessage}
+      </div>
+
+      <!-- Event Reference Card -->
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:24px;">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;margin-bottom:8px;">
+          Event Details Summary
+        </div>
+        <table style="width:100%;font-size:12px;">
+          <tr>
+            <td style="width:50%;vertical-align:top;">
+              <span style="color:#64748b;display:block;">Date & Time</span>
+              <strong style="color:#0f172a;">${eventDateStr}</strong>
+            </td>
+            <td style="width:50%;vertical-align:top;">
+              <span style="color:#64748b;display:block;">Venue</span>
+              <strong style="color:#0f172a;">${venue}</strong>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Sign-off -->
+      <div style="border-top:1px solid #f1f5f9;padding-top:18px;font-size:13px;color:#475569;">
+        <p style="margin:0 0 4px 0;">Warm regards,</p>
+        <p style="margin:0;font-weight:800;color:#1e1b4b;">${senderName}</p>
+        <p style="margin:2px 0 0 0;font-size:11px;color:#94a3b8;">Event Organizing Committee • CampusMitra</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="background:#f8fafc;padding:16px 28px;text-align:center;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;">
+      This email was sent to ${recipientEmail} because you are registered for ${eventTitle}.<br/>
+      CampusMitra Student Organization System • Built for seamless campus event coordination.
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+    const mailOptions: SendMailOptions = {
+      from: ENV.SMTP_FROM,
+      to: recipientEmail,
+      subject: `📢 ${subject} - ${eventTitle}`,
+      html: htmlContent,
+    };
+
+    try {
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(`✅ Announcement email successfully sent to: ${recipientEmail} (MsgId: ${info.messageId})`);
+      return info;
+    } catch (err: any) {
+      console.error(`❌ Failed to send announcement email to ${recipientEmail}:`, err.message);
+      throw err;
+    }
+  }
+}
+
+export interface EventAnnouncementEmailPayload {
+  recipientEmail: string;
+  recipientName?: string;
+  eventTitle: string;
+  venue?: string;
+  startAt?: Date | string;
+  subject: string;
+  message: string;
+  senderName?: string;
+  filterType?: 'ALL' | 'CHECKED_IN' | 'NOT_CHECKED_IN';
+  bookingNumber?: string;
+  isCheckedIn?: boolean;
 }
 
 export const emailService = new EmailService();
