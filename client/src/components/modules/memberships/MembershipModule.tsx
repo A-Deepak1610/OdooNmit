@@ -1,644 +1,471 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  UserPlus,
   CheckCircle2,
-  Search,
   CreditCard,
-  Send,
+  AlertTriangle,
+  Clock,
+  QrCode,
+  Ticket,
+  ShoppingBag,
+  Vote,
+  Sparkles,
+  Calendar,
+  Building2,
+  User,
+  RefreshCw,
+  Award,
 } from 'lucide-react';
-import { useClubStore } from '../../../stores/club.store';
+import { useAuthStore } from '../../../stores/auth.store';
+import { studentService, MembershipDuesStatus } from '../../../services/student.service';
 import { RazorpayPaymentModal } from '../../shared/RazorpayPaymentModal';
-import { MockMember } from '../../../data/mockClubData';
 
 export const MembershipModule: React.FC = () => {
-  const {
-    members,
-    activeMemberCount,
-    annualDuesAmount,
-    payMembershipDues,
-    registerNewMember,
-  } = useClubStore();
+  const { user } = useAuthStore();
 
-  const [selectedMember, setSelectedMember] = useState<MockMember>(members[0]);
-  const [search, setSearch] = useState('');
-  const [showRegisterForm, setShowRegisterForm] = useState(false);
-  const [isSendingBatch, setIsSendingBatch] = useState(false);
-  const [batchNotice, setBatchNotice] = useState<string | null>(null);
+  const [myDuesStatus, setMyDuesStatus] = useState<MembershipDuesStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [renewing, setRenewing] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
 
-  // New Student Registration Form State
-  const [newStudent, setNewStudent] = useState({
-    name: '',
-    email: '',
-    rollNo: '',
-    dept: 'Computer Science',
-    tier: 'STANDARD' as const,
-  });
-
-  // Razorpay Modal Trigger State
-  const [checkoutTarget, setCheckoutTarget] = useState<{
-    type: 'REGISTER' | 'RENEW';
-    memberId?: string;
-    name: string;
-    email: string;
-    amount: number;
-    title: string;
-    purpose: string;
-  } | null>(null);
-
-  const [registeredNotice, setRegisteredNotice] = useState<string | null>(null);
-
-  const filteredMembers = members.filter(
-    (m) =>
-      m.name.toLowerCase().includes(search.toLowerCase()) ||
-      m.membershipId.toLowerCase().includes(search.toLowerCase()) ||
-      m.email.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const handleStartRegistration = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newStudent.name || !newStudent.email) return;
-
-    setCheckoutTarget({
-      type: 'REGISTER',
-      name: newStudent.name,
-      email: newStudent.email,
-      amount: annualDuesAmount,
-      title: 'New Student Membership & Annual Dues',
-      purpose: `Annual Membership Dues (${newStudent.tier}) for ${newStudent.name}`,
-    });
+  const fetchStatus = async () => {
+    try {
+      setIsLoading(true);
+      const res = await studentService.getMyMembershipStatus();
+      setMyDuesStatus(res);
+    } catch (err) {
+      console.error('Failed to load membership status from backend:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleStartRenewal = (member: MockMember) => {
-    setCheckoutTarget({
-      type: 'RENEW',
-      memberId: member.id,
-      name: member.name,
-      email: member.email,
-      amount: annualDuesAmount,
-      title: `Renew Membership: ${member.name}`,
-      purpose: `Annual Membership Renewal (2026-2027) for ${member.membershipId}`,
-    });
+  useEffect(() => {
+    fetchStatus();
+  }, []);
+
+  const handleRenewSuccess = async () => {
+    try {
+      setRenewing(true);
+      const res = await studentService.renewMembership();
+      setNoticeMessage(res.message || 'Membership renewed successfully for +1 year!');
+      setShowPaymentModal(false);
+      await fetchStatus();
+      setTimeout(() => setNoticeMessage(null), 6000);
+    } catch (err: any) {
+      alert(err.message || 'Renewal failed');
+    } finally {
+      setRenewing(false);
+    }
   };
 
-  const handleSendBatchReminders = () => {
-    setIsSendingBatch(true);
-    setTimeout(() => {
-      setIsSendingBatch(false);
-      setBatchNotice(
-        'Automated renewal notifications & SMS payment links dispatched to all students with pending or lapsing dues.'
-      );
-      setTimeout(() => setBatchNotice(null), 5000);
-    }, 1000);
-  };
+  // Derive display values
+  const clubName = myDuesStatus?.club?.name || 'Tech & AI Innovators Club';
+  const clubCategory = myDuesStatus?.club?.category || 'Technology & Artificial Intelligence';
+  const memberName = user?.name || user?.fullName || 'Club Member';
+  const memberEmail = user?.email || 'member@campusmitra.ac.in';
+  const roleName = myDuesStatus?.role || user?.role || 'MEMBER';
+  const membershipId = `CM-${(user?.id || '01a126f2').substring(0, 8).toUpperCase()}`;
+
+  const duesAmount = myDuesStatus?.duesAmountINR ?? myDuesStatus?.club?.membershipFeeINR ?? 250;
+  const duesStatus = myDuesStatus?.duesStatus || 'ACTIVE';
+  const validUntilDate = myDuesStatus?.validUntil ? new Date(myDuesStatus.validUntil) : null;
+  const isExpiringSoon = duesStatus === 'EXPIRING_SOON';
+  const isOverdue = duesStatus === 'OVERDUE';
+  const hasAlert = myDuesStatus?.hasAlert || isExpiringSoon || isOverdue;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', fontFamily: 'var(--font-family-body)' }}>
+    <div className="space-y-6 pb-12 text-slate-800">
       {/* ── 1. MODULE HEADER ───────────────────────────────── */}
-      <div
-        style={{
-          background: 'white',
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0',
-          padding: '20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '16px',
-        }}
-      >
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 700,
-                color: '#15803d',
-                background: '#dcfce7',
-                padding: '2px 8px',
-                borderRadius: '4px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-              }}
-            >
-              MEMBERSHIP LIFECYCLE & DUES ENGINE
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              OFFICIAL MEMBER PORTAL
             </span>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>
-              Problem Scene: "A new student joins, dues payment & reminders"
-            </span>
+            <span className="text-xs text-slate-400 font-medium">Academic Year 2026-2027</span>
           </div>
-          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#1e293b', margin: '2px 0 2px 0' }}>
-            Digital Membership Sign-ups, Verification & Dues Renewal
-          </h2>
-          <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-            Instant digital pass generation with dues payment, real-time discount entitlements, and automated renewal reminders.
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            My Club Membership & Digital Pass
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Your personal verified membership standing, digital QR door pass, and annual renewal dues status.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div className="flex items-center gap-2.5">
           <button
-            onClick={handleSendBatchReminders}
-            disabled={isSendingBatch}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '6px',
-              border: '1px solid #cbd5e1',
-              background: '#ffffff',
-              color: '#475569',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: isSendingBatch ? 'wait' : 'pointer',
-            }}
+            onClick={fetchStatus}
+            disabled={isLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50"
           >
-            <Send style={{ width: '14px', height: '14px' }} />
-            <span>{isSendingBatch ? 'Dispatching...' : 'Broadcast Renewal Reminders'}</span>
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-indigo-600' : ''}`} />
+            <span>Sync Status</span>
           </button>
 
-          <button
-            onClick={() => setShowRegisterForm(!showRegisterForm)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 16px',
-              borderRadius: '6px',
-              border: 'none',
-              background: '#1e3a8a',
-              color: '#ffffff',
-              fontSize: '13px',
-              fontWeight: 700,
-              cursor: 'pointer',
-            }}
-          >
-            <UserPlus style={{ width: '16px', height: '16px' }} />
-            <span>Sign Up New Student</span>
-          </button>
+          {(isExpiringSoon || isOverdue) && (
+            <button
+              onClick={() => setShowPaymentModal(true)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              <span>Renew Now (₹{duesAmount})</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {batchNotice && (
-        <div
-          style={{
-            background: '#eff6ff',
-            border: '1px solid #bfdbfe',
-            color: '#1e3a8a',
-            padding: '12px 16px',
-            borderRadius: '8px',
-            fontSize: '13px',
-            fontWeight: 600,
-          }}
-        >
-          ✓ {batchNotice}
-        </div>
-      )}
-
-      {registeredNotice && (
-        <div
-          style={{
-            background: '#ecfdf5',
-            border: '1px solid #a7f3d0',
-            color: '#065f46',
-            padding: '12px 16px',
-            borderRadius: '8px',
-            fontSize: '13px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <CheckCircle2 style={{ width: '16px', height: '16px', color: '#10b981' }} />
-            <span>{registeredNotice}</span>
+      {/* Confirmation Notification Toast */}
+      {noticeMessage && (
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl flex items-center justify-between text-xs font-bold shadow-xs animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>{noticeMessage}</span>
           </div>
           <button
-            onClick={() => setRegisteredNotice(null)}
-            style={{ background: 'none', border: 'none', color: '#065f46', fontWeight: 700, cursor: 'pointer' }}
+            onClick={() => setNoticeMessage(null)}
+            className="text-emerald-700 hover:text-emerald-900 cursor-pointer"
           >
             Dismiss
           </button>
         </div>
       )}
 
-      {/* ── NEW STUDENT SIGNUP FORM (COLLAPSIBLE) ───────────── */}
-      {showRegisterForm && (
+      {/* ── 2. BACKEND RENEWAL ALERT BANNER (HIS STATUS ALONE) ── */}
+      {hasAlert && (
         <div
-          style={{
-            background: '#ffffff',
-            borderRadius: '12px',
-            border: '2px solid #2563eb',
-            padding: '24px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-          }}
+          className={`p-5 rounded-2xl border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in ${
+            isOverdue
+              ? 'bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-amber-500/10 border-rose-300'
+              : 'bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-orange-500/10 border-amber-300'
+          }`}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#1e293b', margin: 0 }}>
-                Campus Table Registration Desk
-              </h3>
-              <p style={{ fontSize: '13px', color: '#64748b', margin: '2px 0 0 0' }}>
-                Sign up a new student right at the orientation table. Annual dues: ₹250.
-              </p>
-            </div>
-            <button
-              onClick={() => setShowRegisterForm(false)}
-              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '18px' }}
+          <div className="flex items-start gap-3.5">
+            <div
+              className={`p-2.5 rounded-xl text-white shrink-0 shadow-xs ${
+                isOverdue ? 'bg-rose-600' : 'bg-amber-500'
+              }`}
             >
-              ✕
-            </button>
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span
+                  className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                    isOverdue ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'
+                  }`}
+                >
+                  {isOverdue ? 'Annual Dues Overdue' : 'Renewal Due Soon'}
+                </span>
+                <span className="text-xs font-bold text-slate-700">
+                  {clubName} • {roleName}
+                </span>
+              </div>
+
+              <h3 className="text-base font-extrabold text-slate-900">
+                {myDuesStatus?.alert?.title || (isOverdue ? 'Annual Membership Dues Overdue' : 'Annual Membership Renewal Notice')}
+              </h3>
+
+              <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
+                {myDuesStatus?.alert?.message ||
+                  (isOverdue
+                    ? `Your annual club membership dues of ₹${duesAmount} for ${clubName} are currently overdue. Renew your membership now to maintain member event discounts and voting privileges.`
+                    : `Your annual membership dues of ₹${duesAmount} for ${clubName} expire in ${myDuesStatus?.daysRemaining ?? 10} days. Renew now to stay in good standing.`)}
+              </p>
+
+              <div className="flex items-center gap-3 text-xs text-slate-500 pt-0.5">
+                <span>
+                  Valid Until:{' '}
+                  <strong className="text-slate-800">
+                    {validUntilDate ? validUntilDate.toLocaleDateString() : 'Immediate Renewal Required'}
+                  </strong>
+                </span>
+                <span>•</span>
+                <span>
+                  Annual Dues Fee: <strong className="text-slate-800">₹{duesAmount}</strong>
+                </span>
+              </div>
+            </div>
           </div>
 
-          <form onSubmit={handleStartRegistration} style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
-            <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                Full Student Name *
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Vikramaditya Rao"
-                value={newStudent.name}
-                onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-              />
-            </div>
-
-            <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                Campus Email Address *
-              </label>
-              <input
-                type="email"
-                required
-                placeholder="e.g. vikram.r@campus.edu"
-                value={newStudent.email}
-                onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-              />
-            </div>
-
-            <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                College Roll / Registration No.
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. 7376241CS109"
-                value={newStudent.rollNo}
-                onChange={(e) => setNewStudent({ ...newStudent, rollNo: e.target.value })}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-              />
-            </div>
-
-            <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                Department
-              </label>
-              <select
-                value={newStudent.dept}
-                onChange={(e) => setNewStudent({ ...newStudent, dept: e.target.value })}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-              >
-                <option value="Computer Science">Computer Science & Engineering</option>
-                <option value="Information Science">Information Technology</option>
-                <option value="Electronics">Electronics & Communication</option>
-                <option value="Mechanical">Mechanical Engineering</option>
-                <option value="Design">Visual Design & Arts</option>
-              </select>
-            </div>
-
-            <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
-              <button
-                type="button"
-                onClick={() => setShowRegisterForm(false)}
-                style={{ padding: '10px 18px', background: '#f1f5f9', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                style={{
-                  padding: '10px 20px',
-                  background: '#1e3a8a',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: 700,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                <CreditCard style={{ width: '16px', height: '16px' }} />
-                <span>Pay ₹250 & Register</span>
-              </button>
-            </div>
-          </form>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setShowPaymentModal(true)}
+              disabled={renewing}
+              className={`inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-white text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50 ${
+                isOverdue ? 'bg-rose-600 hover:bg-rose-500' : 'bg-amber-600 hover:bg-amber-500'
+              }`}
+            >
+              <CreditCard className="w-4 h-4" />
+              <span>{renewing ? 'Processing...' : `Pay & Renew (₹${duesAmount})`}</span>
+            </button>
+          </div>
         </div>
       )}
 
-      {/* ── 2. MAIN LAYOUT: MEMBER ROSTER + DIGITAL PASS PREVIEW ────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
-        {/* Left: Member Directory */}
-        <div
-          style={{
-            background: 'white',
-            borderRadius: '12px',
-            border: '1px solid #e2e8f0',
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', margin: 0 }}>
-              Registered Student Members Directory ({members.length})
-            </h3>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#15803d' }}>
-              {activeMemberCount} Dues-Paid Active Members
-            </span>
+      {/* ── 3. MAIN GRID: HIS DIGITAL PASS + STATUS BREAKDOWN ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column: Digital Pass Card (5 cols) */}
+        <div className="lg:col-span-5 space-y-4">
+          <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden border border-indigo-900/50">
+            {/* Background Glow */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+
+            <div className="relative z-10 space-y-5">
+              {/* Card Header */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-500/30 border border-indigo-400/40 flex items-center justify-center font-black text-indigo-300 text-base">
+                    🏛️
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold text-white tracking-wide">{clubName}</h3>
+                    <p className="text-[11px] text-indigo-300/80">{clubCategory}</p>
+                  </div>
+                </div>
+
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                    isOverdue
+                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                      : isExpiringSoon
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                      : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                  }`}
+                >
+                  {isOverdue ? 'Overdue' : isExpiringSoon ? 'Expiring Soon' : 'Active Member'}
+                </span>
+              </div>
+
+              {/* Member Details */}
+              <div className="pt-2 border-t border-indigo-800/50 flex items-center gap-3.5">
+                <div className="w-13 h-13 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 p-0.5 shrink-0 shadow-md">
+                  <div className="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center text-lg font-black text-white">
+                    {memberName.charAt(0)}
+                  </div>
+                </div>
+                <div className="space-y-0.5 overflow-hidden">
+                  <h4 className="text-base font-extrabold text-white truncate">{memberName}</h4>
+                  <p className="text-xs text-indigo-200/80 truncate">{memberEmail}</p>
+                  <p className="text-[11px] font-mono text-indigo-400 font-semibold">{membershipId}</p>
+                </div>
+              </div>
+
+              {/* QR Code Verification Window */}
+              <div className="bg-white rounded-xl p-4 flex items-center justify-between gap-4 text-slate-900 shadow-md">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-indigo-600 block">
+                    Digital Door Pass
+                  </span>
+                  <div className="text-xs font-bold text-slate-800">Scan at Event Entrance</div>
+                  <div className="text-[10px] text-slate-400 font-mono">Token: SHA-256 Verified</div>
+                </div>
+
+                <div className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 shrink-0">
+                  <QrCode className="w-14 h-14 text-slate-900" />
+                </div>
+              </div>
+
+              {/* Validity Footer */}
+              <div className="pt-2 flex items-center justify-between text-xs border-t border-indigo-800/40 text-indigo-200/80">
+                <div>
+                  <span className="text-[10px] uppercase text-indigo-300/60 block font-semibold">Valid Thru</span>
+                  <span className="font-bold text-white">
+                    {validUntilDate ? validUntilDate.toLocaleDateString() : 'Active (2026-2027)'}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] uppercase text-indigo-300/60 block font-semibold">Annual Status</span>
+                  <span className={`font-bold ${isOverdue ? 'text-rose-400' : 'text-emerald-400'}`}>
+                    {isOverdue ? 'Dues Pending' : 'Dues Paid (Good Standing)'}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Search Box */}
-          <div style={{ position: 'relative' }}>
-            <Search
-              style={{
-                position: 'absolute',
-                left: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: '16px',
-                height: '16px',
-                color: '#94a3b8',
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Search by name, ID (e.g. SSA-2026-0001), or email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 12px 10px 36px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                fontSize: '13px',
-                outline: 'none',
-              }}
-            />
-          </div>
-
-          {/* Table */}
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-              <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
-                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Membership ID</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Student Name</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Dues Status</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569' }}>Expires At</th>
-                  <th style={{ padding: '10px 12px', fontWeight: 600, color: '#475569', textAlign: 'right' }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredMembers.map((m) => (
-                  <tr
-                    key={m.id}
-                    onClick={() => setSelectedMember(m)}
-                    style={{
-                      borderBottom: '1px solid #f1f5f9',
-                      cursor: 'pointer',
-                      background: selectedMember.id === m.id ? '#eff6ff' : 'transparent',
-                    }}
-                  >
-                    <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 700, color: '#1e3a8a' }}>
-                      {m.membershipId}
-                    </td>
-                    <td style={{ padding: '12px' }}>
-                      <div style={{ fontWeight: 600, color: '#1e293b' }}>{m.name}</div>
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>{m.email}</div>
-                    </td>
-                    <td style={{ padding: '12px' }}>
-                      {m.duesPaid ? (
-                        <span
-                          style={{
-                            background: '#dcfce7',
-                            color: '#15803d',
-                            padding: '2px 8px',
-                            borderRadius: '4px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                          }}
-                        >
-                          ✓ Dues Paid
-                        </span>
-                      ) : (
-                        <span
-                          style={{
-                            background: '#fee2e2',
-                            color: '#dc2626',
-                            padding: '2px 8px',
-                            borderRadius: '4px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                          }}
-                        >
-                          ⚠️ Overdue
-                        </span>
-                      )}
-                    </td>
-                    <td style={{ padding: '12px', color: m.duesPaid ? '#475569' : '#dc2626', fontSize: '12px' }}>
-                      {m.duesExpiresAt}
-                    </td>
-                    <td style={{ padding: '12px', textAlign: 'right' }}>
-                      {!m.duesPaid ? (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleStartRenewal(m);
-                          }}
-                          style={{
-                            padding: '6px 12px',
-                            background: '#1e3a8a',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          Pay Dues
-                        </button>
-                      ) : (
-                        <span style={{ fontSize: '12px', color: '#15803d', fontWeight: 600 }}>
-                          Pass Active
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {/* Quick Action Widget if renewal needed */}
+          {(isExpiringSoon || isOverdue) && (
+            <div className="bg-amber-50 rounded-2xl border border-amber-200 p-4 space-y-2.5">
+              <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
+                <Clock className="w-4 h-4 text-amber-600" />
+                <span>Next Academic Year Renewal Available</span>
+              </div>
+              <p className="text-xs text-amber-800 leading-relaxed">
+                Extend your membership by +365 days now to ensure uninterrupted member privileges.
+              </p>
+              <button
+                onClick={() => setShowPaymentModal(true)}
+                className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <CreditCard className="w-3.5 h-3.5" />
+                <span>Renew Membership (₹{duesAmount})</span>
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Right: Selected Member Digital Card Preview */}
-        <div
-          style={{
-            background: 'white',
-            borderRadius: '12px',
-            border: '1px solid #e2e8f0',
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#1e3a8a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <img src="/logo.png" alt="CampusMitra Logo" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
-                Digital Membership ID Card
-              </span>
+        {/* Right Column: Member Status & Entitlements (7 cols) */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Standing Summary Card */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-base font-extrabold text-slate-900">Membership Credentials</h3>
+                <p className="text-xs text-slate-500">Official club registry details and standings</p>
+              </div>
+
               <span
-                style={{
-                  background: selectedMember.duesPaid ? '#dcfce7' : '#fee2e2',
-                  color: selectedMember.duesPaid ? '#15803d' : '#dc2626',
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                }}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold ${
+                  isOverdue
+                    ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                    : isExpiringSoon
+                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                }`}
               >
-                {selectedMember.duesPaid ? 'Verified Member' : 'Dues Unpaid'}
+                {isOverdue ? (
+                  <>
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                    <span>Dues Overdue</span>
+                  </>
+                ) : isExpiringSoon ? (
+                  <>
+                    <Clock className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Expiring Soon</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Good Standing</span>
+                  </>
+                )}
               </span>
             </div>
 
-            {/* Member Details */}
-            <div>
-              <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Member Name</div>
-              <div style={{ fontSize: '18px', fontWeight: 800, color: '#1e293b' }}>{selectedMember.name}</div>
-              <div style={{ fontSize: '12px', color: '#64748b' }}>{selectedMember.email}</div>
-            </div>
+            {/* 4 Detail Grid Cells */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-slate-500" /> Current Role
+                </span>
+                <div className="text-sm font-extrabold text-slate-900">{roleName}</div>
+                <div className="text-[11px] text-slate-500 font-medium">Voting charter member</div>
+              </div>
 
-            {/* Pass QR Box */}
-            <div
-              style={{
-                background: 'var(--muted)',
-                borderRadius: '10px',
-                padding: '16px',
-                textAlign: 'center',
-                border: '1px solid var(--border)',
-              }}
-            >
-              <img
-                src="/qr-code.png"
-                alt="Membership Pass QR Code"
-                style={{
-                  width: '100px',
-                  height: '100px',
-                  margin: '0 auto',
-                  objectFit: 'contain',
-                  borderRadius: '6px',
-                  display: 'block',
-                }}
-              />
-              <div style={{ fontSize: '12px', fontFamily: 'monospace', fontWeight: 800, color: '#1e3a8a', marginTop: '8px' }}>
-                {selectedMember.membershipId}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-slate-500" /> Club Organization
+                </span>
+                <div className="text-sm font-extrabold text-slate-900 truncate">{clubName}</div>
+                <div className="text-[11px] text-slate-500 font-medium">{clubCategory}</div>
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                Valid Thru: {selectedMember.duesExpiresAt}
-              </div>
-            </div>
 
-            {/* Entitlements Checklist */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: selectedMember.duesPaid ? '#15803d' : '#94a3b8' }}>
-                <CheckCircle2 style={{ width: '14px', height: '14px' }} />
-                <span>60% discount on Gala tickets (₹100 vs ₹250)</span>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-slate-500" /> Validity Expiry
+                </span>
+                <div className="text-sm font-extrabold text-slate-900">
+                  {validUntilDate ? validUntilDate.toLocaleDateString() : 'Annual Charter 2027'}
+                </div>
+                <div className="text-[11px] text-slate-500 font-medium">
+                  {myDuesStatus?.daysRemaining !== undefined && myDuesStatus?.daysRemaining !== null
+                    ? `${myDuesStatus.daysRemaining} days remaining`
+                    : 'Active Standing'}
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: selectedMember.duesPaid ? '#15803d' : '#94a3b8' }}>
-                <CheckCircle2 style={{ width: '14px', height: '14px' }} />
-                <span>20% off on official club hoodies & T-shirts</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: selectedMember.duesPaid ? '#15803d' : '#94a3b8' }}>
-                <CheckCircle2 style={{ width: '14px', height: '14px' }} />
-                <span>Voting eligibility in annual officer elections</span>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block flex items-center gap-1.5">
+                  <CreditCard className="w-3.5 h-3.5 text-slate-500" /> Annual Dues Rate
+                </span>
+                <div className="text-sm font-extrabold text-slate-900">₹{duesAmount} / Year</div>
+                <div className="text-[11px] font-medium text-emerald-600">
+                  {isOverdue ? 'Pending Payment' : 'Dues Settled'}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Renewal Action if unpaid */}
-          {!selectedMember.duesPaid && (
-            <button
-              onClick={() => handleStartRenewal(selectedMember)}
-              style={{
-                marginTop: '16px',
-                padding: '10px',
-                background: '#1e3a8a',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-              }}
-            >
-              <CreditCard style={{ width: '16px', height: '16px' }} />
-              <span>Renew Membership (₹250)</span>
-            </button>
-          )}
+          {/* Member Entitlements & Privileges Grid */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-indigo-600" />
+              <h3 className="text-base font-extrabold text-slate-900">
+                Active Member Entitlements & Perks
+              </h3>
+            </div>
+            <p className="text-xs text-slate-500">
+              Your registered charter standing unlocks special discounts, door admission and voting privileges across campus:
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+              <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white hover:border-indigo-300 transition-all flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600 shrink-0">
+                  <Ticket className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-extrabold text-slate-900">60% Gala & Event Discount</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                    Automatic member rates on all symposium, hackathon and annual gala passes.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white hover:border-indigo-300 transition-all flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-purple-50 text-purple-600 shrink-0">
+                  <ShoppingBag className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-extrabold text-slate-900">20% Apparel & Merch Discount</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                    Exclusive member pricing on embroidered hoodies, caps and stationery.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white hover:border-indigo-300 transition-all flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600 shrink-0">
+                  <Vote className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-extrabold text-slate-900">Elections Voting Rights</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                    Official franchise to cast ballots and run for club executive leadership.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white hover:border-indigo-300 transition-all flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-amber-50 text-amber-600 shrink-0">
+                  <Award className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-extrabold text-slate-900">Instant Door Pass Scanning</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                    Fast-track check-in via your encrypted digital QR pass on mobile.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Razorpay Dues Checkout Modal */}
-      {checkoutTarget && (
+      {/* ── 4. RAZORPAY / MOCK DUES PAYMENT MODAL ───────────── */}
+      {showPaymentModal && (
         <RazorpayPaymentModal
-          isOpen={Boolean(checkoutTarget)}
-          onClose={() => setCheckoutTarget(null)}
-          title={checkoutTarget.title}
-          purpose={checkoutTarget.purpose}
-          amount={checkoutTarget.amount}
-          payerName={checkoutTarget.name}
-          payerEmail={checkoutTarget.email}
-          onSuccess={(receipt) => {
-            if (checkoutTarget.type === 'REGISTER') {
-              const created = registerNewMember(
-                {
-                  name: newStudent.name,
-                  email: newStudent.email,
-                  tier: newStudent.tier,
-                  duesPaid: true,
-                  duesExpiresAt: 'May 31, 2027',
-                  renewalAlert: false,
-                  discountEligible: true,
-                },
-                receipt
-              );
-              setRegisteredNotice(
-                `Welcome ${created.name}! Digital pass created with ID ${created.membershipId}. Annual dues of ₹250 paid successfully.`
-              );
-              setShowRegisterForm(false);
-              setSelectedMember(created);
-            } else if (checkoutTarget.type === 'RENEW' && checkoutTarget.memberId) {
-              payMembershipDues(checkoutTarget.memberId, receipt);
-              setRegisteredNotice(
-                `Membership Renewed! Dues paid for ${checkoutTarget.name}. Valid until May 31, 2027.`
-              );
-            }
-            setCheckoutTarget(null);
-          }}
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          title={`Renew Annual Membership - ${clubName}`}
+          purpose={`Annual Membership Dues Extension (+365 Days) for ${clubName}`}
+          organizationId={'01a127d9-1403-720b-8909-ed5f464fa9cd'}
+          amount={duesAmount}
+          payerName={memberName}
+          payerEmail={memberEmail}
+          onSuccess={handleRenewSuccess}
         />
       )}
     </div>

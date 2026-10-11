@@ -40,6 +40,11 @@ export interface PresidentMember {
   userId: string;
   role: 'PRESIDENT' | 'TREASURER' | 'EVENT_ORGANIZER' | 'VOLUNTEER' | 'MEMBER' | 'STUDENT';
   assignedAt: string;
+  validUntil?: string | null;
+  duesPaid?: boolean;
+  daysRemaining?: number | null;
+  duesStatus?: 'ACTIVE' | 'EXPIRING_SOON' | 'UPCOMING' | 'OVERDUE';
+  duesAmountINR?: number;
   user: {
     id: string;
     username: string;
@@ -49,6 +54,38 @@ export interface PresidentMember {
     bio: string | null;
     createdAt: string;
   };
+}
+
+export interface ClubDuesOverview {
+  club: {
+    id: string;
+    name: string;
+    membershipFeeINR: number;
+  };
+  summary: {
+    totalMembers: number;
+    activeCount: number;
+    expiringSoonCount: number;
+    overdueCount: number;
+    pendingCollectionINR: number;
+    annualDuesRateINR: number;
+  };
+  alert: {
+    hasAlert: boolean;
+    title?: string;
+    expiringSoonCount: number;
+    overdueCount: number;
+    totalAlerts: number;
+    pendingAmountINR: number;
+    message: string | null;
+  };
+  hasAlert: boolean;
+  expiringSoonCount: number;
+  overdueCount: number;
+  activeCount: number;
+  totalMembers: number;
+  pendingAmountINR: number;
+  expiringMembers: PresidentMember[];
 }
 
 export interface PresidentApplication {
@@ -190,5 +227,18 @@ export const presidentService = {
       { status }
     );
     return res.data.data;
+  },
+
+  // 7. Membership Dues Overview & Reminders
+  async getDuesOverview(): Promise<ClubDuesOverview> {
+    const res = await apiClient.get<{ success: boolean; data: ClubDuesOverview }>('/president/membership/dues-overview');
+    return res.data.data;
+  },
+
+  async sendDuesReminders(): Promise<{ success: boolean; sentCount: number; message: string }> {
+    const res = await apiClient.post<{ success: boolean; sentCount: number; message: string }>(
+      '/president/membership/send-reminders'
+    );
+    return res.data;
   },
 };

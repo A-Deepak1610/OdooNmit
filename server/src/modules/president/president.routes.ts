@@ -33,3 +33,7 @@ presidentRouter.delete('/members/:memberUserId', (req, res) => presidentControll
 // 6. Membership Applications
 presidentRouter.get('/applications', (req, res) => presidentController.getApplications(req, res));
 presidentRouter.patch('/applications/:id/review', (req, res) => presidentController.reviewApplication(req, res));
+
+// 7. Membership Dues Overview & Reminders
+presidentRouter.get('/membership/dues-overview', (req, res) => presidentController.getDuesOverview(req, res));
+presidentRouter.post('/membership/send-reminders', (req, res) => presidentController.sendDuesReminders(req, res));

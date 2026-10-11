@@ -135,12 +135,10 @@ export class StudentService {
     }
 
     // Check existing application
-    const existing = await prisma.membershipApplication.findUnique({
+    const existing = await prisma.membershipApplication.findFirst({
       where: {
-        userId_organizationId: {
-          userId,
-          organizationId,
-        },
+        userId,
+        organizationId,
       },
     });
 
@@ -248,6 +246,7 @@ export class StudentService {
         hasVoted: Boolean(userVote),
         votedCandidateId: userVote ? userVote.candidateId : null,
         myNomination: myCandidate,
+        winnerCandidateId: elec.winnerCandidateId,
       };
     });
   }
@@ -388,6 +387,186 @@ export class StudentService {
 
       return vote;
     });
+  }
+
+  /**
+   * 8. Get Member's Active Membership Status, Dues Status & Renewal Alert
+   */
+  async getMyMembershipStatus(userId: string) {
+    const roleRecord = await prisma.userRole.findFirst({
+      where: {
+        userId,
+        organizationId: { not: null },
+        role: { in: ['MEMBER', 'PRESIDENT', 'TREASURER', 'EVENT_ORGANIZER', 'VOLUNTEER'] },
+      },
+      include: {
+        organization: true,
+      },
+    });
+
+    if (!roleRecord || !roleRecord.organization) {
+      // Check if user has a pending application
+      const app = await prisma.membershipApplication.findFirst({
+        where: { userId },
+        include: { organization: true },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return {
+        hasMembership: false,
+        application: app,
+        alert: null,
+      };
+    }
+
+    const club = roleRecord.organization;
+    const now = new Date();
+    const feeINR = Math.round(club.membershipFee / 100);
+
+    let daysRemaining: number | null = null;
+    let duesStatus: 'ACTIVE' | 'EXPIRING_SOON' | 'UPCOMING' | 'OVERDUE' = 'ACTIVE';
+
+    if (roleRecord.validUntil) {
+      daysRemaining = Math.ceil((new Date(roleRecord.validUntil).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysRemaining <= 0 || !roleRecord.duesPaid) {
+        duesStatus = 'OVERDUE';
+      } else if (daysRemaining <= 15) {
+        duesStatus = 'EXPIRING_SOON';
+      } else if (daysRemaining <= 30) {
+        duesStatus = 'UPCOMING';
+      } else {
+        duesStatus = 'ACTIVE';
+      }
+    } else if (!roleRecord.duesPaid) {
+      duesStatus = 'OVERDUE';
+    }
+
+    let alert = null;
+    if (duesStatus === 'OVERDUE') {
+      alert = {
+        hasAlert: true,
+        severity: 'danger',
+        duesStatus,
+        daysRemaining,
+        duesAmountINR: feeINR,
+        title: '🚨 Annual Membership Dues Overdue',
+        message: `Your annual membership dues of ₹${feeINR} for ${club.name} are overdue. Renew your membership now to maintain member event discounts and voting privileges.`,
+      };
+    } else if (duesStatus === 'EXPIRING_SOON') {
+      alert = {
+        hasAlert: true,
+        severity: 'warning',
+        duesStatus,
+        daysRemaining,
+        duesAmountINR: feeINR,
+        title: '⚠️ Membership Renewal Notice',
+        message: `Your annual membership dues of ₹${feeINR} for ${club.name} are due in ${daysRemaining} day${(daysRemaining ?? 0) > 1 ? 's' : ''} (expires on ${new Date(roleRecord.validUntil!).toLocaleDateString()}). Renew now to stay in good standing.`,
+      };
+    } else {
+      alert = {
+        hasAlert: false,
+        severity: 'success',
+        duesStatus,
+        daysRemaining,
+        duesAmountINR: feeINR,
+        title: '✅ Membership In Good Standing',
+        message: `Your membership is active and all dues are paid through ${roleRecord.validUntil ? new Date(roleRecord.validUntil).toLocaleDateString() : 'the academic year'}.`,
+      };
+    }
+
+    return {
+      hasMembership: true,
+      role: roleRecord.role,
+      assignedAt: roleRecord.assignedAt,
+      validUntil: roleRecord.validUntil,
+      duesPaid: roleRecord.duesPaid,
+      daysRemaining,
+      duesStatus,
+      duesAmountINR: feeINR,
+      hasAlert: alert.hasAlert,
+      club: {
+        id: club.id,
+        name: club.name,
+        slug: club.slug,
+        category: club.category,
+        logoUrl: club.logoUrl,
+        membershipFeeINR: feeINR,
+      },
+      alert,
+    };
+  }
+
+  /**
+   * 9. Renew Membership (1-Click Simulated Fee Payment)
+   */
+  async renewMembership(userId: string) {
+    const roleRecord = await prisma.userRole.findFirst({
+      where: {
+        userId,
+        organizationId: { not: null },
+        role: { in: ['MEMBER', 'PRESIDENT', 'TREASURER', 'EVENT_ORGANIZER', 'VOLUNTEER'] },
+      },
+      include: { organization: true },
+    });
+
+    if (!roleRecord || !roleRecord.organization) {
+      throw new Error('No active club membership found to renew.');
+    }
+
+    const club = roleRecord.organization;
+    const feePaise = club.membershipFee;
+    const feeINR = Math.round(feePaise / 100);
+
+    // Extend validity by +365 days
+    const currentExpiry = roleRecord.validUntil && new Date(roleRecord.validUntil) > new Date()
+      ? new Date(roleRecord.validUntil)
+      : new Date();
+    const newValidUntil = new Date(currentExpiry.getTime() + 365 * 24 * 60 * 60 * 1000);
+
+    // Update user role
+    await prisma.userRole.update({
+      where: { id: roleRecord.id },
+      data: {
+        validUntil: newValidUntil,
+        duesPaid: true,
+      },
+      include: { organization: true },
+    });
+
+    // Record mock captured payment
+    await prisma.payment.create({
+      data: {
+        id: uuidv7(),
+        userId,
+        amount: feePaise,
+        currency: 'INR',
+        status: 'CAPTURED',
+        razorpayPaymentId: `mock_dues_${Math.random().toString(36).substring(2, 10)}`,
+        razorpayOrderId: `mock_ord_${Math.random().toString(36).substring(2, 10)}`,
+        capturedAt: new Date(),
+      },
+    });
+
+    // Create notification for member
+    await prisma.notification.create({
+      data: {
+        id: uuidv7(),
+        userId,
+        title: `🎉 Membership Renewed: ${club.name}`,
+        message: `Your annual membership has been renewed for 1 full year through ${newValidUntil.toLocaleDateString()}. Thank you for being a valued member!`,
+        type: 'MEMBERSHIP_RENEWED',
+        link: '/member/membership',
+      },
+    });
+
+    return {
+      success: true,
+      validUntil: newValidUntil,
+      duesPaid: true,
+      duesStatus: 'ACTIVE',
+      amountINR: feeINR,
+      message: `Membership for ${club.name} successfully renewed through ${newValidUntil.toLocaleDateString()}!`,
+    };
   }
 }
 

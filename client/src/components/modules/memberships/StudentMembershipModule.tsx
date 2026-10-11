@@ -34,6 +34,7 @@ export const StudentMembershipModule: React.FC = () => {
   const [checkoutTarget, setCheckoutTarget] = useState<{
     type: 'REGISTER' | 'RENEW';
     memberId?: string;
+    organizationId?: string;
     name: string;
     email: string;
     amount: number;
@@ -55,6 +56,7 @@ export const StudentMembershipModule: React.FC = () => {
     setCheckoutTarget({
       type: 'RENEW',
       memberId: currentMember.id,
+      organizationId: '01a127d9-1403-720b-8909-ed5f464fa9cd',
       name: currentMember.name,
       email: currentMember.email,
       amount: annualDuesAmount,
@@ -69,6 +71,7 @@ export const StudentMembershipModule: React.FC = () => {
 
     setCheckoutTarget({
       type: 'REGISTER',
+      organizationId: '01a127d9-1403-720b-8909-ed5f464fa9cd',
       name: studentName,
       email: studentEmail,
       amount: annualDuesAmount,
@@ -649,6 +652,7 @@ export const StudentMembershipModule: React.FC = () => {
           onClose={() => setCheckoutTarget(null)}
           title={checkoutTarget.title}
           purpose={checkoutTarget.purpose}
+          organizationId={checkoutTarget.organizationId}
           amount={checkoutTarget.amount}
           payerName={checkoutTarget.name}
           payerEmail={checkoutTarget.email}

@@ -132,6 +132,27 @@ export class StudentController {
       res.status(400).json({ success: false, message: err.message });
     }
   }
+
+  // 4. Member Dues Status & Renewal
+  async getMyMembershipStatus(req: Request, res: Response) {
+    try {
+      const userId = getUserId(req);
+      const data = await studentService.getMyMembershipStatus(userId);
+      res.json({ success: true, data });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  async renewMembership(req: Request, res: Response) {
+    try {
+      const userId = getUserId(req);
+      const data = await studentService.renewMembership(userId);
+      res.json(data);
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
 }
 
 export const studentController = new StudentController();

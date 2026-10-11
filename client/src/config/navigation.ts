@@ -10,13 +10,18 @@ import {
   CheckSquare,  
   Receipt,
   Users,
-  DollarSign,
   PieChart,
   Building2,
   QrCode,
   Vote,
   Database,
   Bell,
+  TrendingUp,
+  CreditCard,
+  ShieldCheck,
+  Wallet,
+  Package,
+  DollarSign,
 } from 'lucide-react';
 
 /**
@@ -63,6 +68,22 @@ export const navigationConfig: NavigationItem[] = [
     allowedRoles: [ROLES.STUDENT],
     badge: 'Notice',
   },
+  {
+    id: 'student-events',
+    label: 'Events & Ticket Passes',
+    path: '/student/events',
+    icon: Calendar,
+    allowedRoles: [ROLES.STUDENT],
+    badge: 'Events',
+  },
+  {
+    id: 'student-merchandise',
+    label: 'Campus Merchandise & Store',
+    path: '/student/merchandise',
+    icon: ShoppingBag,
+    allowedRoles: [ROLES.STUDENT],
+    badge: 'Store',
+  },
 
   // Member Hub
   {
@@ -74,8 +95,16 @@ export const navigationConfig: NavigationItem[] = [
     group: 'MAIN',
   },
   {
+    id: 'member-events',
+    label: 'Events & Ticket Passes',
+    path: '/member/events',
+    icon: Calendar,
+    allowedRoles: [ROLES.MEMBER],
+    group: 'MEMBER HUB',
+  },
+  {
     id: 'member-tickets',
-    label: 'My Tickets & QR Passes',
+    label: 'My Booked Passes & QR',
     path: '/member/tickets',
     icon: Ticket,
     allowedRoles: [ROLES.MEMBER],
@@ -170,8 +199,8 @@ export const navigationConfig: NavigationItem[] = [
 
   // ===========================================================================
   // 4. EVENT ORGANIZER NAVIGATION
-  // Create events, set member/non-member prices, monitor capacity,
-  // scan tickets & prevent duplicates, verify membership, view revenue.
+  // Tickets & quotas, Mapbox analytics, revenue & fee collections,
+  // volunteer squad management, and event-day live check-in analysis.
   // ===========================================================================
   {
     id: 'organizer-dashboard',
@@ -183,73 +212,114 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     id: 'organizer-events',
-    label: 'Events & Ticket Quotas',
+    label: 'Events & Ticket Details',
     path: '/organizer/events',
-    icon: Calendar,
+    icon: Ticket,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
     group: 'EVENT OPERATIONS',
   },
   {
-    id: 'organizer-scanner',
-    label: 'Door Ticket Scanner',
-    path: '/volunteer/scanner',
-    icon: QrCode,
+    id: 'organizer-analytics',
+    label: 'Demographic & Mapbox Analytics',
+    path: '/organizer/analytics',
+    icon: PieChart,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
     group: 'EVENT OPERATIONS',
   },
   {
-    id: 'organizer-attendees',
-    label: 'Attendance & Revenue',
-    path: '/organizer/attendees',
+    id: 'organizer-revenue',
+    label: 'Fee Collection & Revenue',
+    path: '/organizer/revenue',
+    icon: DollarSign,
+    allowedRoles: [ROLES.EVENT_ORGANIZER],
+    group: 'EVENT OPERATIONS',
+  },
+  {
+    id: 'organizer-volunteers',
+    label: 'Volunteer Squad Delegation',
+    path: '/organizer/volunteers',
     icon: Users,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
     group: 'EVENT OPERATIONS',
   },
   {
-    id: 'organizer-tasks',
-    label: 'Logistics Tasks',
-    path: '/organizer/tasks',
-    icon: CheckSquare,
+    id: 'organizer-checkin',
+    label: 'Event Day Live Check-in',
+    path: '/organizer/checkin',
+    icon: UserCheck,
     allowedRoles: [ROLES.EVENT_ORGANIZER],
     group: 'EVENT OPERATIONS',
+    badge: 'Live',
   },
 
   // ===========================================================================
   // 3. TREASURER NAVIGATION
-  // Track dues, tickets, merch, fundraisers; categorize expenses;
-  // review receipts; approve/reject reimbursements; closing balance reports.
+  // Responsible for club finances, records, and reimbursements:
+  // - Track membership dues, ticket sales, merchandise income, and fundraiser income.
+  // - Record and categorize expenses.
+  // - Review reimbursement requests and attached receipts.
+  // - Approve or reject reimbursements and record payouts.
+  // - View income, expenses, and current balance.
+  // - Generate semester financial reports.
+  // - Review payment records and financial audit history.
   // ===========================================================================
   {
     id: 'treasurer-dashboard',
-    label: 'Financial Ledger',
+    label: 'Treasury Overview',
     path: '/treasurer/dashboard',
     icon: LayoutDashboard,
     allowedRoles: [ROLES.TREASURER],
-    group: 'MAIN',
   },
   {
-    id: 'treasurer-transactions',
-    label: 'Income & Expense Journal',
-    path: '/treasurer/transactions',
-    icon: DollarSign,
+    id: 'treasurer-dues',
+    label: 'Dues',
+    path: '/treasurer/dues',
+    icon: Wallet,
     allowedRoles: [ROLES.TREASURER],
-    group: 'FINANCE & BUDGET',
+  },
+  {
+    id: 'treasurer-merchandise',
+    label: 'Merchandise',
+    path: '/treasurer/merchandise',
+    icon: Package,
+    allowedRoles: [ROLES.TREASURER],
+  },
+  {
+    id: 'treasurer-income',
+    label: 'Income Tracker',
+    path: '/treasurer/income',
+    icon: TrendingUp,
+    allowedRoles: [ROLES.TREASURER],
+    badge: '4 Streams',
+  },
+  {
+    id: 'treasurer-expenses',
+    label: 'Expense Journal',
+    path: '/treasurer/expenses',
+    icon: CreditCard,
+    allowedRoles: [ROLES.TREASURER],
   },
   {
     id: 'treasurer-reimbursements',
-    label: 'Reimbursement Audit',
+    label: 'Reimbursements & Receipts',
     path: '/treasurer/reimbursements',
     icon: Receipt,
     allowedRoles: [ROLES.TREASURER],
-    group: 'FINANCE & BUDGET',
+    badge: '1 Pending',
   },
   {
     id: 'treasurer-reports',
-    label: 'Semester Closing Reports',
+    label: 'Semester Reports',
     path: '/treasurer/reports',
     icon: PieChart,
     allowedRoles: [ROLES.TREASURER],
-    group: 'FINANCE & BUDGET',
+  },
+  {
+    id: 'treasurer-audit',
+    label: 'Audit & Payment History',
+    path: '/treasurer/audit',
+    icon: ShieldCheck,
+    allowedRoles: [ROLES.TREASURER],
   },
 
   // ===========================================================================
@@ -298,6 +368,14 @@ export const navigationConfig: NavigationItem[] = [
     path: '/president/events',
     icon: Calendar,
     allowedRoles: [ROLES.PRESIDENT],
+  },
+  {
+    id: 'president-merchandise',
+    label: 'Merchandise & Analytics',
+    path: '/president/merchandise',
+    icon: ShoppingBag,
+    allowedRoles: [ROLES.PRESIDENT],
+    badge: 'Store',
   },
 
   // ===========================================================================

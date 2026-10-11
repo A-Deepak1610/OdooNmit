@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppLayout } from '../layouts/AppLayout';
+import { AuthLayout } from '../layouts/AuthLayout';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { AuthCallbackPage } from '../pages/auth/AuthCallbackPage';
@@ -11,7 +12,6 @@ import { RoleDashboardPage } from '../pages/dashboards/RoleDashboardPage';
 import { EventsTicketingModule } from '../components/modules/events/EventsTicketingModule';
 import { MembershipModule } from '../components/modules/memberships/MembershipModule';
 import { MerchandiseTaskModule } from '../components/modules/merchandise/MerchandiseTaskModule';
-import { FinanceLedgerModule } from '../components/modules/finance/FinanceLedgerModule';
 import { AnnouncementBoardModule } from '../components/modules/announcements/AnnouncementBoardModule';
 import { ElectionsVotingModule } from '../components/modules/elections/ElectionsVotingModule';
 import {
@@ -27,8 +27,9 @@ import { ROLES, getDefaultRole, ROLE_DEFAULT_PATHS } from '../config/roles';
 
 import { LandingPage } from '../pages/LandingPage';
 import { PresidentModulePage } from '../pages/president/PresidentModulePage';
-import { PresidentEventsFundraisersPage } from '../pages/president/PresidentEventsFundraisersPage';
-import { OrganizerEventsPage } from '../pages/organizer/OrganizerEventsPage';
+import { TreasurerModulePage } from '../pages/treasurer/TreasurerModulePage';
+import { EventsModulePage } from '../pages/events/EventsModulePage';
+import { OrganizerSuitePage } from '../pages/organizer/OrganizerSuitePage';
 
 /**
  * Root Landing Page:
@@ -57,6 +58,17 @@ const ModuleRedirect: React.FC<{ subpath: string }> = ({ subpath }) => {
     return <Navigate to={`/login?redirect=/${subpath}`} replace />;
   }
   const activeRole = role || getDefaultRole(user.roles || []);
+
+  if (subpath === 'elections' || subpath === 'voting') {
+    if (activeRole === ROLES.ADMIN) {
+      return <Navigate to="/admin/elections" replace />;
+    }
+    if (activeRole === ROLES.MEMBER) {
+      return <Navigate to="/member/elections" replace />;
+    }
+    return <Navigate to="/student/elections" replace />;
+  }
+
   const rolePrefix =
     activeRole === ROLES.ADMIN
       ? 'admin'
@@ -84,12 +96,17 @@ export const router = createBrowserRouter([
     element: <LandingPage />,
   },
   {
-    path: '/login',
-    element: <LoginPage />,
-  },
-  {
-    path: '/register',
-    element: <LoginPage />,
+    element: <AuthLayout />,
+    children: [
+      {
+        path: '/login',
+        element: <LoginPage />,
+      },
+      {
+        path: '/register',
+        element: <LoginPage />,
+      },
+    ],
   },
   {
     path: '/dashboard',
@@ -138,6 +155,14 @@ export const router = createBrowserRouter([
   {
     path: '/announcements',
     element: <ModuleRedirect subpath="announcements" />,
+  },
+  {
+    path: '/elections',
+    element: <ModuleRedirect subpath="elections" />,
+  },
+  {
+    path: '/voting',
+    element: <ModuleRedirect subpath="elections" />,
   },
 
 
@@ -190,6 +215,18 @@ export const router = createBrowserRouter([
           {
             path: 'apply-membership',
             element: <StudentModulePage />,
+          },
+          {
+            path: 'events',
+            element: <EventsTicketingModule />,
+          },
+          {
+            path: 'tickets',
+            element: <EventsTicketingModule />,
+          },
+          {
+            path: 'merchandise',
+            element: <MerchandiseTaskModule />,
           },
         ],
       },
@@ -299,45 +336,101 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: <OrganizerEventsPage initialTab="ticketing" />,
+            element: <OrganizerSuitePage initialTab="events" />,
+          },
+          {
+            path: 'analytics',
+            element: <OrganizerSuitePage initialTab="analytics" />,
+          },
+          {
+            path: 'revenue',
+            element: <OrganizerSuitePage initialTab="revenue" />,
+          },
+          {
+            path: 'volunteers',
+            element: <OrganizerSuitePage initialTab="volunteers" />,
+          },
+          {
+            path: 'checkin',
+            element: <OrganizerSuitePage initialTab="checkin" />,
           },
           {
             path: 'attendees',
-            element: <OrganizerEventsPage initialTab="analytics" />,
+            element: <Navigate to="/organizer/checkin" replace />,
           },
           {
             path: 'scanner',
-            element: <VolunteerScanner />,
+            element: <Navigate to="/organizer/checkin" replace />,
           },
           {
             path: 'tasks',
-            element: <MerchandiseTaskModule />,
+            element: <Navigate to="/organizer/volunteers" replace />,
           },
         ],
       },
 
       // -----------------------------------------------------------------------
       // TREASURER ROLE ROUTES
+      // Responsible for club finances, records, and reimbursements:
+      // - Track membership dues, ticket sales, merchandise income, and fundraiser income.
+      // - Record and categorize expenses.
+      // - Review reimbursement requests and attached receipts.
+      // - Approve or reject reimbursements and record payouts.
+      // - View income, expenses, and current balance.
+      // - Generate semester financial reports.
+      // - Review payment records and financial audit history.
       // -----------------------------------------------------------------------
       {
         path: 'treasurer',
         element: <ProtectedRoute allowedRoles={[ROLES.TREASURER]} />,
         children: [
           {
+            index: true,
+            element: <Navigate to="/treasurer/dashboard" replace />,
+          },
+          {
             path: 'dashboard',
-            element: <RoleDashboardPage role={ROLES.TREASURER} />,
+            element: <TreasurerModulePage />,
+          },
+          {
+            path: 'dues',
+            element: <TreasurerModulePage />,
+          },
+          {
+            path: 'merchandise',
+            element: <TreasurerModulePage />,
+          },
+          {
+            path: 'finance',
+            element: <TreasurerModulePage />,
+          },
+          {
+            path: 'income',
+            element: <TreasurerModulePage />,
+          },
+          {
+            path: 'expenses',
+            element: <TreasurerModulePage />,
           },
           {
             path: 'transactions',
-            element: <FinanceLedgerModule />,
+            element: <TreasurerModulePage />,
           },
           {
             path: 'reimbursements',
-            element: <FinanceLedgerModule />,
+            element: <TreasurerModulePage />,
           },
           {
             path: 'reports',
-            element: <FinanceLedgerModule />,
+            element: <TreasurerModulePage />,
+          },
+          {
+            path: 'audit',
+            element: <TreasurerModulePage />,
+          },
+          {
+            path: 'audit-history',
+            element: <TreasurerModulePage />,
           },
         ],
       },
@@ -371,11 +464,15 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: <PresidentEventsFundraisersPage />,
+            element: <EventsModulePage roleVariant="PRESIDENT" />,
           },
           {
             path: 'fundraisers',
-            element: <PresidentEventsFundraisersPage />,
+            element: <EventsModulePage roleVariant="PRESIDENT" />,
+          },
+          {
+            path: 'merchandise',
+            element: <MerchandiseTaskModule />,
           },
         ],
       },

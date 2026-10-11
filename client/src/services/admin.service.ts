@@ -21,8 +21,13 @@ export interface ClubItem {
   category: string;
   logoUrl: string | null;
   coverUrl: string | null;
+  websiteUrl?: string | null;
+  instagramUrl?: string | null;
+  linkedinUrl?: string | null;
+  membershipFee: number;
   isActive: boolean;
   createdAt: string;
+  updatedAt?: string;
   memberCount: number;
   ticketCount: number;
   electionCount: number;
@@ -152,14 +157,45 @@ export const adminService = {
     return res.data.data;
   },
 
+  updateClub: async (
+    clubId: string,
+    data: {
+      name?: string;
+      category?: string;
+      description?: string;
+      logoUrl?: string;
+      coverUrl?: string;
+      membershipFee?: number;
+      websiteUrl?: string;
+      instagramUrl?: string;
+      linkedinUrl?: string;
+      isActive?: boolean;
+    }
+  ) => {
+    const res = await apiClient.patch(`/admin/clubs/${clubId}`, data);
+    return res.data.data as ClubItem;
+  },
+
   updateClubStatus: async (clubId: string, isActive: boolean) => {
     const res = await apiClient.patch(`/admin/clubs/${clubId}/status`, { isActive });
     return res.data.data;
   },
 
-  assignPresident: async (clubId: string, userId: string) => {
+  assignPresident: async (clubId: string, userId: string | null) => {
     const res = await apiClient.post(`/admin/clubs/${clubId}/president`, { userId });
     return res.data.data;
+  },
+
+  getAllUsers: async () => {
+    const res = await apiClient.get('/users/all');
+    return res.data.data as Array<{
+      id: string;
+      username: string;
+      fullName: string;
+      email: string;
+      avatarUrl?: string | null;
+      roles?: Array<{ role: string; organizationId?: string | null }>;
+    }>;
   },
 
   // 3. Support Tickets
@@ -202,6 +238,11 @@ export const adminService = {
     return res.data.data;
   },
 
+  updateElectionStatus: async (electionId: string, status: string) => {
+    const res = await apiClient.patch(`/admin/elections/${electionId}/status`, { status });
+    return res.data.data;
+  },
+
   updateCandidateStatus: async (candidateId: string, status: 'APPROVED' | 'REJECTED') => {
     const res = await apiClient.patch(`/admin/elections/candidates/${candidateId}/status`, { status });
     return res.data.data;
@@ -218,7 +259,37 @@ export const adminService = {
   },
 
   // 5. DB Assistant
-  queryDbAssistant: async (query: string) => {
+  queryDbAssistant: async (query: string): Promise<DbAssistantResult> => {
+    try {
+      const directRes = await fetch('http://localhost:8001/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: query.trim() }),
+      });
+      if (directRes.ok) {
+        const data = await directRes.json();
+        const results = data.results || [];
+        const columns = results.length > 0 ? Object.keys(results[0]) : ['Result'];
+        const rows =
+          results.length > 0
+            ? results.map((r: any) => columns.map((col) => String(r[col] ?? '')))
+            : [['No records found']];
+        return {
+          query: data.question,
+          interpretedIntent: data.answer,
+          sqlQuery: data.sql,
+          summaryMetrics: [
+            { label: 'Rows Returned', value: `${results.length}` },
+            { label: 'Database', value: 'TiDB Cloud MySQL' },
+            { label: 'AI Model', value: 'openai/gpt-oss-20b' },
+          ],
+          columns,
+          rows,
+        };
+      }
+    } catch {
+      // Fallback to Express backend /admin/db-assistant
+    }
     const res = await apiClient.post('/admin/db-assistant', { query });
     return res.data.data as DbAssistantResult;
   },

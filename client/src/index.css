@@ -44,7 +44,8 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   font-family: var(--font-family-body);
@@ -82,11 +83,21 @@ body {
   background: var(--muted-foreground);
 }
 
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Landing Page Marquee Vertical Scrolling Animations */
 @keyframes scrollUp {
   0% {
     transform: translateY(0);
   }
+
   100% {
     transform: translateY(-50%);
   }
@@ -96,6 +107,7 @@ body {
   0% {
     transform: translateY(-50%);
   }
+
   100% {
     transform: translateY(0);
   }

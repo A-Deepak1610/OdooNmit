@@ -9,19 +9,20 @@ import {
   Clock,
   Sparkles,
   Search,
-  Plus,
   Loader2,
   X,
   MailCheck,
-  ShieldCheck,
-  Award,
+  ShoppingBag,
+  CreditCard
 } from 'lucide-react';
 import {
   studentService,
   StudentNotificationItem,
   StudentClubItem,
   StudentElectionItem,
+  MembershipDuesStatus,
 } from '../../services/student.service';
+import { ElectionsVotingModule } from '../../components/modules/elections/ElectionsVotingModule';
 
 export const StudentModulePage: React.FC = () => {
   const location = useLocation();
@@ -31,7 +32,7 @@ export const StudentModulePage: React.FC = () => {
   const getTabFromPath = () => {
     const path = location.pathname;
     if (path.includes('/student/notifications')) return 'notifications';
-    if (path.includes('/student/elections')) return 'elections';
+    if (path.includes('/student/elections') || path.includes('/student/voting')) return 'elections';
     if (path.includes('/student/clubs') || path.includes('/student/organizations')) return 'clubs';
     return 'overview';
   };
@@ -48,6 +49,8 @@ export const StudentModulePage: React.FC = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [clubs, setClubs] = useState<StudentClubItem[]>([]);
   const [elections, setElections] = useState<StudentElectionItem[]>([]);
+  const [myDuesStatus, setMyDuesStatus] = useState<MembershipDuesStatus | null>(null);
+  const [renewingDues, setRenewingDues] = useState(false);
 
   // Search & Filters
   const [clubSearch, setClubSearch] = useState('');
@@ -66,17 +69,6 @@ export const StudentModulePage: React.FC = () => {
     semester: '6th Semester',
   });
 
-  // 2. Election President Nomination Modal
-  const [nominationModal, setNominationModal] = useState<{ open: boolean; election: StudentElectionItem | null }>({
-    open: false,
-    election: null,
-  });
-  const [nominationForm, setNominationForm] = useState({
-    statementOfPurpose: '',
-    experience: '',
-    manifesto: '',
-  });
-
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
     setToastMessage({ text, type });
     setTimeout(() => setToastMessage(null), 4000);
@@ -85,20 +77,36 @@ export const StudentModulePage: React.FC = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [notifsData, clubsData, electionsData] = await Promise.all([
+      const [notifsData, clubsData, electionsData, duesData] = await Promise.all([
         studentService.getNotifications(),
         studentService.getClubs(),
         studentService.getElections(),
+        studentService.getMyMembershipStatus().catch(() => null),
       ]);
 
       setNotifications(notifsData.notifications);
       setUnreadCount(notifsData.unreadCount);
       setClubs(clubsData);
       setElections(electionsData);
+      setMyDuesStatus(duesData);
     } catch (err: any) {
       showToast(err.message || 'Failed to sync student data', 'error');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRenewDues = async () => {
+    try {
+      setRenewingDues(true);
+      const res = await studentService.renewMembership();
+      showToast(res.message);
+      const updated = await studentService.getMyMembershipStatus();
+      setMyDuesStatus(updated);
+    } catch (err: any) {
+      showToast(err.message || 'Renewal failed', 'error');
+    } finally {
+      setRenewingDues(false);
     }
   };
 
@@ -161,56 +169,7 @@ export const StudentModulePage: React.FC = () => {
     }
   };
 
-  // ── Handlers: Election Voting & Nomination ────────────────────────────────
-  const handleCastVote = async (electionId: string, candidateId: string) => {
-    setActionLoading(true);
-    try {
-      await studentService.castVote(electionId, candidateId);
-      showToast('Ballot registered! Your 1-time vote was securely recorded.');
-      const updatedElections = await studentService.getElections();
-      setElections(updatedElections);
-    } catch (err: any) {
-      showToast(err.message || 'Vote failed', 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
-  const handleOpenNominationModal = (election: StudentElectionItem) => {
-    setNominationModal({ open: true, election });
-    setNominationForm({
-      statementOfPurpose: '',
-      experience: '',
-      manifesto: '',
-    });
-  };
-
-  const handleSubmitNomination = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!nominationModal.election) return;
-    if (!nominationForm.statementOfPurpose.trim() || !nominationForm.experience.trim()) {
-      showToast('Please fill out why you are applying and your relevant experience.', 'error');
-      return;
-    }
-
-    setActionLoading(true);
-    try {
-      await studentService.applyNomination(nominationModal.election.id, {
-        statementOfPurpose: nominationForm.statementOfPurpose,
-        experience: nominationForm.experience,
-        manifesto: nominationForm.manifesto || nominationForm.statementOfPurpose,
-      });
-
-      showToast('Nomination application submitted! Forwarded to Super Admin for verification.');
-      setNominationModal({ open: false, election: null });
-      const updatedElections = await studentService.getElections();
-      setElections(updatedElections);
-    } catch (err: any) {
-      showToast(err.message || 'Failed to submit nomination', 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   // Filtered Notifications
   const filteredNotifications = notifications.filter((n) => {
@@ -227,14 +186,15 @@ export const StudentModulePage: React.FC = () => {
     );
   });
 
+
+
   return (
     <div className="text-slate-800 pb-12">
       {/* Toast Feedback */}
       {toastMessage && (
         <div
-          className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-semibold transition-all animate-in slide-in-from-bottom-5 ${
-            toastMessage.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
-          }`}
+          className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-semibold transition-all animate-in slide-in-from-bottom-5 ${toastMessage.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
+            }`}
         >
           {toastMessage.type === 'success' ? (
             <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
@@ -287,8 +247,88 @@ export const StudentModulePage: React.FC = () => {
       {/* ── 1. STUDENT OVERVIEW HUB ─────────────────────────────────── */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          {/* 3 Core Metric Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Urgent Membership Renewal Alert Banner */}
+          {myDuesStatus?.hasAlert && myDuesStatus.club && (
+            <div
+              className={`p-5 rounded-2xl border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in ${
+                myDuesStatus.duesStatus === 'OVERDUE'
+                  ? 'bg-rose-50/80 border-rose-200 text-rose-900'
+                  : 'bg-amber-50/80 border-amber-200 text-amber-900'
+              }`}
+            >
+              <div className="flex items-start gap-3.5">
+                <div
+                  className={`p-2.5 rounded-xl text-white shrink-0 shadow-xs ${
+                    myDuesStatus.duesStatus === 'OVERDUE' ? 'bg-rose-600' : 'bg-amber-500'
+                  }`}
+                >
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                        myDuesStatus.duesStatus === 'OVERDUE'
+                          ? 'bg-rose-100 text-rose-800'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}
+                    >
+                      {myDuesStatus.duesStatus === 'OVERDUE' ? 'Dues Overdue' : 'Dues Expiring Soon'}
+                    </span>
+                    <span className="text-xs font-bold text-slate-700">
+                      {myDuesStatus.club.name} • {myDuesStatus.role}
+                    </span>
+                  </div>
+                  <h4 className="text-sm font-extrabold text-slate-900">
+                    {myDuesStatus.alert?.title || 'Annual Membership Renewal Required'}
+                  </h4>
+                  <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
+                    {myDuesStatus.alert?.message ||
+                      `Your annual dues are expiring in ${myDuesStatus.daysRemaining} days. Renew now to retain voting eligibility, member discounts, and good standing.`}
+                  </p>
+                  <div className="flex items-center gap-3 text-xs text-slate-500 pt-0.5">
+                    <span>
+                      Valid Until:{' '}
+                      <strong className="text-slate-800">
+                        {myDuesStatus.validUntil
+                          ? new Date(myDuesStatus.validUntil).toLocaleDateString()
+                          : 'N/A'}
+                      </strong>
+                    </span>
+                    <span>•</span>
+                    <span>
+                      Annual Fee:{' '}
+                      <strong className="text-slate-800">
+                        ₹{myDuesStatus.duesAmountINR ?? myDuesStatus.club.membershipFeeINR ?? 250}
+                      </strong>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={handleRenewDues}
+                  disabled={renewingDues}
+                  className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-white text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50 ${
+                    myDuesStatus.duesStatus === 'OVERDUE'
+                      ? 'bg-rose-600 hover:bg-rose-500'
+                      : 'bg-amber-600 hover:bg-amber-500'
+                  }`}
+                >
+                  <CreditCard className="w-4 h-4" />
+                  <span>
+                    {renewingDues
+                      ? 'Processing...'
+                      : `Renew Membership (₹${myDuesStatus.duesAmountINR ?? myDuesStatus.club.membershipFeeINR ?? 250})`}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 4 Core Metric Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Notifications Card */}
             <div
               onClick={() => navigate('/student/notifications')}
@@ -297,9 +337,8 @@ export const StudentModulePage: React.FC = () => {
               <div className="flex items-center justify-between text-slate-500 mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Notifications</span>
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[11px] font-extrabold ${
-                    unreadCount > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'
-                  }`}
+                  className={`px-2 py-0.5 rounded-full text-[11px] font-extrabold ${unreadCount > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'
+                    }`}
                 >
                   {unreadCount} Unread
                 </span>
@@ -352,6 +391,26 @@ export const StudentModulePage: React.FC = () => {
                 <span>Explore clubs and apply for membership →</span>
               </div>
             </div>
+
+            {/* Merchandise Store Card */}
+            <div
+              onClick={() => navigate('/student/merchandise')}
+              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between text-slate-500 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Campus Merchandise</span>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-purple-100 text-purple-800">
+                  Odoo Swag
+                </span>
+              </div>
+              <div className="text-3xl font-black text-slate-900 group-hover:text-emerald-600 transition-colors">
+                Store
+              </div>
+              <div className="flex items-center gap-1 mt-2 text-xs font-medium text-slate-500">
+                <ShoppingBag   className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Shop Odoo goodies & apparel with member discount →</span>
+              </div>
+            </div>
           </div>
 
           {/* Quick Active Notices */}
@@ -375,14 +434,12 @@ export const StudentModulePage: React.FC = () => {
                 {notifications.slice(0, 4).map((n) => (
                   <div
                     key={n.id}
-                    className={`p-3 rounded-xl border transition-all flex items-start gap-3 ${
-                      !n.isRead ? 'bg-blue-50/50 border-blue-100' : 'bg-slate-50/70 border-slate-100'
-                    }`}
+                    className={`p-3 rounded-xl border transition-all flex items-start gap-3 ${!n.isRead ? 'bg-blue-50/50 border-blue-100' : 'bg-slate-50/70 border-slate-100'
+                      }`}
                   >
                     <div
-                      className={`p-1.5 rounded-lg flex-shrink-0 mt-0.5 ${
-                        !n.isRead ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'
-                      }`}
+                      className={`p-1.5 rounded-lg flex-shrink-0 mt-0.5 ${!n.isRead ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'
+                        }`}
                     >
                       <Sparkles className="w-3.5 h-3.5" />
                     </div>
@@ -429,13 +486,12 @@ export const StudentModulePage: React.FC = () => {
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-bold text-slate-900">{elec.title}</span>
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          elec.status === 'VOTING_OPEN'
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${elec.status === 'VOTING_OPEN'
                             ? 'bg-emerald-100 text-emerald-800'
                             : elec.status === 'NOMINATION_OPEN'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-slate-100 text-slate-700'
-                        }`}
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}
                       >
                         {elec.status.replace('_', ' ')}
                       </span>
@@ -479,31 +535,28 @@ export const StudentModulePage: React.FC = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setNotificationFilter('ALL')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  notificationFilter === 'ALL'
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${notificationFilter === 'ALL'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 All ({notifications.length})
               </button>
               <button
                 onClick={() => setNotificationFilter('UNREAD')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  notificationFilter === 'UNREAD'
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${notificationFilter === 'UNREAD'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 Unread ({unreadCount})
               </button>
               <button
                 onClick={() => setNotificationFilter('SYSTEM')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  notificationFilter === 'SYSTEM'
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${notificationFilter === 'SYSTEM'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 Broadcasts
               </button>
@@ -531,19 +584,17 @@ export const StudentModulePage: React.FC = () => {
               filteredNotifications.map((notif) => (
                 <div
                   key={notif.id}
-                  className={`bg-white rounded-2xl border p-5 shadow-xs transition-all flex items-start justify-between gap-4 ${
-                    !notif.isRead
+                  className={`bg-white rounded-2xl border p-5 shadow-xs transition-all flex items-start justify-between gap-4 ${!notif.isRead
                       ? 'border-blue-200/80 bg-gradient-to-r from-blue-50/30 to-white'
                       : 'border-slate-200/80'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-start gap-3.5 flex-1 min-w-0">
                     <div
-                      className={`p-2.5 rounded-xl flex-shrink-0 mt-0.5 ${
-                        !notif.isRead
+                      className={`p-2.5 rounded-xl flex-shrink-0 mt-0.5 ${!notif.isRead
                           ? 'bg-blue-600 text-white shadow-xs'
                           : 'bg-slate-100 text-slate-500'
-                      }`}
+                        }`}
                     >
                       <Bell className="w-4 h-4" />
                     </div>
@@ -585,208 +636,7 @@ export const StudentModulePage: React.FC = () => {
       )}
 
       {/* ── 3. SEPARATE SCREEN: ELECTIONS & VOTING ───────────────────── */}
-      {activeTab === 'elections' && (
-        <div className="space-y-6">
-          {/* Election Notice Banner */}
-          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 text-white shadow-md flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-1">
-                <Award className="w-4 h-4 text-amber-400" />
-                <span>Annual Campus Elections</span>
-              </div>
-              <h2 className="text-lg font-bold text-white">Student Leadership Democracy & Voting</h2>
-              <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                Review official election notices, vote for your preferred candidate with strict 1-time ballot
-                protection, or apply to run as Club President.
-              </p>
-            </div>
-          </div>
-
-          {/* Elections List */}
-          <div className="space-y-6">
-            {elections.map((elec) => (
-              <div key={elec.id} className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-5">
-                {/* Election Head */}
-                <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="text-xs font-extrabold text-blue-600">{elec.organization.name}</span>
-                      <span className="text-slate-400">•</span>
-                      <span className="text-xs font-semibold text-slate-500">Term {elec.academicYear}</span>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          elec.status === 'VOTING_OPEN'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : elec.status === 'NOMINATION_OPEN'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-slate-100 text-slate-700'
-                        }`}
-                      >
-                        {elec.status.replace('_', ' ')}
-                      </span>
-                    </div>
-                    <h3 className="text-lg font-bold text-slate-900">{elec.title}</h3>
-                    <p className="text-xs text-slate-600 mt-1 max-w-3xl leading-relaxed">{elec.description}</p>
-                  </div>
-
-                  {/* Apply for Club President Trigger */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {elec.myNomination ? (
-                      <div className="px-3 py-1.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-xs font-bold flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-amber-600" />
-                        <span>
-                          President Nomination: {elec.myNomination.status} (Super Admin Review)
-                        </span>
-                      </div>
-                    ) : (
-                      elec.status === 'NOMINATION_OPEN' && (
-                        <button
-                          onClick={() => handleOpenNominationModal(elec)}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold cursor-pointer shadow-xs transition-all"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>Apply for Club President</span>
-                        </button>
-                      )
-                    )}
-                  </div>
-                </div>
-
-                {/* Timeline */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl text-xs font-medium text-slate-600">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-slate-400" />
-                    <span>Nomination Deadline: {new Date(elec.nominationDeadline).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Vote className="w-4 h-4 text-emerald-500" />
-                    <span>
-                      Voting: {new Date(elec.votingStartDate).toLocaleDateString()} -{' '}
-                      {new Date(elec.votingEndDate).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-indigo-500" />
-                    <span>
-                      Status:{' '}
-                      {elec.hasVoted ? (
-                        <strong className="text-emerald-600">You have Voted</strong>
-                      ) : (
-                        'Ballot Available'
-                      )}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Candidate Ballots Section */}
-                <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
-                    Approved Candidates ({elec.candidates.filter((c) => c.status === 'APPROVED').length})
-                  </h4>
-
-                  {elec.candidates.length === 0 ? (
-                    <div className="p-8 rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400">
-                      Nominations are open! Be the first to apply to run for President of this club above.
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {elec.candidates.map((cand) => (
-                        <div
-                          key={cand.id}
-                          className={`p-4 rounded-xl border transition-all flex flex-col justify-between ${
-                            elec.votedCandidateId === cand.id
-                              ? 'border-emerald-500 bg-emerald-50/30'
-                              : 'border-slate-200/80 bg-slate-50/50'
-                          }`}
-                        >
-                          <div>
-                            <div className="flex items-start justify-between gap-2 mb-2">
-                              <div className="flex items-center gap-2.5">
-                                <img
-                                  src={
-                                    cand.user.avatarUrl ||
-                                    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'
-                                  }
-                                  alt={cand.user.fullName}
-                                  className="w-9 h-9 rounded-full object-cover"
-                                />
-                                <div>
-                                  <div className="text-xs font-bold text-slate-900">{cand.user.fullName}</div>
-                                  <div className="text-[10px] text-slate-500">@{cand.user.username}</div>
-                                </div>
-                              </div>
-
-                              <span
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                                  cand.status === 'APPROVED'
-                                    ? 'bg-emerald-100 text-emerald-800'
-                                    : 'bg-amber-100 text-amber-800'
-                                }`}
-                              >
-                                {cand.status}
-                              </span>
-                            </div>
-
-                            {cand.statementOfPurpose && (
-                              <div className="text-[11px] text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200/60 mb-2">
-                                <span className="font-bold text-slate-500 uppercase text-[9px] block">
-                                  Why Applying:
-                                </span>
-                                {cand.statementOfPurpose}
-                              </div>
-                            )}
-
-                            {cand.experience && (
-                              <div className="text-[11px] text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200/60 mb-2">
-                                <span className="font-bold text-slate-500 uppercase text-[9px] block">
-                                  Leadership Experience:
-                                </span>
-                                {cand.experience}
-                              </div>
-                            )}
-
-                            <div className="text-xs text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200/60 leading-relaxed mb-3">
-                              <span className="font-bold text-slate-500 uppercase text-[9px] block">Manifesto:</span>
-                              "{cand.manifesto}"
-                            </div>
-                          </div>
-
-                          {/* Ballot Action */}
-                          <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
-                            <span className="text-xs font-bold text-indigo-700">
-                              {cand.voteCount} Ballots Cast
-                            </span>
-
-                            {elec.status === 'VOTING_OPEN' && cand.status === 'APPROVED' ? (
-                              elec.hasVoted ? (
-                                elec.votedCandidateId === cand.id ? (
-                                  <span className="px-3 py-1 rounded-lg bg-emerald-600 text-white text-xs font-bold flex items-center gap-1">
-                                    <CheckCircle2 className="w-3.5 h-3.5" /> Your Choice
-                                  </span>
-                                ) : (
-                                  <span className="text-xs text-slate-400 font-semibold">Ballot Cast</span>
-                                )
-                              ) : (
-                                <button
-                                  onClick={() => handleCastVote(elec.id, cand.id)}
-                                  disabled={actionLoading}
-                                  className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold cursor-pointer shadow-xs disabled:opacity-50"
-                                >
-                                  Vote for Candidate
-                                </button>
-                              )
-                            ) : null}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {activeTab === 'elections' && <ElectionsVotingModule />}
 
       {/* ── 4. SEPARATE SCREEN: CLUBS & MEMBERSHIP ───────────────────── */}
       {activeTab === 'clubs' && (
@@ -969,92 +819,6 @@ export const StudentModulePage: React.FC = () => {
         </div>
       )}
 
-      {/* 2. President Nomination Modal */}
-      {nominationModal.open && nominationModal.election && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-bold text-slate-900">Run for Club President</h3>
-                <p className="text-xs text-slate-500">
-                  {nominationModal.election.organization.name} • {nominationModal.election.title}
-                </p>
-              </div>
-              <button
-                onClick={() => setNominationModal({ open: false, election: null })}
-                className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-xs">
-              <strong>Notice:</strong> Your nomination application will be forwarded directly to the{' '}
-              <strong>Super Admin</strong> for eligibility verification and manifesto review.
-            </div>
-
-            <form onSubmit={handleSubmitNomination} className="space-y-3.5 text-xs font-bold text-slate-700">
-              <div>
-                <label className="block mb-1">
-                  Why are you applying for President? <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  rows={3}
-                  required
-                  placeholder="Detail your leadership motivation, vision for the club, and goals for the academic term..."
-                  value={nominationForm.statementOfPurpose}
-                  onChange={(e) =>
-                    setNominationForm({ ...nominationForm, statementOfPurpose: e.target.value })
-                  }
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1">
-                  What leadership experience do you have? <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  rows={2}
-                  required
-                  placeholder="Past club roles, event organizing, collegiate initiatives, team leadership..."
-                  value={nominationForm.experience}
-                  onChange={(e) => setNominationForm({ ...nominationForm, experience: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1">Manifesto & Campaign Promise</label>
-                <textarea
-                  rows={2}
-                  placeholder="Key promises to voting students (e.g., industry workshops, hackathons, open mentorship)..."
-                  value={nominationForm.manifesto}
-                  onChange={(e) => setNominationForm({ ...nominationForm, manifesto: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 font-medium text-slate-900"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setNominationModal({ open: false, election: null })}
-                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={actionLoading}
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer disabled:opacity-50"
-                >
-                  Submit for Super Admin Review
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

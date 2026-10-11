@@ -1,6 +1,8 @@
 import { PrismaClient, RoleType, ApplicationStatus } from '@prisma/client';
 import { v7 as uuidv7 } from 'uuid';
 
+export { RoleType, ApplicationStatus };
+
 const prisma = new PrismaClient();
 
 export class PresidentService {
@@ -413,13 +415,131 @@ export class PresidentService {
       orderBy: { assignedAt: 'asc' },
     });
 
-    return userRoles.map((ur) => ({
-      roleId: ur.id,
-      userId: ur.userId,
-      role: ur.role,
-      assignedAt: ur.assignedAt,
-      user: ur.user,
-    }));
+    const now = new Date();
+    const feeINR = Math.round(club.membershipFee / 100);
+
+    return userRoles.map((ur) => {
+      let daysRemaining: number | null = null;
+      let duesStatus: 'ACTIVE' | 'EXPIRING_SOON' | 'UPCOMING' | 'OVERDUE' = 'ACTIVE';
+
+      if (ur.validUntil) {
+        daysRemaining = Math.ceil((new Date(ur.validUntil).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysRemaining <= 0 || !ur.duesPaid) {
+          duesStatus = 'OVERDUE';
+        } else if (daysRemaining <= 15) {
+          duesStatus = 'EXPIRING_SOON';
+        } else if (daysRemaining <= 30) {
+          duesStatus = 'UPCOMING';
+        } else {
+          duesStatus = 'ACTIVE';
+        }
+      } else if (!ur.duesPaid) {
+        duesStatus = 'OVERDUE';
+      }
+
+      return {
+        roleId: ur.id,
+        userId: ur.userId,
+        role: ur.role,
+        assignedAt: ur.assignedAt,
+        validUntil: ur.validUntil,
+        duesPaid: ur.duesPaid,
+        daysRemaining,
+        duesStatus,
+        duesAmountINR: feeINR,
+        user: ur.user,
+      };
+    });
+  }
+
+  /**
+   * Get Club Admin Dues Overview & Real-time Alerts
+   */
+  async getDuesOverview(userId: string) {
+    const club = await this.getPresidentClub(userId);
+    const members = await this.getMembers(userId);
+
+    const feeINR = Math.round(club.membershipFee / 100);
+
+    const expiringSoon = members.filter((m) => m.duesStatus === 'EXPIRING_SOON');
+    const overdue = members.filter((m) => m.duesStatus === 'OVERDUE');
+    const active = members.filter((m) => m.duesStatus === 'ACTIVE' || m.duesStatus === 'UPCOMING');
+
+    const pendingCollectionINR = (expiringSoon.length + overdue.length) * feeINR;
+    const hasAlert = expiringSoon.length > 0 || overdue.length > 0;
+
+    let alertMessage = null;
+    if (hasAlert) {
+      alertMessage = `⚠️ ACTION REQUIRED: ${expiringSoon.length + overdue.length} member(s) have annual dues expiring soon or overdue. Pending collection: ₹${pendingCollectionINR}.`;
+    }
+
+    return {
+      club: {
+        id: club.id,
+        name: club.name,
+        membershipFeeINR: feeINR,
+      },
+      summary: {
+        totalMembers: members.length,
+        activeCount: active.length,
+        expiringSoonCount: expiringSoon.length,
+        overdueCount: overdue.length,
+        pendingCollectionINR,
+        annualDuesRateINR: feeINR,
+      },
+      alert: {
+        hasAlert,
+        title: 'Annual Membership Dues Expiring Soon',
+        expiringSoonCount: expiringSoon.length,
+        overdueCount: overdue.length,
+        totalAlerts: expiringSoon.length + overdue.length,
+        pendingAmountINR: pendingCollectionINR,
+        message: alertMessage,
+      },
+      hasAlert,
+      expiringSoonCount: expiringSoon.length,
+      overdueCount: overdue.length,
+      activeCount: active.length,
+      totalMembers: members.length,
+      pendingAmountINR: pendingCollectionINR,
+      expiringMembers: [...expiringSoon, ...overdue],
+    };
+  }
+
+  /**
+   * Send Dues Reminders to Members with Pending / Near Dues
+   */
+  async sendDuesReminders(userId: string) {
+    const club = await this.getPresidentClub(userId);
+    const overview = await this.getDuesOverview(userId);
+
+    const targetMembers = overview.expiringMembers;
+    let sentCount = 0;
+
+    for (const m of targetMembers) {
+      const daysText =
+        m.daysRemaining !== null && m.daysRemaining > 0
+          ? `due in ${m.daysRemaining} days`
+          : 'currently overdue';
+
+      await prisma.notification.create({
+        data: {
+          id: uuidv7(),
+          userId: m.userId,
+          title: `⚠️ Membership Renewal Notice: ${club.name}`,
+          message: `Your annual membership dues of ₹${overview.club.membershipFeeINR} are ${daysText}. Please complete renewal to preserve active member discounts and privileges.`,
+          type: 'MEMBERSHIP_RENEWAL',
+          link: '/member/membership',
+        },
+      });
+      sentCount++;
+    }
+
+    return {
+      success: true,
+      sentCount,
+      message: `Dispatched renewal reminders to ${sentCount} member(s).`,
+    };
   }
 
   /**

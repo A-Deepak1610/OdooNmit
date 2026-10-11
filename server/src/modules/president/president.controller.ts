@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
-import { presidentService } from './president.service.js';
-import { ApplicationStatus, RoleType } from '@prisma/client';
+import { presidentService, ApplicationStatus, RoleType } from './president.service.js';
 
 const getUserId = (req: Request): string => {
   const user = (req as any).user;
@@ -89,7 +88,7 @@ export class PresidentController {
       const userId = getUserId(req);
       const { id } = req.params;
       const result = await presidentService.deleteAnnouncement(userId, id);
-      res.json({ success: true, ...result });
+      res.json({ ...result });
     } catch (err: any) {
       res.status(400).json({ success: false, message: err.message });
     }
@@ -196,7 +195,29 @@ export class PresidentController {
       const userId = getUserId(req);
       const { memberUserId } = req.params;
       const result = await presidentService.removeMember(userId, memberUserId);
-      res.json({ success: true, ...result });
+      res.json({ ...result });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  // 9. Dues Overview & Alerts
+  async getDuesOverview(req: Request, res: Response) {
+    try {
+      const userId = getUserId(req);
+      const data = await presidentService.getDuesOverview(userId);
+      res.json({ success: true, data });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  // 10. Send Renewal Reminders to Members
+  async sendDuesReminders(req: Request, res: Response) {
+    try {
+      const userId = getUserId(req);
+      const data = await presidentService.sendDuesReminders(userId);
+      res.json(data);
     } catch (err: any) {
       res.status(400).json({ success: false, message: err.message });
     }
