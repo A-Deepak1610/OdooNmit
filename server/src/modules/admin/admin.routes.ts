@@ -26,6 +26,7 @@ router.patch('/tickets/:id/status', requireRoles(['ADMIN']), (req, res) => admin
 
 // Elections & Atomic Voting
 router.get('/elections', (req, res) => adminController.getElections(req, res)); // All authenticated users can view
+router.get('/elections/:id', requireRoles(['ADMIN']), (req, res) => adminController.getElectionDetails(req, res));
 router.post('/elections', requireRoles(['ADMIN']), (req, res) => adminController.createElection(req, res));
 router.patch('/elections/:id/status', requireRoles(['ADMIN']), (req, res) => adminController.updateElectionStatus(req, res));
 router.post('/elections/:id/nominate', (req, res) => adminController.applyNomination(req, res)); // Students can apply

@@ -120,6 +120,16 @@ export class AdminController {
     }
   }
 
+  async getElectionDetails(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const data = await adminService.getElectionDetails(id);
+      return sendSuccess(res, data, 'Election voting details loaded');
+    } catch (err: any) {
+      return sendError(res, err.message, 404);
+    }
+  }
+
   async createElection(req: Request, res: Response) {
     try {
       const data = await adminService.createElection(req.body);

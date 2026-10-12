@@ -13,12 +13,15 @@ import {
   UserCheck,
   UserX,
   RefreshCw,
+  Users,
 } from 'lucide-react';
 import {
   ElectionItem,
   ClubItem,
   adminService,
+  DetailedElectionItem,
 } from '../../../services/admin.service';
+import { AdminCompletedElectionDetails } from './AdminCompletedElectionDetails';
 
 export interface AdminElectionsViewProps {
   elections: ElectionItem[];
@@ -61,6 +64,10 @@ export const AdminElectionsView: React.FC<AdminElectionsViewProps> = ({
   // Action progress states
   const [processingCandidateId, setProcessingCandidateId] = useState<string | null>(null);
   const [processingElectionId, setProcessingElectionId] = useState<string | null>(null);
+
+  // Dedicated Completed Voting Details page state
+  const [selectedElectionDetails, setSelectedElectionDetails] = useState<DetailedElectionItem | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState<boolean>(false);
 
   // Status Filter options
   const filterTabs = [
@@ -239,6 +246,57 @@ export const AdminElectionsView: React.FC<AdminElectionsViewProps> = ({
         };
     }
   };
+
+  const handleViewCompletedDetails = async (electionId: string) => {
+    setLoadingDetails(true);
+    try {
+      const details = await adminService.getElectionDetails(electionId);
+      setSelectedElectionDetails(details);
+    } catch (err: any) {
+      // Graceful fallback from list item
+      const found = elections.find((e) => e.id === electionId);
+      if (found) {
+        const club = clubs.find((c) => c.id === found.organizationId) || {
+          ...found.organization,
+          category: 'Chartered Organization',
+          description: 'Official student organization and chartered campus unit.',
+          isActive: true,
+          memberCount: 0,
+          ticketCount: 0,
+          electionCount: 1,
+          membershipFee: 500,
+          createdAt: found.createdAt,
+          president: null,
+        };
+        setSelectedElectionDetails({
+          ...found,
+          organization: club as any,
+          candidates: found.candidates.map((cand) => ({
+            ...cand,
+            votes: [],
+          })),
+        });
+      } else {
+        showToast(err.message || 'Failed to load election details', 'error');
+      }
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
+  // If a specific election's completed details page is open, render the dedicated view
+  if (selectedElectionDetails) {
+    return (
+      <AdminCompletedElectionDetails
+        election={selectedElectionDetails}
+        onBack={() => setSelectedElectionDetails(null)}
+        onRefresh={async () => {
+          await handleViewCompletedDetails(selectedElectionDetails.id);
+        }}
+        isLoading={loadingDetails}
+      />
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -493,12 +551,36 @@ export const AdminElectionsView: React.FC<AdminElectionsViewProps> = ({
                     </button>
                   )}
 
-                  {/* Finalized Banner */}
+                  {/* Finalized Banner & Completed Details Button */}
                   {isFinalized && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Leadership Ratified</span>
-                    </span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        onClick={() => handleViewCompletedDetails(elec.id)}
+                        disabled={loadingDetails}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer transition-all hover:shadow-sm"
+                        title="View Leaderboard, Winner Showcase and Full Verified Voter Audit"
+                      >
+                        <Trophy className="w-3.5 h-3.5 text-yellow-300" />
+                        <span>Completed Voting Details & Audit</span>
+                      </button>
+
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Leadership Ratified</span>
+                      </span>
+                    </div>
+                  )}
+
+                  {!isFinalized && (elec._count?.votes || 0) > 0 && (
+                    <button
+                      onClick={() => handleViewCompletedDetails(elec.id)}
+                      disabled={loadingDetails}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors"
+                      title="Inspect live ballots and voter list"
+                    >
+                      <Vote className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>Live Audit Tally</span>
+                    </button>
                   )}
                 </div>
               </div>
@@ -694,6 +776,17 @@ export const AdminElectionsView: React.FC<AdminElectionsViewProps> = ({
                                   <span>Cast 1-Time Ballot</span>
                                 </button>
                               ) : null}
+
+                              {isFinalized && (
+                                <button
+                                  onClick={() => handleViewCompletedDetails(elec.id)}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white text-[11px] font-bold cursor-pointer transition-colors"
+                                  title="Inspect candidate vote percentage and voter roster"
+                                >
+                                  <Users className="w-3 h-3" />
+                                  <span>Voter Audit</span>
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>

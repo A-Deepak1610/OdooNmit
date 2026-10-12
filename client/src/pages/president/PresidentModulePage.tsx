@@ -60,11 +60,14 @@ export const PresidentModulePage: React.FC = () => {
   const [members, setMembers] = useState<PresidentMember[]>([]);
   const [applications, setApplications] = useState<PresidentApplication[]>([]);
 
+  const DEFAULT_CLUB_MISSION =
+    'Premier collegiate student organization dedicated to artificial intelligence, machine learning, modern web application development, and open-source innovation. We host weekly technical workshops, 24-hour hackathons, mentor collegiate projects, and connect ambitious engineers with industry leaders.';
+
   // Profile Form State
   const [profileForm, setProfileForm] = useState({
     name: '',
     category: '',
-    description: '',
+    description: DEFAULT_CLUB_MISSION,
     websiteUrl: '',
     instagramUrl: '',
     linkedinUrl: '',
@@ -125,7 +128,7 @@ export const PresidentModulePage: React.FC = () => {
       setProfileForm({
         name: overviewRes.club.name || '',
         category: overviewRes.club.category || '',
-        description: overviewRes.club.description || '',
+        description: overviewRes.club.description || DEFAULT_CLUB_MISSION,
         websiteUrl: overviewRes.club.websiteUrl || '',
         instagramUrl: overviewRes.club.instagramUrl || '',
         linkedinUrl: overviewRes.club.linkedinUrl || '',

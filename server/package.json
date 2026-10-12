@@ -14,6 +14,7 @@
     "prisma:studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
     "seed:clubs": "tsx prisma/seed-clubs.ts",
+    "seed:elections": "tsx prisma/seed-completed-elections.ts",
     "test": "tsx --test src/modules/payment/payment.test.ts",
     "test:concurrency": "tsx --test src/modules/event/ticket-concurrency.test.ts",
     "redis:up": "docker compose -f ../docker-compose.yml up -d redis",

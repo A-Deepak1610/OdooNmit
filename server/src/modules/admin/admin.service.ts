@@ -449,6 +449,68 @@ export class AdminService {
     });
   }
 
+  async getElectionDetails(electionId: string) {
+    const election = await prisma.election.findUnique({
+      where: { id: electionId },
+      include: {
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            category: true,
+            description: true,
+            logoUrl: true,
+            coverUrl: true,
+            websiteUrl: true,
+            instagramUrl: true,
+            linkedinUrl: true,
+            membershipFee: true,
+            isActive: true,
+            createdAt: true,
+          },
+        },
+        candidates: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                username: true,
+                email: true,
+                avatarUrl: true,
+                phone: true,
+                bio: true,
+              },
+            },
+            votes: {
+              include: {
+                voter: {
+                  select: {
+                    id: true,
+                    fullName: true,
+                    username: true,
+                    email: true,
+                    avatarUrl: true,
+                    phone: true,
+                  },
+                },
+              },
+              orderBy: { castAt: 'desc' },
+            },
+          },
+          orderBy: { voteCount: 'desc' },
+        },
+        _count: {
+          select: { votes: true, candidates: true },
+        },
+      },
+    });
+
+    if (!election) throw new Error('Election not found.');
+    return election;
+  }
+
   async createElection(data: {
     title: string;
     organizationId: string;
